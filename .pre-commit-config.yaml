@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: scan-for-secrets
+        name: Prevent committing secrets
+        entry: python scripts/scan_for_secrets.py
+        language: system
+        types: [text]
