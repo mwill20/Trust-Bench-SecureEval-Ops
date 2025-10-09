@@ -28,7 +28,8 @@ except Exception:  # pragma: no cover - import error handled gracefully
 
 
 class GroqProviderError(RuntimeError):
-
+    """Generic provider failure."""
+    pass
 DEFAULT_MAX_CONCURRENCY = int(os.getenv("GROQ_MAX_CONCURRENCY", "4"))
 DEFAULT_RETRIES = int(os.getenv("GROQ_RETRIES", "2"))
 DEFAULT_RETRY_BACKOFF = float(os.getenv("GROQ_RETRY_BACKOFF", "0.5"))
