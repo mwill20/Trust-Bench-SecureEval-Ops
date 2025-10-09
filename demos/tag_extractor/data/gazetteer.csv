@@ -1,0 +1,10 @@
+term,alias
+prompt injection,prompt-injection
+aws s3,s3
+hardcoded secret,hardcoded-secret
+curl | bash,curl-bash
+command injection,command-injection
+sql injection,sql-injection
+xss,xss
+retrieval-augmented-generation,rag
+large language model,large-language-models

@@ -53,3 +53,12 @@ Thumbs.db
 ## Generated evaluation artifacts
 trustbench_core/eval/runs/
 runs/
+
+## Archives & installers
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.lock

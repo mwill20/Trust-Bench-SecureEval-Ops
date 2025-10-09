@@ -1,0 +1,3 @@
+Simple hello-world service with a Dockerfile and small Python app.
+Uses boto3 to communicate with AWS but credentials are loaded from env.
+No obvious secrets or curl | bash calls here.

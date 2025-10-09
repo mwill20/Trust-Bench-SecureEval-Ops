@@ -1,0 +1,2 @@
+Retrieval-augmented-generation demo using embeddings, a vector DB, and a prompt template.
+Focus on RAG, embeddings, and evaluation metrics for QA systems.

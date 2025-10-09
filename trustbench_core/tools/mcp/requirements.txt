@@ -1,0 +1,4 @@
+modelcontextprotocol
+python-dotenv
+requests
+spacy

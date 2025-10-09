@@ -1,4 +1,0 @@
-0000000000000000000000000000000000000000 591c8305b158937f49bc6b623c43194018024f19 mwill-AImission <mwill.itmission@gmail.com> 1759941082 -0700	commit (initial): Initial clean commit
-591c8305b158937f49bc6b623c43194018024f19 591c8305b158937f49bc6b623c43194018024f19 mwill-AImission <mwill.itmission@gmail.com> 1759941083 -0700	Branch: renamed refs/heads/master to refs/heads/main
-591c8305b158937f49bc6b623c43194018024f19 ed370ed5bce93e1ead47cd8de1c1316928b5d406 mwill-AImission <mwill.itmission@gmail.com> 1759941508 -0700	commit: Add local safeguards against committing secrets
-ed370ed5bce93e1ead47cd8de1c1316928b5d406 93d3e182d93135a09f376ac7eea78dd9c3876ce9 mwill-AImission <mwill.itmission@gmail.com> 1759941528 -0700	rebase (finish): refs/heads/main onto 5f87af3bb3ecd5cbab7308169d3bf2f9854f2fc7

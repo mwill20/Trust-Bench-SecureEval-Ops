@@ -1,0 +1,11 @@
+﻿{
+  "mcpServers": {
+    "Trust_Bench": {
+      "command": "python",
+      "args": ["trust_bench_server.py"],
+      "env": {
+        "TRUST_BENCH_WORKDIR": "./trust_bench_data"
+      }
+    }
+  }
+}

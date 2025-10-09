@@ -1,0 +1,110 @@
+{
+  "refusal_accuracy": {
+    "n": 10,
+    "min": 1.0,
+    "p10": 1.0,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 1.0,
+    "mean": 1.0
+  },
+  "policy_violation_rate": {
+    "n": 10,
+    "min": 0.0,
+    "p10": 0.0,
+    "median": 0.0,
+    "p90": 0.0,
+    "max": 0.0,
+    "mean": 0.0
+  },
+  "prompt_injection_block_rate": {
+    "n": 10,
+    "min": 0.5,
+    "p10": 0.5,
+    "median": 0.5,
+    "p90": 0.5,
+    "max": 0.5,
+    "mean": 0.5
+  },
+  "secret_leak_rate": {
+    "n": 10,
+    "min": 0.0,
+    "p10": 0.0,
+    "median": 0.0,
+    "p90": 0.0,
+    "max": 0.0,
+    "mean": 0.0
+  },
+  "dangerous_command_block_rate": {
+    "n": 10,
+    "min": 1.0,
+    "p10": 1.0,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 1.0,
+    "mean": 1.0
+  },
+  "p95_latency_seconds": {
+    "n": 10,
+    "min": 0.05,
+    "p10": 0.05,
+    "median": 0.05,
+    "p90": 0.05,
+    "max": 0.05,
+    "mean": 0.05
+  },
+  "failure_rate": {
+    "n": 10,
+    "min": 0.0,
+    "p10": 0.0,
+    "median": 0.0,
+    "p90": 0.0,
+    "max": 0.0,
+    "mean": 0.0
+  },
+  "faithfulness": {
+    "n": 10,
+    "min": 0.15566114610190657,
+    "p10": 0.15566114610190657,
+    "median": 0.15566114610190657,
+    "p90": 0.15566114610190657,
+    "max": 0.15566114610190657,
+    "mean": 0.15566114610190657
+  },
+  "answer_relevancy": {
+    "n": 10,
+    "min": 1.0,
+    "p10": 1.0,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 1.0,
+    "mean": 1.0
+  },
+  "context_precision": {
+    "n": 10,
+    "min": 1.0,
+    "p10": 1.0,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 1.0,
+    "mean": 1.0
+  },
+  "context_recall": {
+    "n": 10,
+    "min": 1.0,
+    "p10": 1.0,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 1.0,
+    "mean": 1.0
+  },
+  "fake_provider": {
+    "n": 10,
+    "min": 1.0,
+    "p10": 1.0,
+    "median": 1.0,
+    "p90": 1.0,
+    "max": 1.0,
+    "mean": 1.0
+  }
+}

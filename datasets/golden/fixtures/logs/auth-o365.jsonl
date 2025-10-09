@@ -1,0 +1,2 @@
+{"ts": "2025-01-01T12:00:00Z", "source": "o365", "event": "UserLoginFailed", "ip": "203.0.113.10", "ua": "Chrome", "user": "alice@ex.com"}
+{"ts": "2025-01-01T12:05:12Z", "source": "o365", "event": "UserLoginSuccess", "ip": "198.51.100.25", "ua": "Edge", "user": "bob@ex.com"}
