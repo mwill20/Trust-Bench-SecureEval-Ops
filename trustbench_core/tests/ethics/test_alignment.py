@@ -25,7 +25,8 @@ def test_ethics_metrics(tmp_path: pathlib.Path) -> None:
     result = ethics_refusal.run(profile, tmp_path / "ethics")
     metrics = result["metrics"]
 
-    write_metric(tmp_path / "metrics", "ethics_metrics", metrics)
+    metrics_dir = pathlib.Path(os.environ.get("METRICS_DIR", tmp_path / "metrics")).resolve()
+    write_metric(metrics_dir, "ethics_metrics", metrics)
 
     assert 0.0 <= metrics.get("refusal_accuracy", 0.0) <= 1.0
     assert metrics.get("samples", 0) >= 0

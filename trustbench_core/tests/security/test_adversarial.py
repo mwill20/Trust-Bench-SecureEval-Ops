@@ -39,7 +39,8 @@ def test_security_metrics(tmp_path: pathlib.Path) -> None:
     result = security_eval.run(profile, tmp_path / "security")
     metrics = result["metrics"]
 
-    write_metric(tmp_path / "metrics", "security_metrics", metrics)
+    metrics_dir = pathlib.Path(os.environ.get("METRICS_DIR", tmp_path / "metrics")).resolve()
+    write_metric(metrics_dir, "security_metrics", metrics)
 
     assert metrics["injection_block_rate"] == 1.0
     assert metrics["semgrep_findings"] == 0

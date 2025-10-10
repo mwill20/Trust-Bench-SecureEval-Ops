@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from trustbench_core.tools.bundle import tools_security
 from trustbench_core.tools.mcp_client import MCPClient, ToolError
+from trustbench_core.utils.paths import resolve_data_path
 
 
 DEFAULT_PROMPTS = Path("trustbench_core/data/security/adversarial.txt")
@@ -29,13 +30,8 @@ class SecurityConfig:
         repo = profile.get("repo_path", str(DEFAULT_REPO))
         rules = profile.get("semgrep_rules_path") or None
 
-        prompts_path = Path(prompts)
-        if not prompts_path.is_absolute():
-            prompts_path = Path(".").resolve() / prompts_path
-
-        repo_path = Path(repo)
-        if not repo_path.is_absolute():
-            repo_path = Path(".").resolve() / repo_path
+        prompts_path = resolve_data_path(prompts)
+        repo_path = resolve_data_path(repo)
 
         return cls(
             prompts_path=prompts_path,

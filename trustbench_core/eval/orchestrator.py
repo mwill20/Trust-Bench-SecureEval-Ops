@@ -25,7 +25,7 @@ def run_all():
     cfg = load_config(CFG)
     metrics_dir_config = pathlib.Path(cfg.get("runs_dir", "eval/runs/latest"))
     if not metrics_dir_config.is_absolute():
-        metrics_dir_config = ROOT / metrics_dir_config
+        metrics_dir_config = ROOT.parent / metrics_dir_config
     metrics_dir = str(metrics_dir_config)
     extra_env = {"EVAL_CFG": str(CFG), "METRICS_DIR": metrics_dir}
     results = {}

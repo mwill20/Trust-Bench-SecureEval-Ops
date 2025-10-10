@@ -24,7 +24,8 @@ def test_task_performance(tmp_path: pathlib.Path) -> None:
     result = task_fidelity.run(profile, tmp_path / "task")
     metrics = result["metrics"]
 
-    write_metric(tmp_path / "metrics", "task_metrics", metrics)
+    metrics_dir = pathlib.Path(os.environ.get("METRICS_DIR", tmp_path / "metrics")).resolve()
+    write_metric(metrics_dir, "task_metrics", metrics)
 
     assert metrics["samples"] > 0
     assert 0.0 <= metrics.get("faithfulness", 0.0) <= 1.0

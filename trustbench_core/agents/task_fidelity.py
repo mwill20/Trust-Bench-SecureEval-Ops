@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Sequence, Tuple
 
 from trustbench_core.providers import GroqProvider, GroqProviderError
 from trustbench_core.utils.env import resolve_model
+from trustbench_core.utils.paths import resolve_data_path
 
 try:  # pragma: no cover - real path exercised in integration envs
     from ragas import evaluate as ragas_evaluate  # type: ignore
@@ -52,9 +53,7 @@ class TaskFidelityConfig:
         thresholds = profile.get("thresholds", {})
         sampling = profile.get("sampling", {})
         dataset = profile.get("dataset_path", str(DEFAULT_DATASET))
-        dataset_path = Path(dataset)
-        if not dataset_path.is_absolute():
-            dataset_path = Path(".").resolve() / dataset_path
+        dataset_path = resolve_data_path(dataset)
         return cls(
             dataset_path=dataset_path,
             model=resolve_model(profile.get("model", profile.get("provider_model", ""))),

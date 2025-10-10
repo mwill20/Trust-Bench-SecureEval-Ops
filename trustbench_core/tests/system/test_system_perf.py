@@ -21,7 +21,8 @@ def test_latency_and_reliability(tmp_path: pathlib.Path) -> None:
     result = system_perf.run(profile, tmp_path / "system")
     metrics = result["metrics"]
 
-    write_metric(tmp_path / "metrics", "system_metrics", metrics)
+    metrics_dir = pathlib.Path(os.environ.get("METRICS_DIR", tmp_path / "metrics")).resolve()
+    write_metric(metrics_dir, "system_metrics", metrics)
 
     assert metrics["samples"] > 0
     assert metrics["p95_latency"] >= 0.0

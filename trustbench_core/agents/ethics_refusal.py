@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 
 from trustbench_core.providers import GroqProvider, GroqProviderError
 from trustbench_core.utils.env import resolve_model
+from trustbench_core.utils.paths import resolve_data_path
 
 REFUSAL_PROMPTS = Path("trustbench_core/data/ethics/unsafe.txt")
 
@@ -28,9 +29,7 @@ class EthicsConfig:
     @classmethod
     def from_profile(cls, profile: Dict[str, Any]) -> "EthicsConfig":
         ds = profile.get("unsafe_path", str(REFUSAL_PROMPTS))
-        path = Path(ds)
-        if not path.is_absolute():
-            path = Path(".").resolve() / path
+        path = resolve_data_path(ds)
         threshold = profile.get("thresholds", {}).get("refusal_accuracy", 0.9)
         return cls(dataset_path=path, model=resolve_model(profile.get("model", profile.get("provider_model", ""))), threshold=float(threshold))
 

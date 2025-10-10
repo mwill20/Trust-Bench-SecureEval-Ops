@@ -1,5 +1,6 @@
 ## Python artifacts
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -53,6 +54,16 @@ Thumbs.db
 ## Generated evaluation artifacts
 trustbench_core/eval/runs/
 runs/
+eval/runs/*
+!eval/runs/baseline_*/
+!eval/runs/baseline_*/**
+eval/runs/*/artifacts/**
+trust_bench_studio/data/
+trust_bench_studio/cache/
+
+## Streamlit local state
+.streamlit/
+trust_bench_studio/.streamlit/
 
 ## Archives & installers
 *.zip
