@@ -2,80 +2,116 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+import subprocess
+import sys
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import streamlit as st
 
-from trust_bench_studio.utils import load_agents_manifest, synthesize_verdict
+from trust_bench_studio.utils import (
+    load_agents_manifest,
+    synthesize_verdict,
+)
 from trust_bench_studio.utils.llm import explain
+from trust_bench_studio.utils.mcp_client import MCPClient
 from trust_bench_studio.utils.run_store import RunSummary
 
-SVG_TEMPLATE = (
-    "<style>"
-    ".flow-wrap{{display:flex;flex-direction:column;gap:18px;margin-top:8px}}"
-    ".row{{display:flex;align-items:center;justify-content:center;gap:18px}}"
-    ".card{{background:#15171b;border:1px solid #2a2d34;border-radius:12px;padding:12px;min-width:240px;max-width:640px;box-shadow:0 2px 8px rgba(0,0,0,0.25)}}"
-    ".small{{min-width:164px;max-width:210px;text-align:left}}"
-    ".title{{font-weight:600;font-size:15px;margin-bottom:4px}}"
-    ".node{{position:relative;text-align:left}}"
-    ".link{{stroke:#4a4f60;stroke-width:2;fill:none;opacity:0.85}}"
-    ".link.complete{{stroke:#58d68d;stroke-dasharray:none;animation:none}}"
-    ".link.active{{stroke:#9aa7ff}}"
-    ".dash{{stroke-dasharray:6 6;animation:dash 1.8s linear infinite}}"
-    "@keyframes dash {{to{{stroke-dashoffset:-120;}}}}"
-    ".badge{{font-size:12px;opacity:0.85;margin-top:4px}}"
-    ".dropdown{{font-size:13px;opacity:0.9;text-align:left}}"
-    ".dropdown summary{{cursor:pointer;color:#9aa7ff}}"
-    ".dropdown div{{margin-top:6px}}"
-    "</style>"
-    "<div class='flow-wrap'>"
-    "  <div class='row'>"
-    "    <div class='card' style='text-align:left'>"
-    "      <div class='title'>User Input</div>"
-    "      <div id='user-box'></div>"
-    "    </div>"
-    "  </div>"
-    "  <div class='row'>"
-    "    <div class='card node' id='orchestrator'>"
-    "      <div class='title'>Logos - Orchestrator</div>"
-    "      <div class='badge'>State: {orch_state}</div>"
-    "      <div style='font-size:13px;opacity:0.85'>{orch_tip}</div>"
-    "    </div>"
-    "  </div>"
-    "  <div class='row' style='position:relative;height:140px;'>"
-    "    <svg width='1000' height='120' viewBox='0 0 1000 120'>"
-    "      {paths}"
-    "    </svg>"
-    "  </div>"
-    "  <div class='row' id='agent-row' style='flex-wrap:wrap'>"
-    "    {agent_cards}"
-    "  </div>"
-    "</div>"
-)
 
-CARD_TEMPLATE = (
-    "<div class='card small' style='border-top:4px solid {accent}'>"
-    "  <div class='title'>{name}</div>"
-    "  <div class='badge'>State: {state} • Score: {score}</div>"
-    "  <details class='dropdown'><summary>About</summary>"
-    "    <div>{desc}</div>"
-    "  </details>"
-    "  <details class='dropdown'><summary>Skills &amp; Tools</summary>"
-    "    <div>{skills_tools}</div>"
-    "  </details>"
-    "  <div style='margin-top:8px'>{chat_btn}</div>"
-    "</div>"
-)
+def _inject_css() -> None:
+    st.markdown(
+        """
+        <style>
+        .flow-card {background:#15171b;border:1px solid #2c3240;border-radius:12px;
+          padding:12px;min-width:240px;max-width:640px;box-shadow:0 4px 12px rgba(0,0,0,0.18);}
+        .flow-card.small {min-width:170px;max-width:210px;border-radius:12px;
+          border:1px solid #2c3240;background:#14161a;box-shadow:none;transition:box-shadow .2s;}
+        .flow-card.small:hover {box-shadow:0 6px 18px rgba(0,0,0,0.25);border-color:#3a4154;}
+        .flow-title {font-weight:600;font-size:15px;margin-bottom:4px;}
+        .flow-badge {font-size:12px;opacity:0.85;margin-top:4px;}
+        .flow-dropdown {font-size:13px;opacity:0.9;text-align:left;}
+        .flow-dropdown summary {cursor:pointer;color:#9aa7ff;}
+        .flow-row {display:flex;align-items:center;justify-content:center;gap:18px;}
+        .flow-wrap {display:flex;flex-direction:column;gap:18px;margin-top:8px;}
+        .flow-link {stroke:#4b5062;stroke-width:2;fill:none;opacity:.9;}
+        .flow-link.inflight {stroke-dasharray:6 6;animation:dash 1.1s linear infinite;
+          filter:drop-shadow(0 0 3px #8aa2ff);}
+        .flow-link.done {stroke:#8aa2ff;stroke-width:2.5;}
+        @keyframes dash {to{stroke-dashoffset:-120;}}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _flow_template(orch_state: str, orch_tip: str, paths: str, agent_cards: str) -> str:
+    return f"""
+    <div class="flow-wrap">
+      <div class="flow-row">
+        <div class="flow-card" style="text-align:left">
+          <div class="flow-title">User Input</div>
+          <div id="user-box"></div>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-card flow-node" id="orchestrator">
+          <div class="flow-title">Logos - Orchestrator</div>
+          <div class="flow-badge">State: {orch_state}</div>
+          <div style="font-size:13px;opacity:0.85">{orch_tip}</div>
+        </div>
+      </div>
+      <div class="flow-row" style="position:relative;height:140px;">
+        <svg width="1000" height="120" viewBox="0 0 1000 120">
+          {paths}
+        </svg>
+      </div>
+      <div class="flow-row" id="agent-row" style="flex-wrap:wrap">
+        {agent_cards}
+      </div>
+    </div>
+    """
+
+
+def _agent_card(
+    accent: str,
+    name: str,
+    state: str,
+    score: Optional[str],
+    desc: str,
+    skills_tools: str,
+    chat_btn: str,
+) -> str:
+    badge_score = f" • Score: {score}" if score and score != "—" else ""
+    return (
+        "<div class='flow-card small' style='border-top:4px solid {accent}'>"
+        "<div class='flow-title'>{name}</div>"
+        "<div class='flow-badge'>State: {state}{badge_score}</div>"
+        "<details class='flow-dropdown'><summary>About</summary>"
+        "<div>{desc}</div>"
+        "</details>"
+        "<details class='flow-dropdown'><summary>Skills &amp; Tools</summary>"
+        "<div>{skills_tools}</div>"
+        "</details>"
+        "<div style='margin-top:8px'>{chat_btn}</div>"
+        "</div>"
+    ).format(
+        accent=accent,
+        name=name,
+        state=state,
+        badge_score=badge_score,
+        desc=desc,
+        skills_tools=skills_tools,
+        chat_btn=chat_btn,
+    )
 
 
 def _mk_path(x1: float, y1: float, x2: float, y2: float, state: str) -> str:
     state_lower = state.lower()
-    if state_lower == "complete":
-        klass = "link complete"
-    elif state_lower in {"active", "running", "processing"}:
-        klass = "link dash active"
+    if state_lower in {"active", "running", "processing"}:
+        klass = "flow-link inflight"
+    elif state_lower in {"complete", "done", "finished"}:
+        klass = "flow-link done"
     else:
-        klass = "link dash"
+        klass = "flow-link"
     return (
         f"<path class='{klass}' d='M{x1},{y1} C{(x1+x2)/2},{y1} {(x1+x2)/2},{y2} {x2},{y2}' />"
     )
@@ -103,12 +139,24 @@ def _extract_trace(summary: Optional[RunSummary]) -> Dict[str, Any]:
     return agents_map
 
 
-def _state_for_agent(traces: Dict[str, Any], agent_id: str) -> tuple[str, str, Dict[str, Any]]:
+def _state_for_agent(traces: Dict[str, Any], agent_id: str) -> Tuple[str, Optional[str], Dict[str, Any]]:
     trace = traces.get(agent_id.lower(), {}) if traces else {}
     state = str(trace.get("state") or trace.get("status") or "idle")
     score_val = trace.get("score")
-    score = f"{float(score_val):.3f}" if isinstance(score_val, (int, float)) else "—"
+    score = f"{float(score_val):.3f}" if isinstance(score_val, (int, float)) else None
     return state, score, trace
+
+
+def _skills_tools_markup(agent: Dict[str, Any], trace: Dict[str, Any]) -> str:
+    skills = agent.get("skills") or []
+    tools = agent.get("tools") or []
+    if isinstance(trace, dict):
+        skills = skills or trace.get("skills") or []
+        tools = tools or trace.get("tools") or []
+
+    skill_text = " • ".join(str(item) for item in skills) if skills else "—"
+    tool_text = " • ".join(str(item) for item in tools) if tools else "—"
+    return f"<div><b>Skills:</b> {skill_text}</div><div><b>Tools:</b> {tool_text}</div>"
 
 
 def render_flow_view(
@@ -120,6 +168,8 @@ def render_flow_view(
         st.info("No agents defined in agents_manifest.yaml.")
         return
 
+    _inject_css()
+
     traces = _extract_trace(summary)
     profile = (summary.raw.get("config") if summary and isinstance(summary.raw, dict) else {}) or {}
     metrics = summary.metrics if summary else {}
@@ -128,7 +178,7 @@ def render_flow_view(
     orch_state = str(orch_trace.get("state") or orch_trace.get("status") or "idle")
 
     x_positions = [220, 500, 780, 340, 660]
-    y_base = [100, 100, 100, 190, 190]
+    y_positions = [100, 100, 100, 190, 190]
 
     non_orch_agents = [agent for agent in agents if agent.get("id") != "orchestrator"]
     paths_html: List[str] = []
@@ -136,30 +186,25 @@ def render_flow_view(
 
     for idx, agent in enumerate(non_orch_agents):
         state, score, trace = _state_for_agent(traces, agent["id"])
-
         x = x_positions[idx % len(x_positions)]
-        y = y_base[idx % len(y_base)]
+        y = y_positions[idx % len(y_positions)]
         paths_html.append(_mk_path(500, 20, x, y, state))
 
-        skills = " • ".join(agent.get("skills", [])) if agent.get("skills") else "—"
-        tools = " • ".join(agent.get("tools", [])) if agent.get("tools") else "—"
-        skills_tools = f"<div><b>Skills:</b> {skills}</div><div><b>Tools:</b> {tools}</div>"
-
+        skills_tools = _skills_tools_markup(agent, trace)
         chat_placeholder = "<button disabled style='opacity:0.6'>Open chat below</button>"
-
         cards_html.append(
-            CARD_TEMPLATE.format(
+            _agent_card(
+                accent=agent.get("accent_color", "#6C5CE7"),
                 name=f"{agent['name']} - {agent['role']}",
                 state=state,
                 score=score,
                 desc=agent.get("personality", "—"),
                 skills_tools=skills_tools,
                 chat_btn=chat_placeholder,
-                accent=agent.get("accent_color", "#6C5CE7"),
             )
         )
 
-    html = SVG_TEMPLATE.format(
+    html = _flow_template(
         orch_state=orch_state,
         orch_tip="Routes inputs, enforces thresholds, aggregates results.",
         paths="\n".join(paths_html),
@@ -176,6 +221,10 @@ def render_flow_view(
         value=st.session_state.get("flow_last_input") or "",
     )
 
+    profile_name = profile.get("name") or profile.get("profile") or "default"
+    model_name = profile.get("model") or profile.get("provider_model") or "n/a"
+    st.caption(f"Active profile: `{profile_name}` • Model: `{model_name}`")
+
     st.markdown("#### Orchestrator")
     verdict = synthesize_verdict(summary, mcp_context)
     col1, col2 = st.columns(2)
@@ -186,6 +235,7 @@ def render_flow_view(
         if st.button("Ask Orchestrator about current state"):
             orchestrator = next((a for a in agents if a.get("id") == "orchestrator"), None)
             seed = orchestrator.get("seed_prompt", "") if orchestrator else ""
+            tldr = verdict.get("decision", "unknown").upper()
             ctx = {
                 "profile": profile,
                 "metrics": metrics,
@@ -194,36 +244,65 @@ def render_flow_view(
                 "mcp_results": (mcp_context or {}),
                 "verdict": verdict,
             }
-            answer = explain(
+            narration = explain(
                 agent_name=orchestrator.get("name", "Orchestrator") if orchestrator else "Orchestrator",
                 context_json=ctx,
                 question="Summarize current progress and recommended next actions.",
                 system_seed=seed,
             )
-            st.info(answer)
+            st.info(f"**TL;DR:** {tldr} — see details below.\n\n{narration}")
 
     decision_color = {"pass": "green", "warn": "orange", "fail": "red"}.get(
         verdict["decision"], "gray"
     )
     st.markdown("#### Orchestrator Verdict")
-    verdict_container = st.container()
-    with verdict_container:
-        composite_display = verdict.get("composite")
-        composite_text = composite_display if composite_display is not None else "—"
-        st.markdown(
-            f"**Decision:** <span style='color:{decision_color}'>{verdict['decision'].upper()}</span> "
-            f"(composite score: {composite_text})",
-            unsafe_allow_html=True,
-        )
-        st.caption(f"Confidence: {verdict.get('confidence', 'unknown')}")
-        with st.expander("Top drivers", expanded=True):
-            for driver in verdict.get("drivers", []):
-                st.markdown(f"- {driver}")
-        with st.expander("Recommended actions", expanded=True):
-            for action in verdict.get("actions", []):
-                st.markdown(f"- {action}")
-        if st.button("Promote this run to baseline", key="flow_promote_baseline"):
-            st.info("Use `python scripts/make_baseline.py --note ...` to capture the current run.")
+    composite_value = verdict.get("composite")
+    composite_text = composite_value if composite_value is not None else "—"
+    st.markdown(
+        f"**Decision:** <span style='color:{decision_color}'>{verdict['decision'].upper()}</span> "
+        f"(composite score: {composite_text})",
+        unsafe_allow_html=True,
+    )
+    st.caption(f"Confidence: {verdict.get('confidence', 'unknown')}")
+    with st.expander("Top drivers", expanded=True):
+        for driver in verdict.get("drivers", []):
+            st.markdown(f"- {driver}")
+    with st.expander("Recommended actions", expanded=True):
+        for action in verdict.get("actions", []):
+            st.markdown(f"- {action}")
+
+    action_cols = st.columns(3)
+    with action_cols[0]:
+        if st.button("Generate Report"):
+            st.session_state["last_report"] = {
+                "verdict": verdict,
+                "metrics": metrics,
+                "profile": profile,
+                "input": st.session_state.get("flow_last_input", ""),
+            }
+            st.success("Report snapshot stored in session (see Reports tab).")
+
+    with action_cols[1]:
+        if st.button("Cleanup Workspace"):
+            try:
+                client = MCPClient()
+                response = client.call_tool("cleanup_workspace") or {}
+                st.session_state["last_cleanup"] = response
+                st.success("Workspace cleanup request sent.")
+            except Exception as exc:  # pragma: no cover - network errors
+                st.error(f"Cleanup failed: {exc}")
+
+    with action_cols[2]:
+        if st.button("Promote to Baseline"):
+            note = f"{profile_name} | composite={composite_text}"
+            try:
+                subprocess.run(
+                    [sys.executable, "scripts/make_baseline.py", "--note", note],
+                    check=False,
+                )
+                st.success("Baseline snapshot command executed.")
+            except Exception as exc:  # pragma: no cover - subprocess issues
+                st.error(f"Baseline snapshot failed: {exc}")
 
     st.markdown("---")
     st.markdown("#### Agent Chats")
@@ -242,10 +321,9 @@ def render_flow_view(
                 key=question_key,
                 placeholder="What does your score mean and how do I improve it?",
             )
-            state, _, _ = _state_for_agent(traces, agent["id"])
+            state, _, trace = _state_for_agent(traces, agent["id"])
             disabled = state.lower() not in {"complete", "done", "finished"}
             if st.button("Ask", key=f"flow_ask_{agent['id']}", disabled=disabled):
-                trace = traces.get(agent["id"].lower(), {})
                 ctx = {
                     "profile": profile,
                     "metrics": metrics,
