@@ -73,3 +73,5 @@ trust_bench_studio/.streamlit/
 *.rar
 *.7z
 *.lock
+trust_bench_studio/frontend/node_modules/
+trust_bench_studio/frontend/dist/

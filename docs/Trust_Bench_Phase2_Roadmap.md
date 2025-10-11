@@ -173,6 +173,7 @@ By the end of Phase 2, Trust_Bench will provide:
 - Agent cards expose “Ask this agent” chats seeded with the active metrics, traces, and latest MCP findings while enforcing prompt-safety guardrails.
 - Agents tab now reads from `trust_bench_studio/config/agents_manifest.yaml`, rendering branded cards (images, accent colors, personalities) and feeding `seed_prompt` text directly into LLM explanations.
 - New **Flow** view presents orchestrator → agent execution as a dynamic graph (user input, Logos, per-agent nodes with animated links and chat expanders) so the studio feels like a living system.
+- Adopted a React + FastAPI command-center (see `trust_bench_studio/frontend` and `trust_bench_studio/api/server.py`) while preserving existing evaluation plumbing and MCP workflows.
 
 ### Next Steps (Refined)
 1. **Feed real evaluation metrics and agent traces into the panels.** Pull metrics and traces from `eval/runs/latest/run.json` (and siblings), wire a lightweight polling loop for near-real-time updates, map agent state transitions (`idle -> active -> complete`), and surface LLM summaries inside each agent chat panel.

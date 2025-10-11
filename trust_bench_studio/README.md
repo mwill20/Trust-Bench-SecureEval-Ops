@@ -1,35 +1,75 @@
-# Trust_Bench Studio
+# Trust_Bench Studio Command Center
 
-Trust_Bench Studio provides a Streamlit front end for exploring evaluation runs, visualizing agent orchestration, and reviewing MCP reports.
+The Streamlit dashboard has evolved into a React + FastAPI experience that preserves the original Flow, agent manifest, verdict synthesis, and MCP tooling. All evaluation plumbing continues to live in Python; the UI now consumes it via REST endpoints.
 
-## Getting Started
+## Quick Start
+
+### 1. Backend (FastAPI)
+```bash
+uvicorn trust_bench_studio.api.server:app --reload
+```
+
+### 2. Frontend (React + Vite)
+```bash
+cd trust_bench_studio/frontend
+npm install
+npm run dev
+```
+Navigate to http://127.0.0.1:5173 to access the Studio command center.
+
+### 3. Optional: Production build
+```bash
+npm run build
+```
+The output lands in `trust_bench_studio/frontend/dist/`; serve it with any static host or mount it behind FastAPI.
+
+## Architecture Overview
+
+- **Backend** – `trust_bench_studio/api/server.py`
+  - `/api/agents`: manifest-driven metadata (names, roles, prompts, colors, images).
+  - `/api/run/latest`: loads `eval/runs/latest` via `load_run_summary`.
+  - `/api/verdict`: wraps `synthesize_verdict` to publish composite PASS/WARN/FAIL decisions.
+  - `/api/mcp/{tool}`: bridges to `trust_bench_studio.utils.mcp_client.call_tool` with guardrails.
+  - `/api/baseline/promote`: shells out to `scripts/make_baseline.py` to snapshot curated baselines.
+
+- **Frontend** – `trust_bench_studio/frontend/`
+  - Replicates the Flow narrative (input → Logos → agents) with animated links, per-agent chats, and orchestrator verdict panel.
+  - Dashboard, Agents, and Reports views source their data from the REST API, mirroring the legacy Streamlit tabs.
+  - Guardrails enforce sanitized user input, escaped transcripts/findings, and safe MCP interactions.
+
+- **Legacy entrypoint** – `streamlit run trust_bench_studio/app.py` now displays setup instructions and (optionally) a preview of the production build.
+
+## Flow Walkthrough
+
+1. **Dispatch** – Enter a task or repo URL, hit *Start Analysis*. Dashed/glowing edges show in-flight orchestration; solid lines signal completion.
+2. **Orchestrator Verdict** – Logos aggregates agent outputs, applies security/ethics vetoes, computes composite scores, and surfaces top drivers + recommended actions (generate report, cleanup, promote baseline).
+3. **Agent Chats** – Unlock automatically after each agent finishes. Seed prompts come from the manifest; chats never re-run evaluations—only explain existing evidence.
+4. **Reports & MCP** – Trigger workspace actions (`cleanup_workspace`, `scan_repo_for_secrets`, `env_content`). Responses are cached and visible in the log panel and accessible to chats.
+
+## Testing
 
 ```bash
-pip install -r requirements.txt  # ensure Streamlit and project deps are available
-streamlit run trust_bench_studio/app.py
+python -m compileall trust_bench_studio
+pytest -q tests/test_agents_manifest.py tests/test_orchestrator_synthesis.py
 ```
 
-The scaffold renders three primary areas:
+Front-end checks live in the `frontend` subdirectory (`npm run lint`, `npm run build`). Ensure the FastAPI backend is available during UI manual tests.
 
-- **Dashboard** – metrics diff view for evaluation runs.
-- **Agents** – expandable cards with state, transcripts, and chat explainers.
-- **Reports & MCP** – workspace tooling, logs, and cached MCP outputs.
+## Screenshots (to add)
+- Flow command center – input, Logos, agents, verdict.
+- Dashboard metrics vs. baseline.
+- Agent tiles with chat unlocked post-completion.
+- Reports & MCP action log and raw JSON viewer.
 
-## Agent Manifest
+Add PNG/JPEG captures under `docs/images/studio/` to keep the repo lightweight.
 
-Agent metadata (names, roles, prompts, and image hooks) is defined in `trust_bench_studio/config/agents_manifest.yaml`. Load it in code with:
+## Security Notes
 
-```python
-from trust_bench_studio.utils import load_agents_manifest
+- User input is clipped and pattern-checked before being stored or echoed.
+- All transcripts/findings render via escaped HTML to prevent injection.
+- MCP actions enforce allow-listed tools and argument sizes.
 
-for agent in load_agents_manifest():
-    print(agent["name"], agent["role"])
-```
+## Baseline Snapshots
 
-Images referenced in the manifest should live under `trust_bench_studio/assets/agents/` (or update the `image` paths accordingly).
+Promoting a run to baseline still shells out to `scripts/make_baseline.py` (now available via REST and the UI action button). The new Flow verdict driver surfaces when a baseline snapshot is recommended.
 
-## Next Steps
-
-1. Persist structured run summaries (metrics + agent traces) for richer dashboards.
-2. Animate agent cards based on orchestrator events.
-3. Surface MCP actions (scan, env audit, cleanup) with live feedback in the UI.
