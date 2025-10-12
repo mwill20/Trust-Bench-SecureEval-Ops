@@ -15,6 +15,7 @@ from trust_bench_studio.utils import (
     load_agents_manifest,
     synthesize_verdict,
 )
+from trust_bench_studio.utils.llm import explain
 from trust_bench_studio.utils.mcp_client import MCPClient
 from trust_bench_studio.utils.run_store import (
     RunRecord,
@@ -79,6 +80,11 @@ class MCPRequest(BaseModel):
 
 class BaselineRequest(BaseModel):
     note: Optional[str] = Field(default=None, max_length=256)
+
+
+class AgentChatRequest(BaseModel):
+    agent: str = Field(..., max_length=64)
+    question: str = Field(..., max_length=MAX_INPUT_LENGTH)
 
 
 app = FastAPI(title="Trust_Bench Studio API", version="0.3-alpha")
@@ -168,3 +174,40 @@ def promote_to_baseline(request: BaselineRequest) -> Dict[str, Any]:
 
     return {"status": "ok", "stdout": completed.stdout.strip()}
 
+
+@app.post("/api/chat/agent")
+def chat_with_agent(request: AgentChatRequest) -> Dict[str, Any]:
+    agent_name = _sanitize_user_input(request.agent, "agent").lower()
+    question = _sanitize_user_input(request.question, "question")
+
+    manifest = load_agents_manifest()
+    agent_cfg = next(
+        (
+            agent
+            for agent in manifest
+            if agent.get("name", "").lower() == agent_name
+            or agent.get("id", "").lower() == agent_name
+        ),
+        None,
+    )
+    if not agent_cfg:
+        raise HTTPException(status_code=404, detail=f"Unknown agent '{request.agent}'.")
+
+    summary = _load_latest_summary()
+    verdict = synthesize_verdict(summary, None)
+
+    context = {
+        "profile": summary.raw.get("config") if isinstance(summary.raw, dict) else {},
+        "metrics": summary.metrics,
+        "trace": summary.raw.get("trace") if isinstance(summary.raw, dict) else {},
+        "verdict": verdict,
+        "agent": agent_cfg,
+    }
+
+    answer = explain(
+        agent_name=agent_cfg.get("name", request.agent),
+        context_json=context,
+        question=question,
+        system_seed=agent_cfg.get("seed_prompt", ""),
+    )
+    return {"answer": answer}

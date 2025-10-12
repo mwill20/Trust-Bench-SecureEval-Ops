@@ -39,3 +39,12 @@ export interface ChatMessage {
   text: string;
   isThinking?: boolean;
 }
+
+export interface PillarVerdict {
+  status: 'complete' | 'failed';
+  score?: number;
+  summary?: string;
+}
+
+export type PillarVerdictMap = Partial<Record<AgentName, PillarVerdict>>;
+

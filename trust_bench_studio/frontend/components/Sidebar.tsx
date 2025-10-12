@@ -1,10 +1,22 @@
-
 import React from 'react';
 
-const NavItem: React.FC<{ icon: React.ReactNode; label: string; active?: boolean }> = ({ icon, label, active }) => (
-  <a
-    href="#"
-    className={`flex items-center p-3 my-1 rounded-lg transition-colors duration-200 ${
+type SidebarProps = {
+  activeTab: 'flow' | 'reports' | 'settings';
+  onSelect: (tab: 'flow' | 'reports' | 'settings') => void;
+};
+
+type NavItemProps = {
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+};
+
+const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`w-full flex items-center p-3 my-1 rounded-lg transition-colors duration-200 text-left ${
       active
         ? 'bg-blue-600/20 text-blue-300'
         : 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200'
@@ -12,7 +24,7 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; active?: boolean
   >
     {icon}
     <span className="ml-4 font-medium">{label}</span>
-  </a>
+  </button>
 );
 
 const DashboardIcon = () => (
@@ -34,7 +46,7 @@ const SettingsIcon = () => (
   </svg>
 );
 
-const Sidebar = () => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelect }) => {
   return (
     <div className="h-full w-64 bg-gray-800/50 backdrop-blur-sm border-r border-gray-700/50 p-4 flex flex-col">
       <div className="flex items-center mb-8">
@@ -45,10 +57,10 @@ const Sidebar = () => {
         </div>
         <h1 className="text-xl font-bold text-gray-100 ml-3">Trust_Bench</h1>
       </div>
-      <nav className="flex-grow">
-        <NavItem icon={<DashboardIcon />} label="Flow" active />
-        <NavItem icon={<ReportsIcon />} label="Reports" />
-        <NavItem icon={<SettingsIcon />} label="Settings" />
+      <nav className="flex-grow space-y-2">
+        <NavItem icon={<DashboardIcon />} label="Flow" active={activeTab === 'flow'} onClick={() => onSelect('flow')} />
+        <NavItem icon={<ReportsIcon />} label="Reports" active={activeTab === 'reports'} onClick={() => onSelect('reports')} />
+        <NavItem icon={<SettingsIcon />} label="Settings" active={activeTab === 'settings'} onClick={() => onSelect('settings')} />
       </nav>
       <div className="text-xs text-gray-500 text-center">
         <p>Version 1.0.0</p>
