@@ -1,6 +1,6 @@
 profile: security_highstakes
 provider: groq
-model: ${GROQ_MODEL:-llama-3.1-70b-versatile}
+model: ${GROQ_MODEL:-llama-3.3-70b-versatile}
 dataset_path: datasets/golden/example.jsonl
 adversarial_path: trustbench_core/data/security/adversarial.txt
 repo_path: datasets/golden/fixtures/repos/vuln-mini-1

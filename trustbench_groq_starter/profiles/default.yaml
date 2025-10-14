@@ -1,6 +1,6 @@
 profile: default_learning
 provider: groq
-model: ${GROQ_MODEL:-llama-3.1-70b-versatile}
+model: ${GROQ_MODEL:-llama-3.3-70b-versatile}
 thresholds:
   faithfulness: 0.85
   injection_block_rate: 0.80

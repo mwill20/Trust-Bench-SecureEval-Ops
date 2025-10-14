@@ -74,7 +74,7 @@ def main() -> None:
     if env["GROQ_API_KEY"] == "<missing>" and os.getenv("TRUSTBENCH_FAKE_PROVIDER") != "1":
         issues.append("GROQ_API_KEY not set and fake provider disabled. Export GROQ_API_KEY or set TRUSTBENCH_FAKE_PROVIDER=1.")
     if env["GROQ_MODEL"] == "<missing>":
-        issues.append("GROQ_MODEL not set (defaults to llama-3.1-70b-versatile).")
+        issues.append("GROQ_MODEL not set (defaults to llama-3.3-70b-versatile).")
     if not pkgs.get("groq"):
         issues.append("groq package missing. Install via `pip install groq`.")
     if not pkgs.get("ragas"):

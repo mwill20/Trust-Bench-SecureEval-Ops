@@ -29,7 +29,7 @@ WORKDIR.mkdir(parents=True, exist_ok=True)
 
 HTTP_TIMEOUT = float(os.getenv("TRUST_BENCH_HTTP_TIMEOUT", "30"))
 
-SECRET_PATTERNS: Dict[str, str] = {
+SECRET_PATTERNS: dict = {
     "AWS Access Key": r"AKIA[0-9A-Z]{16}",
     "AWS Secret Key": r"(?i)aws[_-]?secret[_-]?access[_-]?key\s*[:=]\s*([A-Za-z0-9/+=]{40})",
     "GitHub Token": r"gh[pousr]_[A-Za-z0-9]{36}",
@@ -49,7 +49,8 @@ def _http_get(url: str) -> requests.Response:
     return resp
 
 
-def _download_repo_zip(repo_url: str) -> Tuple[BytesIO, str]:
+def _download_repo_zip(repo_url: str):
+    """Download repo zip and return (BytesIO, branch_name)."""
     if repo_url.endswith(".git"):
         repo_url = repo_url[:-4]
     for branch in ("main", "master"):
@@ -74,7 +75,7 @@ def _safe_extract(zip_bytes: BytesIO, dest: Path) -> Path:
 
 
 @app.tool()
-def download_and_extract_repo(repo_url: str) -> Dict[str, str]:
+def download_and_extract_repo(repo_url: str) -> dict:
     """Download a GitHub repo zip (main/master) and extract into workspace."""
     tmp_dir = tempfile.mkdtemp(prefix="trust_bench_", dir=WORKDIR)
     target = Path(tmp_dir)
@@ -89,7 +90,7 @@ def download_and_extract_repo(repo_url: str) -> Dict[str, str]:
 
 
 @app.tool()
-def env_content(dir_path: Optional[str] = None, max_bytes: int = 2 * 1024 * 1024) -> Dict[str, Optional[str]]:
+def env_content(dir_path: str = "", max_bytes: int = 2 * 1024 * 1024) -> dict:
     """Return the contents of the first .env file found under dir_path."""
     root = Path(dir_path or WORKDIR).resolve()
     if not root.exists():
@@ -111,14 +112,14 @@ def _iter_files(path: Path) -> Iterable[Path]:
 
 
 @app.tool()
-def scan_repo_for_secrets(dir_path: str, max_file_mb: float = 1.5) -> Dict[str, List[Dict[str, str]]]:
+def scan_repo_for_secrets(dir_path: str, max_file_mb: float = 1.5) -> dict:
     """Scan a directory for potential secrets using regex heuristics."""
     root = Path(dir_path).resolve()
     if not root.exists():
         raise ValueError(f"Path does not exist: {root}")
     limit_bytes = max_file_mb * 1024 * 1024
     compiled = {name: re.compile(pattern) for name, pattern in SECRET_PATTERNS.items()}
-    findings: List[Dict[str, str]] = []
+    findings = []
 
     for file_path in _iter_files(root):
         try:
@@ -146,7 +147,7 @@ def scan_repo_for_secrets(dir_path: str, max_file_mb: float = 1.5) -> Dict[str, 
 
 
 @app.tool()
-def cleanup_workspace() -> Dict[str, str]:
+def cleanup_workspace() -> dict:
     """Remove all files under the TRUST_BENCH_WORKDIR."""
     for child in WORKDIR.iterdir():
         if child.is_dir():

@@ -32,4 +32,3 @@ def test_veto_and_composite() -> None:
     assert verdict_fail['decision'] == 'fail'
     assert verdict_fail['pillars']['Aegis']['status'] == 'failed'
     assert any('security' in driver.lower() for driver in verdict_fail['drivers'])
-

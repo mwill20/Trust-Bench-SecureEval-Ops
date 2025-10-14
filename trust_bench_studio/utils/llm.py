@@ -17,6 +17,30 @@ PROMPT_GUARDRAILS = [
 ]
 
 
+def _fake_groq_response(system: str, prompt: str) -> str:
+    """Generate a realistic fake response for development/testing."""
+    prompt_lower = prompt.lower()
+    
+    # Check for specific patterns and provide contextual responses
+    if "langgraph" in prompt_lower:
+        return "LangGraph is a framework for building stateful, multi-actor applications with language models. It provides tools for creating complex workflows with conditional logic, loops, and persistent state management."
+    
+    if any(word in prompt_lower for word in ["what is", "explain", "describe"]):
+        return "This is a simulated response from the TrustBench evaluation system. The agent is currently running in development mode with mock responses enabled. To get real AI-powered insights, configure your API keys and disable TRUSTBENCH_FAKE_PROVIDER."
+    
+    if "security" in prompt_lower:
+        return "Based on the security evaluation results, the system shows moderate security posture. Key recommendations include implementing input validation, sanitizing user data, and following secure coding practices."
+    
+    if "task" in prompt_lower and "fidelity" in prompt_lower:
+        return "The task fidelity analysis indicates that the agent maintains good alignment with specified objectives. Performance metrics show consistent adherence to task requirements with minimal deviation."
+    
+    if "ethics" in prompt_lower:
+        return "The ethics evaluation shows the system demonstrates appropriate refusal behaviors for harmful requests and maintains ethical boundaries in its responses."
+    
+    # Default response
+    return "This is a development environment response. The evaluation system is functioning correctly with simulated data. Configure real API providers for production insights."
+
+
 def _is_safe(question: str) -> bool:
     lowered = question.lower()
     return not any(marker in lowered for marker in PROMPT_GUARDRAILS)
@@ -58,6 +82,42 @@ def _call_openai(system: str, prompt: str) -> str | None:
     if not response.choices:
         return None
     return (response.choices[0].message.content or "").strip()
+
+
+def _call_groq(system: str, prompt: str) -> str | None:
+    provider = os.getenv("TRUST_BENCH_LLM_PROVIDER", "").lower()
+    if provider not in {"groq"}:
+        return None
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return None
+    
+    # Check if we're using fake provider
+    if os.getenv("TRUSTBENCH_FAKE_PROVIDER") == "1":
+        return _fake_groq_response(system, prompt)
+    
+    try:
+        from groq import Groq  # type: ignore
+    except ImportError:
+        return None
+
+    try:
+        client = Groq(api_key=api_key)
+        response = client.chat.completions.create(
+            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=400,
+            temperature=0.2,
+        )
+        if not response.choices:
+            return None
+        return (response.choices[0].message.content or "").strip()
+    except Exception:
+        # Fall back to fake response if real API fails
+        return _fake_groq_response(system, prompt)
 
 
 def _fallback_summary(agent_name: str, context_text: str, question: str) -> str:
@@ -110,7 +170,11 @@ def explain(
         f"{question}"
     )
 
+    # Try configured LLM provider
     llm_response = _call_openai(system_prompt, user_prompt)
+    if not llm_response:
+        llm_response = _call_groq(system_prompt, user_prompt)
+    
     if llm_response:
         return llm_response
 

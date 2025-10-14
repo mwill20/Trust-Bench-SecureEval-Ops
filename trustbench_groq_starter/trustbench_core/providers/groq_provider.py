@@ -17,7 +17,7 @@ def llm_complete(messages: List[Dict[str, str]], model: str | None = None, **kwa
     client = _get_client()
     if client is None:
         return "SIMULATED_OUTPUT"
-    model = model or os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+    model = model or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
     resp = client.chat.completions.create(
         model=model,
         messages=messages,

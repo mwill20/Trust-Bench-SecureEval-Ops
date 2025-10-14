@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Sidebar from './Sidebar';
-import FlowLines from './FlowLines';
-import { OrchestratorNode, AgentNode } from './NodeComponents';
+import React, { useState, useEffect, useCallback } from "react";
+import Sidebar from "./Sidebar";
+import FlowLines from "./FlowLines";
+import { OrchestratorNode, AgentNode } from "./NodeComponents";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -9,7 +9,7 @@ import {
   INITIAL_CHAT_HISTORY,
   AGENT_COLORS,
   ORCHESTRATOR_DATA,
-} from '../constants';
+} from "../constants";
 import {
   Agent,
   Status,
@@ -18,11 +18,11 @@ import {
   AgentName,
   ChatMessage,
   PillarVerdictMap,
-} from '../types';
+} from "../types";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 
-type ActiveTab = 'flow' | 'reports' | 'settings';
+type ActiveTab = "flow" | "reports" | "settings";
 
 type ChatHistories = { [key in AgentName]: ChatMessage[] };
 
@@ -51,7 +51,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   initialPosition,
   isThinking,
 }) => {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = React.useRef({ x: 0, y: 0 });
@@ -60,7 +60,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [chatHistory]);
 
@@ -89,26 +90,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     };
 
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging]);
 
-  const getSenderStyles = (sender: AgentName | 'Logos' | 'User') => {
-    const isUser = sender === 'User';
-    const colorName = AGENT_COLORS[sender] || 'gray-400';
+  const getSenderStyles = (sender: AgentName | "Logos" | "User") => {
+    const isUser = sender === "User";
+    const colorName = AGENT_COLORS[sender] || "gray-400";
     const textColorClass = `text-${colorName}`;
 
     return {
-      wrapper: isUser ? 'items-end' : 'items-start',
-      bubble: isUser ? 'bg-blue-600' : 'bg-gray-700',
-      text: isUser ? 'text-white' : 'text-gray-200',
-      name: isUser ? 'font-bold text-blue-300' : `font-bold ${textColorClass}`,
+      wrapper: isUser ? "items-end" : "items-start",
+      bubble: isUser ? "bg-blue-600" : "bg-gray-700",
+      text: isUser ? "text-white" : "text-gray-200",
+      name: isUser ? "font-bold text-blue-300" : `font-bold ${textColorClass}`,
     };
   };
 
@@ -117,12 +118,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     const trimmed = message.trim();
     if (!trimmed || isThinking) return;
     onSendMessage(agent.name, trimmed);
-    setMessage('');
+    setMessage("");
   };
 
   return (
     <div
-      className="absolute bg-gray-900/95 border border-gray-700 rounded-lg w-72 shadow-xl cursor-default"
+      className="absolute bg-gray-900/95 border border-gray-700 rounded-lg w-72 shadow-xl cursor-default z-50 pointer-events-auto"
       style={{ left: position.x, top: position.y }}
     >
       <div
@@ -136,10 +137,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           onClick={() => onClose(agent.name)}
           className="text-gray-400 hover:text-gray-200"
         >
-          ×
+          ï¿½
         </button>
       </div>
-      <div ref={chatContainerRef} className="h-56 overflow-y-auto px-3 py-2 space-y-3 bg-gray-900/80">
+      <div
+        ref={chatContainerRef}
+        className="h-56 overflow-y-auto px-3 py-2 space-y-3 bg-gray-900/80"
+      >
         {chatHistory.map((entry, index) => {
           const styles = getSenderStyles(entry.sender);
           return (
@@ -148,37 +152,40 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               <span
                 className={`mt-1 px-3 py-2 rounded-lg text-sm ${styles.bubble} ${styles.text}`}
               >
-                {entry.isThinking ? '…' : entry.text}
+                {entry.isThinking ? "ï¿½" : entry.text}
               </span>
             </div>
           );
         })}
       </div>
-      <form onSubmit={handleSubmit} className="p-3 border-t border-gray-700 bg-gray-900">
+      <form
+        onSubmit={handleSubmit}
+        className="p-3 border-t border-gray-700 bg-gray-900"
+      >
         <input
           type="text"
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-          placeholder="Ask a question…"
+          placeholder="Ask a questionï¿½"
         />
         <button
           type="submit"
           disabled={isThinking || !message.trim()}
           className="mt-2 w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-sm font-semibold text-white py-1.5 rounded-md transition-colors"
         >
-          {isThinking ? 'Thinking…' : 'Send'}
+          {isThinking ? "Thinkingï¿½" : "Send"}
         </button>
       </form>
     </div>
   );
 };
 
-const RightPanel: React.FC<{ logs: LogEntry[]; verdict: Verdict; pillars: PillarVerdictMap }> = ({
-  logs,
-  verdict,
-  pillars,
-}) => (
+const RightPanel: React.FC<{
+  logs: LogEntry[];
+  verdict: Verdict;
+  pillars: PillarVerdictMap;
+}> = ({ logs, verdict, pillars }) => (
   <div className="w-[28rem] h-full bg-gray-800/50 backdrop-blur-sm border-l border-gray-700/50 flex flex-col text-gray-200">
     <div className="flex-grow min-h-0">
       <div className="p-4 border-b border-gray-700 flex-shrink-0">
@@ -186,37 +193,73 @@ const RightPanel: React.FC<{ logs: LogEntry[]; verdict: Verdict; pillars: Pillar
       </div>
       <div className="flex-grow p-4 overflow-y-auto">
         <ul className="space-y-2 text-sm">
-          {logs.slice().reverse().map((log) => (
-            <li key={log.id} className="flex items-start">
-              <span className="text-gray-500 mr-3 w-16 text-right tabular-nums">{log.timestamp}</span>
-              <span
-                className={`w-3 h-3 rounded-full mt-1 mr-3 flex-shrink-0 ${STATUS_STYLES[log.status].color}`}
-              ></span>
-              <span className="text-gray-300">
-                <span className={`font-semibold text-${AGENT_COLORS[log.source] || 'gray-400'}`}>
-                  {log.source}:{' '}
+          {logs
+            .slice()
+            .reverse()
+            .map((log) => (
+              <li key={log.id} className="flex items-start">
+                <span className="text-gray-500 mr-3 w-16 text-right tabular-nums">
+                  {log.timestamp}
                 </span>
-                {log.message}
-              </span>
-            </li>
-          ))}
+                <span
+                  className={`w-3 h-3 rounded-full mt-1 mr-3 flex-shrink-0 ${
+                    STATUS_STYLES[log.status].color
+                  }`}
+                ></span>
+                <span className="text-gray-300">
+                  <span
+                    className={`font-semibold text-${
+                      AGENT_COLORS[log.source] || "gray-400"
+                    }`}
+                  >
+                    {log.source}:{" "}
+                  </span>
+                  {log.message}
+                </span>
+              </li>
+            ))}
         </ul>
       </div>
     </div>
-    <div className={`p-4 border-t border-gray-700 ${VERDICT_STYLES[verdict].bg}`}>
+    <div
+      className={`p-4 border-t border-gray-700 ${VERDICT_STYLES[verdict].bg}`}
+    >
       <h3 className="font-bold text-lg mb-2">Composite Verdict</h3>
-      <div className={`px-4 py-2 rounded-lg border-2 ${VERDICT_STYLES[verdict].border} flex items-center justify-center`}>
-        <span className={`text-2xl font-black tracking-widest ${VERDICT_STYLES[verdict].text}`}>{verdict}</span>
+      <div
+        className={`px-4 py-2 rounded-lg border-2 ${VERDICT_STYLES[verdict].border} flex items-center justify-center`}
+      >
+        <span
+          className={`text-2xl font-black tracking-widest ${VERDICT_STYLES[verdict].text}`}
+        >
+          {verdict}
+        </span>
       </div>
       <div className="mt-4 space-y-2 text-sm text-gray-300">
-        {(Object.entries(pillars || {}) as [string, any][]).map(([name, pillar]) => (
-          <div key={name} className="flex justify-between bg-gray-900/60 rounded-md px-3 py-2">
-            <span className={`font-semibold text-${AGENT_COLORS[name] || 'gray-300'}`}>{name}</span>
-            <span className={pillar?.status === 'failed' ? 'text-red-400' : 'text-green-400'}>
-              {pillar?.status ?? 'complete'}
-            </span>
-          </div>
-        ))}
+        {(Object.entries(pillars || {}) as [string, any][]).map(
+          ([name, pillar]) => (
+            <div
+              key={name}
+              className="flex justify-between bg-gray-900/60 rounded-md px-3 py-2"
+            >
+              <span
+                className={`font-semibold text-${
+                  AGENT_COLORS[name] || "gray-300"
+                }`}
+              >
+                {name}
+              </span>
+              <span
+                className={
+                  pillar?.status === "failed"
+                    ? "text-red-400"
+                    : "text-green-400"
+                }
+              >
+                {pillar?.status ?? "complete"}
+              </span>
+            </div>
+          )
+        )}
       </div>
     </div>
   </div>
@@ -236,7 +279,9 @@ const ReportsPanel: React.FC<{
             {JSON.stringify(lastReport, null, 2)}
           </pre>
         ) : (
-          <p className="text-gray-400">Run an analysis to generate a report snapshot.</p>
+          <p className="text-gray-400">
+            Run an analysis to generate a report snapshot.
+          </p>
         )}
       </section>
       <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
@@ -246,7 +291,9 @@ const ReportsPanel: React.FC<{
             {JSON.stringify(lastCleanup, null, 2)}
           </pre>
         ) : (
-          <p className="text-gray-400">No cleanup actions have been executed yet.</p>
+          <p className="text-gray-400">
+            No cleanup actions have been executed yet.
+          </p>
         )}
       </section>
     </div>
@@ -259,16 +306,25 @@ const SettingsPanel: React.FC = () => (
     <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
       <h3 className="text-lg font-semibold mb-2">Environment</h3>
       <p className="text-sm text-gray-300">
-        The frontend expects <code className="text-blue-300">VITE_API_BASE</code> (defaulting to http://127.0.0.1:8000) and optionally
-        <code className="text-blue-300">VITE_GEMINI_API_KEY</code> for external LLM services. Chats fall back to the built-in
-        explainer endpoint when no key is provided.
+        The frontend expects{" "}
+        <code className="text-blue-300">VITE_API_BASE</code> (defaulting to
+        http://127.0.0.1:8000) for API communication. LLM providers are
+        configured server-side via{" "}
+        <code className="text-blue-300">TRUST_BENCH_LLM_PROVIDER</code>,
+        <code className="text-blue-300">GROQ_API_KEY</code>, and{" "}
+        <code className="text-blue-300">OPENAI_API_KEY</code>.
       </p>
     </section>
     <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
       <h3 className="text-lg font-semibold mb-2">Security Guardrails</h3>
       <ul className="list-disc list-inside text-sm text-gray-300 space-y-1">
-        <li>User inputs are length-capped and sanitized before being forwarded.</li>
-        <li>Agent transcripts and findings are rendered in escaped blocks to prevent HTML injection.</li>
+        <li>
+          User inputs are length-capped and sanitized before being forwarded.
+        </li>
+        <li>
+          Agent transcripts and findings are rendered in escaped blocks to
+          prevent HTML injection.
+        </li>
         <li>MCP endpoints are allow-listed and enforce argument caps.</li>
       </ul>
     </section>
@@ -276,58 +332,70 @@ const SettingsPanel: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('flow');
+  const [activeTab, setActiveTab] = useState<ActiveTab>("flow");
   const [agents, setAgents] = useState<Agent[]>(INITIAL_AGENTS);
-  const [orchestratorStatus, setOrchestratorStatus] = useState<Status>(Status.IDLE);
+  const [orchestratorStatus, setOrchestratorStatus] = useState<Status>(
+    Status.IDLE
+  );
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [verdict, setVerdict] = useState<Verdict>(Verdict.PENDING);
   const [pillars, setPillars] = useState<PillarVerdictMap>({});
   const [openChats, setOpenChats] = useState<AgentName[]>([]);
-  const [chatHistories, setChatHistories] = useState<ChatHistories>(INITIAL_CHAT_HISTORY);
+  const [chatHistories, setChatHistories] =
+    useState<ChatHistories>(INITIAL_CHAT_HISTORY);
   const [thinkingAgents, setThinkingAgents] = useState<AgentName[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [flowInput, setFlowInput] = useState('');
+  const [flowInput, setFlowInput] = useState("");
   const [lastReport, setLastReport] = useState<ReportSnapshot | null>(null);
   const [lastCleanup, setLastCleanup] = useState<MCPResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const addLog = useCallback((source: string, message: string, status: Status) => {
-    setLogs((prev) => [
-      ...prev,
-      {
-        id: Date.now() + Math.random(),
-        timestamp: new Date().toISOString().slice(11, 19),
-        source,
-        message,
-        status,
-      },
-    ]);
-  }, []);
+  const addLog = useCallback(
+    (source: string, message: string, status: Status) => {
+      setLogs((prev) => [
+        ...prev,
+        {
+          id: Date.now() + Math.random(),
+          timestamp: new Date().toISOString().slice(11, 19),
+          source,
+          message,
+          status,
+        },
+      ]);
+    },
+    []
+  );
 
-  const addChatMessage = useCallback((agentName: AgentName, message: ChatMessage) => {
-    setChatHistories((prev) => ({
-      ...prev,
-      [agentName]: [...(prev[agentName] || []), message],
-    }));
-  }, []);
+  const addChatMessage = useCallback(
+    (agentName: AgentName, message: ChatMessage) => {
+      setChatHistories((prev) => ({
+        ...prev,
+        [agentName]: [...(prev[agentName] || []), message],
+      }));
+    },
+    []
+  );
 
-  const replaceLastChatMessage = useCallback((agentName: AgentName, message: ChatMessage) => {
-    setChatHistories((prev) => {
-      const history = prev[agentName] || [];
-      if (history.length === 0) {
-        return { ...prev, [agentName]: [message] };
-      }
-      const nextHistory = [...history];
-      nextHistory[nextHistory.length - 1] = message;
-      return { ...prev, [agentName]: nextHistory };
-    });
-  }, []);
+  const replaceLastChatMessage = useCallback(
+    (agentName: AgentName, message: ChatMessage) => {
+      setChatHistories((prev) => {
+        const history = prev[agentName] || [];
+        if (history.length === 0) {
+          return { ...prev, [agentName]: [message] };
+        }
+        const nextHistory = [...history];
+        nextHistory[nextHistory.length - 1] = message;
+        return { ...prev, [agentName]: nextHistory };
+      });
+    },
+    []
+  );
 
   const sanitizeInput = useCallback(async (text: string) => {
     try {
       const response = await fetch(`${API_BASE}/api/input/sanitize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
       if (!response.ok) {
@@ -350,7 +418,9 @@ const App: React.FC = () => {
       const manifestAgents = data.agents || [];
       setAgents((prev) =>
         prev.map((agent) => {
-          const manifestEntry = manifestAgents.find((entry: any) => entry.name === agent.name);
+          const manifestEntry = manifestAgents.find(
+            (entry: any) => entry.name === agent.name
+          );
           if (!manifestEntry) return agent;
           return {
             ...agent,
@@ -371,7 +441,7 @@ const App: React.FC = () => {
       if (!response.ok) return;
       const data = await response.json();
       const payload = data.verdict || {};
-      setVerdict((payload.decision || 'PENDING').toUpperCase() as Verdict);
+      setVerdict((payload.decision || "PENDING").toUpperCase() as Verdict);
       setPillars(payload.pillars || {});
     } catch {
       // Best-effort
@@ -390,7 +460,7 @@ const App: React.FC = () => {
         if (!pillar) return agent;
         return {
           ...agent,
-          status: pillar.status === 'failed' ? Status.FAILED : Status.COMPLETE,
+          status: pillar.status === "failed" ? Status.FAILED : Status.COMPLETE,
         };
       })
     );
@@ -400,8 +470,8 @@ const App: React.FC = () => {
         id: Date.now() + index,
         timestamp: new Date().toISOString().slice(11, 19),
         source: name,
-        message: pillar?.summary || 'Analysis complete.',
-        status: pillar?.status === 'failed' ? Status.FAILED : Status.COMPLETE,
+        message: pillar?.summary || "Analysis complete.",
+        status: pillar?.status === "failed" ? Status.FAILED : Status.COMPLETE,
       }))
     );
 
@@ -412,7 +482,10 @@ const App: React.FC = () => {
         if (!pillar) return;
         next[agentName] = [
           ...(next[agentName] || []),
-          { sender: agentName, text: pillar.summary || 'Analysis summary not available.' },
+          {
+            sender: agentName,
+            text: pillar.summary || "Analysis summary not available.",
+          },
         ];
       });
       return next;
@@ -424,13 +497,15 @@ const App: React.FC = () => {
     setIsProcessing(true);
     setOpenChats([]);
     setOrchestratorStatus(Status.RUNNING);
-    setAgents((prev) => prev.map((agent) => ({ ...agent, status: Status.RUNNING })));
-    addLog('Logos', 'Dispatching agents for latest run.', Status.RUNNING);
+    setAgents((prev) =>
+      prev.map((agent) => ({ ...agent, status: Status.RUNNING }))
+    );
+    addLog("Logos", "Dispatching agents for latest run.", Status.RUNNING);
 
     try {
       const sanitizedInput = await sanitizeInput(flowInput);
       if (sanitizedInput) {
-        addLog('User', `Input queued: ${sanitizedInput}`, Status.RUNNING);
+        addLog("User", `Input queued: ${sanitizedInput}`, Status.RUNNING);
       }
 
       const [runRes, verdictRes] = await Promise.all([
@@ -449,7 +524,7 @@ const App: React.FC = () => {
       const verdictPayload = await verdictRes.json();
       const verdictData = verdictPayload.verdict || {};
 
-      setVerdict((verdictData.decision || 'PENDING').toUpperCase() as Verdict);
+      setVerdict((verdictData.decision || "PENDING").toUpperCase() as Verdict);
       setPillars(verdictData.pillars || {});
       setLastReport({
         verdict: verdictData,
@@ -460,9 +535,12 @@ const App: React.FC = () => {
       applyPillarsToState(verdictData.pillars || {});
       setOrchestratorStatus(Status.COMPLETE);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unexpected error while loading run data.';
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unexpected error while loading run data.";
       setErrorMessage(message);
-      addLog('Logos', `Analysis failed: ${message}`, Status.FAILED);
+      addLog("Logos", `Analysis failed: ${message}`, Status.FAILED);
       setOrchestratorStatus(Status.FAILED);
     } finally {
       setIsProcessing(false);
@@ -479,14 +557,18 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = async (agentName: AgentName, text: string) => {
-    addChatMessage(agentName, { sender: 'User', text });
+    addChatMessage(agentName, { sender: "User", text });
     setThinkingAgents((prev) => [...prev, agentName]);
-    addChatMessage(agentName, { sender: agentName, text: '', isThinking: true });
+    addChatMessage(agentName, {
+      sender: agentName,
+      text: "",
+      isThinking: true,
+    });
 
     try {
       const response = await fetch(`${API_BASE}/api/chat/agent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent: agentName, question: text }),
       });
       if (!response.ok) {
@@ -495,10 +577,13 @@ const App: React.FC = () => {
       const data = await response.json();
       replaceLastChatMessage(agentName, {
         sender: agentName,
-        text: data.answer || 'Response unavailable.',
+        text: data.answer || "Response unavailable.",
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to process chat request.';
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to process chat request.";
       replaceLastChatMessage(agentName, {
         sender: agentName,
         text: message,
@@ -511,8 +596,8 @@ const App: React.FC = () => {
   const handleCleanupWorkspace = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/mcp/cleanup_workspace`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
       if (!response.ok) {
@@ -520,10 +605,11 @@ const App: React.FC = () => {
       }
       const payload = await response.json();
       setLastCleanup(payload);
-      addLog('Aegis', 'Workspace cleanup executed.', Status.COMPLETE);
+      addLog("Aegis", "Workspace cleanup executed.", Status.COMPLETE);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Cleanup failed.';
-      addLog('Aegis', message, Status.FAILED);
+      const message =
+        error instanceof Error ? error.message : "Cleanup failed.";
+      addLog("Aegis", message, Status.FAILED);
     }
   };
 
@@ -531,19 +617,20 @@ const App: React.FC = () => {
     try {
       const note = `auto | decision=${verdict}`;
       const response = await fetch(`${API_BASE}/api/baseline/promote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note }),
       });
       if (!response.ok) {
         throw new Error(await response.text());
       }
       const payload = await response.json();
-      addLog('Logos', 'Baseline snapshot created.', Status.COMPLETE);
+      addLog("Logos", "Baseline snapshot created.", Status.COMPLETE);
       setLastReport((prev) => ({ ...(prev || {}), baseline: payload }));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Baseline promotion failed.';
-      addLog('Logos', message, Status.FAILED);
+      const message =
+        error instanceof Error ? error.message : "Baseline promotion failed.";
+      addLog("Logos", message, Status.FAILED);
     }
   };
 
@@ -554,7 +641,7 @@ const App: React.FC = () => {
       pillars,
     };
     setLastReport(report);
-    addLog('Logos', 'Report snapshot generated for download.', Status.COMPLETE);
+    addLog("Logos", "Report snapshot generated for download.", Status.COMPLETE);
   };
 
   return (
@@ -562,14 +649,14 @@ const App: React.FC = () => {
       <div className="h-screen w-screen flex bg-gray-900 text-gray-100 font-sans overflow-hidden">
         <Sidebar activeTab={activeTab} onSelect={setActiveTab} />
         <main className="flex-1 flex flex-col min-w-0 relative">
-          {activeTab === 'flow' && (
+          {activeTab === "flow" && (
             <>
               <header className="p-4 border-b border-gray-800 flex justify-between items-center flex-shrink-0 z-10">
                 <div className="flex-1">
                   <input
                     id="task-input-field"
                     type="text"
-                    placeholder="Enter task instructions or repository URL…"
+                    placeholder="Enter task instructions or repository URLï¿½"
                     className="w-full max-w-lg bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                     value={flowInput}
                     onChange={(event) => setFlowInput(event.target.value)}
@@ -588,7 +675,14 @@ const App: React.FC = () => {
                       fill="none"
                       viewBox="0 0 24 24"
                     >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
                       <path
                         className="opacity-75"
                         fill="currentColor"
@@ -596,7 +690,7 @@ const App: React.FC = () => {
                       ></path>
                     </svg>
                   )}
-                  {isProcessing ? 'Analyzing…' : 'Start Analysis'}
+                  {isProcessing ? "Analyzingï¿½" : "Start Analysis"}
                 </button>
               </header>
 
@@ -607,14 +701,27 @@ const App: React.FC = () => {
               )}
 
               <div className="flex-1 flex overflow-hidden">
-                <div id="flow-container" className="flex-1 relative p-8 flex flex-col items-center justify-start">
-                  <FlowLines orchestratorStatus={orchestratorStatus} agentStatuses={agents.map((agent) => agent.status)} />
+                <div
+                  id="flow-container"
+                  className="flex-1 relative p-8 flex flex-col items-center justify-start"
+                >
+                  <FlowLines
+                    orchestratorStatus={orchestratorStatus}
+                    agentStatuses={agents.map((agent) => agent.status)}
+                  />
                   <div className="mt-8">
-                    <OrchestratorNode status={orchestratorStatus} data={ORCHESTRATOR_DATA} />
+                    <OrchestratorNode
+                      status={orchestratorStatus}
+                      data={ORCHESTRATOR_DATA}
+                    />
                   </div>
                   <div className="flex justify-around w-full max-w-5xl mt-24">
                     {agents.map((agent) => (
-                      <AgentNode key={agent.id} agent={agent} onSelect={handleOpenChat} />
+                      <AgentNode
+                        key={agent.id}
+                        agent={agent}
+                        onSelect={handleOpenChat}
+                      />
                     ))}
                   </div>
                   <div className="flex-grow"></div>
@@ -647,12 +754,36 @@ const App: React.FC = () => {
                 </button>
               </footer>
 
-              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+              <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-50">
                 {openChats.map((agentName, index) => {
-                  const agent = agents.find((entry) => entry.name === agentName);
+                  const agent = agents.find(
+                    (entry) => entry.name === agentName
+                  );
                   if (!agent) return null;
-                  const xPosition = window.innerWidth / 2 - 400 + index * 60 - openChats.length * 30;
-                  const yPosition = 100 + index * 40;
+
+                  // Position chat window relative to the specific agent card
+                  const calculateInitialPosition = () => {
+                    const agentElement = document.getElementById(
+                      `agent-${agent.id}`
+                    );
+                    if (agentElement) {
+                      const rect = agentElement.getBoundingClientRect();
+                      const flowContainer =
+                        document.getElementById("flow-container");
+                      const containerRect =
+                        flowContainer?.getBoundingClientRect() || {
+                          left: 0,
+                          top: 0,
+                        };
+                      // Position relative to the flow container
+                      return {
+                        x: rect.left - containerRect.left,
+                        y: rect.bottom - containerRect.top + 10, // 10px below the card
+                      };
+                    }
+                    // Fallback positioning
+                    return { x: 50 + index * 60, y: 400 + index * 40 };
+                  };
 
                   return (
                     <ChatWindow
@@ -661,7 +792,7 @@ const App: React.FC = () => {
                       chatHistory={chatHistories[agent.name] || []}
                       onSendMessage={handleSendMessage}
                       onClose={handleCloseChat}
-                      initialPosition={{ x: xPosition, y: yPosition }}
+                      initialPosition={calculateInitialPosition()}
                       isThinking={thinkingAgents.includes(agent.name)}
                     />
                   );
@@ -670,8 +801,10 @@ const App: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'reports' && <ReportsPanel lastReport={lastReport} lastCleanup={lastCleanup} />}
-          {activeTab === 'settings' && <SettingsPanel />}
+          {activeTab === "reports" && (
+            <ReportsPanel lastReport={lastReport} lastCleanup={lastCleanup} />
+          )}
+          {activeTab === "settings" && <SettingsPanel />}
         </main>
       </div>
     </div>
