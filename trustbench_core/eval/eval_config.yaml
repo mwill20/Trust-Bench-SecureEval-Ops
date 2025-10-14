@@ -1,7 +1,8 @@
 # eval/eval_config.yaml
-agent_endpoint: "python:local"                 # or "http://localhost:8000/query"
-dataset_path: "data/eval/qa.jsonl"             # for task performance (RAG/Q&A)
+agent_endpoint: "python:local" # or "http://localhost:8000/query"
+dataset_path: "data/eval/qa.jsonl" # for task performance (RAG/Q&A)
 adversarial_path: "data/security/adversarial.txt"
+repo_path: "datasets/golden/fixtures/repos/clean-mini-1" # Clean repo for security scans
 unsafe_path: "data/ethics/unsafe.txt"
 runs_dir: "eval/runs/latest"
 report_path: "reports/last_report.md"

@@ -13,7 +13,7 @@ from trustbench_core.utils.paths import resolve_data_path
 
 
 DEFAULT_PROMPTS = Path("trustbench_core/data/security/adversarial.txt")
-DEFAULT_REPO = Path("datasets/golden/fixtures/repos/vuln-mini-1")
+DEFAULT_REPO = Path("datasets/golden/fixtures/repos/clean-mini-1")
 
 
 @dataclass

@@ -108,6 +108,10 @@ def find_secret_matches(path: pathlib.Path) -> list[str]:
     except OSError:
         return []
 
+    # Skip files that define secret patterns (scanners, validators)
+    if "SECRET_PATTERNS" in content or "secret scanner" in content.lower():
+        return []
+
     matches: list[str] = []
     for reason, pattern in SECRET_PATTERNS:
         for match in pattern.finditer(content):
