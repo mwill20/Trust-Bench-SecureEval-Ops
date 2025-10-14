@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import FlowLines from "./FlowLines";
 import { OrchestratorNode, AgentNode } from "./NodeComponents";
+import ReportListItem from "./ReportListItem";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -268,37 +269,123 @@ const RightPanel: React.FC<{
 const ReportsPanel: React.FC<{
   lastReport: ReportSnapshot | null;
   lastCleanup: MCPResponse | null;
-}> = ({ lastReport, lastCleanup }) => (
-  <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto">
-    <h2 className="text-2xl font-bold mb-4">Reports &amp; MCP</h2>
-    <div className="space-y-6">
-      <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
-        <h3 className="text-lg font-semibold mb-2">Latest Report Snapshot</h3>
-        {lastReport ? (
-          <pre className="bg-gray-900/80 border border-gray-700 rounded-md p-4 text-sm overflow-x-auto">
-            {JSON.stringify(lastReport, null, 2)}
-          </pre>
-        ) : (
-          <p className="text-gray-400">
-            Run an analysis to generate a report snapshot.
-          </p>
-        )}
-      </section>
-      <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
-        <h3 className="text-lg font-semibold mb-2">Last MCP Cleanup</h3>
-        {lastCleanup ? (
-          <pre className="bg-gray-900/80 border border-gray-700 rounded-md p-4 text-sm overflow-x-auto">
-            {JSON.stringify(lastCleanup, null, 2)}
-          </pre>
-        ) : (
-          <p className="text-gray-400">
-            No cleanup actions have been executed yet.
-          </p>
-        )}
-      </section>
+}> = ({ lastReport, lastCleanup }) => {
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`${API_BASE}/api/reports/list`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reports: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setReports(data.reports || []);
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+      setError(err instanceof Error ? err.message : "Failed to load reports");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewReport = (reportId: string) => {
+    // TODO: Implement report viewer (Milestone 1.2)
+    console.log("View report:", reportId);
+    alert(`Report viewer coming soon! ID: ${reportId}`);
+  };
+
+  return (
+    <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Reports & History</h2>
+        <button
+          onClick={fetchReports}
+          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "🔄 Refresh"}
+        </button>
+      </div>
+
+      <div className="space-y-6">
+        {/* Report History Section */}
+        <section>
+          <h3 className="text-lg font-semibold mb-4">Evaluation History</h3>
+
+          {loading && (
+            <div className="text-center py-8 text-gray-400">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <p className="mt-2">Loading reports...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-600/20 border border-red-500 rounded-lg p-4 text-red-300">
+              <p className="font-semibold">Error loading reports</p>
+              <p className="text-sm mt-1">{error}</p>
+              <button
+                onClick={fetchReports}
+                className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-500 rounded text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && reports.length === 0 && (
+            <div className="bg-gray-800/60 border border-gray-700 rounded-lg p-8 text-center">
+              <p className="text-gray-400 text-lg mb-2">
+                No evaluation reports found
+              </p>
+              <p className="text-gray-500 text-sm">
+                Run an evaluation from the Flow tab to generate reports.
+              </p>
+            </div>
+          )}
+
+          {!loading && !error && reports.length > 0 && (
+            <div className="space-y-3">
+              {reports.map((report) => (
+                <ReportListItem
+                  key={report.id}
+                  id={report.id}
+                  timestamp={report.timestamp}
+                  repository={report.repository}
+                  verdict={report.verdict}
+                  pillars={report.pillars}
+                  hasHtmlReport={report.hasHtmlReport}
+                  onViewReport={handleViewReport}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* MCP Activity Section */}
+        <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
+          <h3 className="text-lg font-semibold mb-2">Last MCP Cleanup</h3>
+          {lastCleanup ? (
+            <pre className="bg-gray-900/80 border border-gray-700 rounded-md p-4 text-sm overflow-x-auto">
+              {JSON.stringify(lastCleanup, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-gray-400">
+              No cleanup actions have been executed yet.
+            </p>
+          )}
+        </section>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const SettingsPanel: React.FC = () => (
   <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto space-y-6">
