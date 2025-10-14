@@ -340,3 +340,80 @@ def list_evaluation_reports() -> Dict[str, Any]:
         })
     
     return {"reports": reports}
+
+
+@app.get("/api/reports/view/{report_id}")
+def view_report(report_id: str) -> Dict[str, Any]:
+    """Get HTML content and metadata for a specific report."""
+    # Find the report by ID
+    runs = list_runs()
+    report_record = None
+    
+    for record in runs:
+        if record.name == report_id:
+            report_record = record
+            break
+    
+    if not report_record:
+        raise HTTPException(status_code=404, detail=f"Report '{report_id}' not found.")
+    
+    # Check if HTML report exists
+    html_path = report_record.path / "report.html"
+    if not html_path.exists():
+        raise HTTPException(
+            status_code=404, 
+            detail=f"HTML report not found for '{report_id}'. Generate a report first."
+        )
+    
+    # Read HTML content
+    try:
+        html_content = html_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to read report: {exc}"
+        ) from exc
+    
+    # Load metadata
+    summary = load_run_summary(report_record.path)
+    metadata = {
+        "id": report_id,
+        "timestamp": report_id,
+        "repository": "unknown",
+        "verdict": "PENDING",
+    }
+    
+    if summary:
+        # Extract repository info
+        if summary.raw.get("trace") and isinstance(summary.raw["trace"], dict):
+            config = summary.raw["trace"].get("config", {})
+            if isinstance(config, dict):
+                metadata["repository"] = config.get("repo_url", config.get("repo_path", "unknown"))
+        
+        # Determine verdict from metrics
+        metrics = summary.metrics
+        pillars = {}
+        for key, value in metrics.items():
+            lower_key = key.lower()
+            if "security" in lower_key or "aegis" in lower_key:
+                pillars["security"] = float(value)
+            elif "ethics" in lower_key or "athena" in lower_key:
+                pillars["ethics"] = float(value)
+            elif "fidelity" in lower_key or "hermes" in lower_key or "faithful" in lower_key:
+                pillars["fidelity"] = float(value)
+            elif "performance" in lower_key or "logos" in lower_key or "perf" in lower_key:
+                pillars["performance"] = float(value)
+        
+        if pillars:
+            scores = list(pillars.values())
+            if all(s >= 0.7 for s in scores):
+                metadata["verdict"] = "PASS"
+            elif any(s < 0.5 for s in scores):
+                metadata["verdict"] = "FAIL"
+            else:
+                metadata["verdict"] = "PARTIAL"
+    
+    return {
+        "html": html_content,
+        "metadata": metadata,
+    }

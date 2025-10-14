@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import FlowLines from "./FlowLines";
 import { OrchestratorNode, AgentNode } from "./NodeComponents";
 import ReportListItem from "./ReportListItem";
+import ReportViewer from "./ReportViewer";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -273,6 +274,7 @@ const ReportsPanel: React.FC<{
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReports();
@@ -297,11 +299,21 @@ const ReportsPanel: React.FC<{
   };
 
   const handleViewReport = (reportId: string) => {
-    // TODO: Implement report viewer (Milestone 1.2)
-    console.log("View report:", reportId);
-    alert(`Report viewer coming soon! ID: ${reportId}`);
+    setSelectedReportId(reportId);
   };
 
+  const handleCloseViewer = () => {
+    setSelectedReportId(null);
+  };
+
+  // Show report viewer if a report is selected
+  if (selectedReportId) {
+    return (
+      <ReportViewer reportId={selectedReportId} onClose={handleCloseViewer} />
+    );
+  }
+
+  // Otherwise show the report list
   return (
     <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
