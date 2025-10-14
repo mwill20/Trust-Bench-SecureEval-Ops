@@ -22,6 +22,7 @@ from trust_bench_studio.utils.run_store import (
     RunSummary,
     list_runs,
     load_run_summary,
+    _load_json,
 )
 
 MAX_INPUT_LENGTH = 2048
@@ -211,3 +212,131 @@ def chat_with_agent(request: AgentChatRequest) -> Dict[str, Any]:
         system_seed=agent_cfg.get("seed_prompt", ""),
     )
     return {"answer": answer}
+
+
+@app.post("/api/report/generate")
+def generate_report() -> Dict[str, Any]:
+    """Generate a comprehensive HTML/Markdown report from the latest evaluation."""
+    script_path = Path(__file__).resolve().parents[2] / "scripts" / "generate_report.py"
+    if not script_path.exists():
+        raise HTTPException(status_code=500, detail="Report generation script not found.")
+
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(script_path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:  # pragma: no cover - system errors
+        raise HTTPException(status_code=500, detail=f"Failed to launch report script: {exc}") from exc
+
+    if completed.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Report generation failed: {completed.stderr or completed.stdout}",
+        )
+
+    return {"status": "ok", "message": completed.stdout.strip()}
+
+
+@app.post("/api/workspace/cleanup")
+def cleanup_workspace() -> Dict[str, Any]:
+    """Archive old evaluation runs and clean up temporary files."""
+    script_path = Path(__file__).resolve().parents[2] / "scripts" / "cleanup_workspace.py"
+    if not script_path.exists():
+        raise HTTPException(status_code=500, detail="Cleanup script not found.")
+
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(script_path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:  # pragma: no cover - system errors
+        raise HTTPException(status_code=500, detail=f"Failed to launch cleanup script: {exc}") from exc
+
+    if completed.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Cleanup failed: {completed.stderr or completed.stdout}",
+        )
+
+    return {"status": "ok", "message": completed.stdout.strip()}
+
+
+@app.get("/api/reports/list")
+def list_evaluation_reports() -> Dict[str, Any]:
+    """List all evaluation reports with metadata."""
+    runs = list_runs()
+    
+    reports = []
+    for record in runs:
+        # Load summary to get metrics
+        summary = load_run_summary(record.path)
+        if summary is None:
+            continue
+            
+        # Extract metadata from metrics
+        metrics = summary.metrics
+        
+        # Determine verdict based on pillar scores
+        pillars = {}
+        verdict = "PENDING"
+        
+        # Extract common pillar metrics
+        for key, value in metrics.items():
+            lower_key = key.lower()
+            if "security" in lower_key or "aegis" in lower_key:
+                pillars["security"] = float(value)
+            elif "ethics" in lower_key or "athena" in lower_key:
+                pillars["ethics"] = float(value)
+            elif "fidelity" in lower_key or "hermes" in lower_key or "faithful" in lower_key:
+                pillars["fidelity"] = float(value)
+            elif "performance" in lower_key or "logos" in lower_key or "perf" in lower_key:
+                pillars["performance"] = float(value)
+        
+        # Synthesize verdict if we have pillar scores
+        if pillars:
+            # Simple verdict logic: all >= 0.7 = PASS, any < 0.5 = FAIL, else PARTIAL
+            scores = list(pillars.values())
+            if all(s >= 0.7 for s in scores):
+                verdict = "PASS"
+            elif any(s < 0.5 for s in scores):
+                verdict = "FAIL"
+            else:
+                verdict = "PARTIAL"
+        
+        # Check if HTML report exists
+        html_report_path = record.path / "report.html"
+        has_html_report = html_report_path.exists()
+        
+        # Extract timestamp from directory name or metadata
+        timestamp = record.name
+        if record.name == "latest":
+            # Try to get actual timestamp from metadata
+            metadata_path = record.path / "metadata.json"
+            if metadata_path.exists():
+                metadata_doc = _load_json(metadata_path)
+                if metadata_doc and "timestamp" in metadata_doc:
+                    timestamp = metadata_doc["timestamp"]
+        
+        # Extract repository info from metadata or config
+        repository = "unknown"
+        if summary.raw.get("trace") and isinstance(summary.raw["trace"], dict):
+            config = summary.raw["trace"].get("config", {})
+            if isinstance(config, dict):
+                repository = config.get("repo_url", config.get("repo_path", "unknown"))
+        
+        reports.append({
+            "id": record.name,
+            "timestamp": timestamp,
+            "repository": repository,
+            "verdict": verdict,
+            "pillars": pillars,
+            "hasHtmlReport": has_html_report,
+            "path": str(record.path),
+        })
+    
+    return {"reports": reports}

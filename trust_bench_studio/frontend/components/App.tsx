@@ -594,54 +594,115 @@ const App: React.FC = () => {
   };
 
   const handleCleanupWorkspace = async () => {
+    if (
+      !confirm(
+        "Archive old evaluation runs and clean up temporary files?\n\nThis will keep the 10 most recent runs and the baseline."
+      )
+    ) {
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_BASE}/api/mcp/cleanup_workspace`, {
+      addLog("Aegis", "Starting workspace cleanup...", Status.RUNNING);
+
+      const response = await fetch(`${API_BASE}/api/workspace/cleanup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
       });
+
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
+
       const payload = await response.json();
       setLastCleanup(payload);
-      addLog("Aegis", "Workspace cleanup executed.", Status.COMPLETE);
+      addLog(
+        "Aegis",
+        `Workspace cleanup complete! ${payload.message || ""}`,
+        Status.COMPLETE
+      );
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Cleanup failed.";
-      addLog("Aegis", message, Status.FAILED);
+      addLog("Aegis", `Cleanup failed: ${message}`, Status.FAILED);
     }
   };
 
   const handlePromoteBaseline = async () => {
+    if (
+      !confirm(
+        "Save the current evaluation as the golden standard baseline?\n\nFuture runs will compare against this baseline."
+      )
+    ) {
+      return;
+    }
+
     try {
+      addLog(
+        "Logos",
+        "Promoting current evaluation to baseline...",
+        Status.RUNNING
+      );
+
       const note = `auto | decision=${verdict}`;
       const response = await fetch(`${API_BASE}/api/baseline/promote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note }),
       });
+
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
+
       const payload = await response.json();
-      addLog("Logos", "Baseline snapshot created.", Status.COMPLETE);
+      addLog("Logos", "✅ Baseline promoted successfully!", Status.COMPLETE);
       setLastReport((prev) => ({ ...(prev || {}), baseline: payload }));
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Baseline promotion failed.";
-      addLog("Logos", message, Status.FAILED);
+      addLog("Logos", `Baseline promotion failed: ${message}`, Status.FAILED);
     }
   };
 
-  const handleGenerateReport = () => {
-    const report = {
-      createdAt: new Date().toISOString(),
-      verdict,
-      pillars,
-    };
-    setLastReport(report);
-    addLog("Logos", "Report snapshot generated for download.", Status.COMPLETE);
+  const handleGenerateReport = async () => {
+    try {
+      addLog("Logos", "Generating evaluation report...", Status.RUNNING);
+
+      const response = await fetch(`${API_BASE}/api/report/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      const payload = await response.json();
+
+      const report = {
+        createdAt: new Date().toISOString(),
+        verdict,
+        pillars,
+        reportData: payload,
+      };
+      setLastReport(report);
+
+      addLog(
+        "Logos",
+        `✅ Report generated successfully! ${
+          payload.message || "Check trustbench_core/eval/runs/latest/report.md"
+        }`,
+        Status.COMPLETE
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Report generation failed.";
+      addLog("Logos", `Report generation failed: ${message}`, Status.FAILED);
+    }
   };
 
   return (
@@ -735,6 +796,7 @@ const App: React.FC = () => {
                   type="button"
                   className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
                   onClick={handleGenerateReport}
+                  title="📊 Generate a comprehensive PDF/HTML report with all metrics, charts, and recommendations from the latest evaluation run. Perfect for sharing with stakeholders or documenting system performance."
                 >
                   Generate Report
                 </button>
@@ -742,6 +804,7 @@ const App: React.FC = () => {
                   type="button"
                   className="px-4 py-2 text-sm bg-green-600 hover:bg-green-500 rounded-md transition-colors"
                   onClick={handleCleanupWorkspace}
+                  title="🧹 Archive old evaluation runs and clean up temporary files to free disk space. Keeps the 10 most recent runs and the current baseline. Safe operation with confirmation dialog."
                 >
                   Cleanup Workspace
                 </button>
@@ -749,6 +812,7 @@ const App: React.FC = () => {
                   type="button"
                   className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded-md transition-colors"
                   onClick={handlePromoteBaseline}
+                  title="⭐ Save the current evaluation as the golden standard baseline. Future runs will compare against this baseline to detect performance regressions or improvements. Use this after a successful evaluation."
                 >
                   Promote to Baseline
                 </button>
