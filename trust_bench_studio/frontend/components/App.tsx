@@ -7,6 +7,7 @@ import ReportViewer from "./ReportViewer";
 import BaselineComparison from "./BaselineComparison";
 import MCPActivityDashboard from "./MCPActivityDashboard";
 import EvaluationSettings from "./EvaluationSettings";
+import LLMProviderConfig from "./LLMProviderConfig";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -398,8 +399,11 @@ const ReportsPanel: React.FC<{
 };
 
 const SettingsPanel: React.FC = () => (
-  <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto">
+  <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto space-y-8">
     <EvaluationSettings apiBase={API_BASE} />
+    <div className="border-t border-gray-700 pt-8">
+      <LLMProviderConfig apiBase={API_BASE} />
+    </div>
   </div>
 );
 

@@ -739,3 +739,177 @@ def update_evaluation_settings(settings: EvaluationSettingsUpdate) -> Dict[str, 
     settings_dict = settings.model_dump()
     _save_settings(settings_dict)
     return {"status": "ok", "message": "Settings updated successfully", "settings": settings_dict}
+
+
+# =============================================================================
+# LLM Provider Configuration Endpoints
+# =============================================================================
+
+PROVIDERS_FILE = STUDIO_DATA_DIR / "llm_providers.json"
+
+DEFAULT_PROVIDERS = {
+    "active_provider": "groq",
+    "providers": {
+        "openai": {
+            "name": "OpenAI",
+            "api_key": "",
+            "model": "gpt-4o-mini",
+            "enabled": False,
+        },
+        "groq": {
+            "name": "Groq",
+            "api_key": "",
+            "model": "llama-3.3-70b-versatile",
+            "enabled": False,
+        },
+        "azure": {
+            "name": "Azure OpenAI",
+            "api_key": "",
+            "model": "gpt-4",
+            "base_url": "",
+            "enabled": False,
+        },
+    },
+}
+
+
+def _load_provider_configs() -> Dict[str, Any]:
+    """Load LLM provider configurations from disk."""
+    if not PROVIDERS_FILE.exists():
+        return DEFAULT_PROVIDERS.copy()
+    try:
+        with open(PROVIDERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return DEFAULT_PROVIDERS.copy()
+
+
+def _save_provider_configs(configs: Dict[str, Any]) -> None:
+    """Save LLM provider configurations to disk."""
+    PROVIDERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(PROVIDERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(configs, f, indent=2)
+
+
+class LLMProviderUpdate(BaseModel):
+    providers: Dict[str, Dict[str, Any]] = Field(..., description="Provider configurations")
+    active_provider: str = Field(..., description="Active provider key")
+
+
+class ProviderTestRequest(BaseModel):
+    provider: str = Field(..., description="Provider key to test")
+    config: Dict[str, Any] = Field(..., description="Provider configuration")
+
+
+@app.get("/api/settings/llm-providers")
+def get_llm_providers() -> Dict[str, Any]:
+    """Get LLM provider configurations."""
+    return _load_provider_configs()
+
+
+@app.post("/api/settings/llm-providers")
+def update_llm_providers(update: LLMProviderUpdate) -> Dict[str, Any]:
+    """Update LLM provider configurations."""
+    configs = {
+        "active_provider": update.active_provider,
+        "providers": update.providers,
+    }
+    _save_provider_configs(configs)
+    return {"status": "ok", "message": "Provider settings updated successfully"}
+
+
+@app.post("/api/settings/llm-providers/test")
+def test_llm_provider(request: ProviderTestRequest) -> Dict[str, Any]:
+    """Test connection to an LLM provider."""
+    provider = request.provider
+    config = request.config
+    
+    # Validate required fields
+    if not config.get("api_key"):
+        raise HTTPException(status_code=400, detail="API key is required")
+    
+    try:
+        # Test based on provider type
+        if provider == "openai":
+            return _test_openai(config)
+        elif provider == "groq":
+            return _test_groq(config)
+        elif provider == "azure":
+            return _test_azure(config)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def _test_openai(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Test OpenAI API connection."""
+    try:
+        import openai
+        client = openai.OpenAI(api_key=config["api_key"])
+        
+        # Simple completion test
+        response = client.chat.completions.create(
+            model=config.get("model", "gpt-4o-mini"),
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=5,
+        )
+        
+        return {
+            "success": True,
+            "model": response.model,
+            "message": "Connection successful",
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def _test_groq(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Test Groq API connection."""
+    try:
+        from groq import Groq
+        client = Groq(api_key=config["api_key"])
+        
+        # Simple completion test
+        response = client.chat.completions.create(
+            model=config.get("model", "llama-3.3-70b-versatile"),
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=5,
+        )
+        
+        return {
+            "success": True,
+            "model": response.model,
+            "message": "Connection successful",
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def _test_azure(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Test Azure OpenAI API connection."""
+    if not config.get("base_url"):
+        return {"success": False, "error": "Base URL is required for Azure"}
+    
+    try:
+        from openai import AzureOpenAI
+        client = AzureOpenAI(
+            api_key=config["api_key"],
+            api_version="2024-02-15-preview",
+            azure_endpoint=config["base_url"],
+        )
+        
+        # Simple completion test
+        response = client.chat.completions.create(
+            model=config.get("model", "gpt-4"),
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=5,
+        )
+        
+        return {
+            "success": True,
+            "model": response.model,
+            "message": "Connection successful",
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
