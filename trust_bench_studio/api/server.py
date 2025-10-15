@@ -260,6 +260,8 @@ def cleanup_workspace() -> Dict[str, Any]:
             [sys.executable, str(script_path)],
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             check=False,
         )
     except OSError as exc:  # pragma: no cover - system errors
@@ -268,12 +270,14 @@ def cleanup_workspace() -> Dict[str, Any]:
 
     if completed.returncode != 0:
         _record_mcp_call("cleanup_workspace", success=False)
+        error_msg = completed.stderr or completed.stdout or "Unknown error"
         raise HTTPException(
             status_code=500,
-            detail=f"Cleanup failed: {completed.stderr or completed.stdout}",
+            detail=f"Cleanup failed: {error_msg}",
         )
 
-    result = {"status": "ok", "message": completed.stdout.strip()}
+    message = (completed.stdout or "").strip()
+    result = {"status": "ok", "message": message}
     _record_mcp_call("cleanup_workspace", success=True, response=result)
     return result
 
