@@ -4,6 +4,7 @@ import FlowLines from "./FlowLines";
 import { OrchestratorNode, AgentNode } from "./NodeComponents";
 import ReportListItem from "./ReportListItem";
 import ReportViewer from "./ReportViewer";
+import BaselineComparison from "./BaselineComparison";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -270,7 +271,8 @@ const RightPanel: React.FC<{
 const ReportsPanel: React.FC<{
   lastReport: ReportSnapshot | null;
   lastCleanup: MCPResponse | null;
-}> = ({ lastReport, lastCleanup }) => {
+  onPromoteToBaseline: () => void;
+}> = ({ lastReport, lastCleanup, onPromoteToBaseline }) => {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -328,6 +330,9 @@ const ReportsPanel: React.FC<{
       </div>
 
       <div className="space-y-6">
+        {/* Baseline Comparison Section */}
+        <BaselineComparison onPromoteToBaseline={onPromoteToBaseline} />
+
         {/* Report History Section */}
         <section>
           <h3 className="text-lg font-semibold mb-4">Evaluation History</h3>
@@ -965,7 +970,11 @@ const App: React.FC = () => {
           )}
 
           {activeTab === "reports" && (
-            <ReportsPanel lastReport={lastReport} lastCleanup={lastCleanup} />
+            <ReportsPanel
+              lastReport={lastReport}
+              lastCleanup={lastCleanup}
+              onPromoteToBaseline={handlePromoteBaseline}
+            />
           )}
           {activeTab === "settings" && <SettingsPanel />}
         </main>
