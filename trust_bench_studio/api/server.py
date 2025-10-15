@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -17,6 +19,7 @@ from trust_bench_studio.utils import (
 )
 from trust_bench_studio.utils.llm import explain
 from trust_bench_studio.utils.mcp_client import MCPClient
+from trust_bench_studio.utils.config import STUDIO_DATA_DIR
 from trust_bench_studio.utils.run_store import (
     RunRecord,
     RunSummary,
@@ -140,11 +143,15 @@ def invoke_mcp_tool(tool_name: str, request: MCPRequest) -> Dict[str, Any]:
 
     client = MCPClient()
     response = client.call_tool(tool_name, **request.arguments)
+    
     if response is None:
+        _record_mcp_call(tool_name, success=False)
         raise HTTPException(
             status_code=503,
             detail="MCP bridge did not return a response. Ensure the MCP server is running.",
         )
+    
+    _record_mcp_call(tool_name, success=True, response=response)
     return {"tool": tool_name, "response": response}
 
 
@@ -245,6 +252,7 @@ def cleanup_workspace() -> Dict[str, Any]:
     """Archive old evaluation runs and clean up temporary files."""
     script_path = Path(__file__).resolve().parents[2] / "scripts" / "cleanup_workspace.py"
     if not script_path.exists():
+        _record_mcp_call("cleanup_workspace", success=False)
         raise HTTPException(status_code=500, detail="Cleanup script not found.")
 
     try:
@@ -255,15 +263,19 @@ def cleanup_workspace() -> Dict[str, Any]:
             check=False,
         )
     except OSError as exc:  # pragma: no cover - system errors
+        _record_mcp_call("cleanup_workspace", success=False)
         raise HTTPException(status_code=500, detail=f"Failed to launch cleanup script: {exc}") from exc
 
     if completed.returncode != 0:
+        _record_mcp_call("cleanup_workspace", success=False)
         raise HTTPException(
             status_code=500,
             detail=f"Cleanup failed: {completed.stderr or completed.stdout}",
         )
 
-    return {"status": "ok", "message": completed.stdout.strip()}
+    result = {"status": "ok", "message": completed.stdout.strip()}
+    _record_mcp_call("cleanup_workspace", success=True, response=result)
+    return result
 
 
 @app.get("/api/reports/list")
@@ -545,3 +557,113 @@ def _extract_timestamp(record: RunRecord) -> str:
             return parts[1].replace("_", " ").replace("-", ":")
     
     return "unknown"
+
+
+# ============================================================================
+# MCP Activity Tracking
+# ============================================================================
+
+MCP_ACTIVITY_FILE = STUDIO_DATA_DIR / "mcp_activity.json"
+
+
+def _load_mcp_activity() -> Dict[str, Any]:
+    """Load MCP activity statistics from disk."""
+    if not MCP_ACTIVITY_FILE.exists():
+        return {"tools": {}, "recent_calls": []}
+    
+    try:
+        data = json.loads(MCP_ACTIVITY_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {"tools": {}, "recent_calls": []}
+    except (OSError, json.JSONDecodeError):
+        return {"tools": {}, "recent_calls": []}
+
+
+def _save_mcp_activity(data: Dict[str, Any]) -> None:
+    """Save MCP activity statistics to disk."""
+    try:
+        STUDIO_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        MCP_ACTIVITY_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError:
+        pass  # Silently fail if we can't write
+
+
+def _record_mcp_call(tool_name: str, success: bool, response: Optional[dict] = None) -> None:
+    """Record an MCP tool invocation."""
+    activity = _load_mcp_activity()
+    
+    # Update tool statistics
+    if "tools" not in activity:
+        activity["tools"] = {}
+    
+    if tool_name not in activity["tools"]:
+        activity["tools"][tool_name] = {
+            "total_calls": 0,
+            "successful_calls": 0,
+            "failed_calls": 0,
+            "last_used": None,
+        }
+    
+    tool_stats = activity["tools"][tool_name]
+    tool_stats["total_calls"] += 1
+    tool_stats["last_used"] = datetime.utcnow().isoformat()
+    
+    if success:
+        tool_stats["successful_calls"] += 1
+    else:
+        tool_stats["failed_calls"] += 1
+    
+    # Add to recent calls (keep last 50)
+    if "recent_calls" not in activity:
+        activity["recent_calls"] = []
+    
+    activity["recent_calls"].insert(0, {
+        "tool": tool_name,
+        "timestamp": datetime.utcnow().isoformat(),
+        "success": success,
+        "response_summary": _summarize_response(response) if response else None,
+    })
+    
+    activity["recent_calls"] = activity["recent_calls"][:50]
+    
+    _save_mcp_activity(activity)
+
+
+def _summarize_response(response: dict) -> str:
+    """Create a brief summary of MCP response."""
+    if "error" in response:
+        return f"Error: {response['error']}"
+    if "result" in response:
+        result = response["result"]
+        if isinstance(result, dict):
+            if "findings" in result:
+                return f"{len(result['findings'])} findings"
+            if "files_cleaned" in result:
+                return f"{result['files_cleaned']} files cleaned"
+        return "Success"
+    return "Completed"
+
+
+@app.get("/api/mcp/activity")
+def get_mcp_activity() -> Dict[str, Any]:
+    """Get MCP tool activity statistics."""
+    activity = _load_mcp_activity()
+    
+    # Calculate success rates
+    tools_with_rates = {}
+    for tool_name, stats in activity.get("tools", {}).items():
+        total = stats["total_calls"]
+        successful = stats["successful_calls"]
+        success_rate = (successful / total) if total > 0 else 0.0
+        
+        tools_with_rates[tool_name] = {
+            "total_calls": total,
+            "successful_calls": successful,
+            "failed_calls": stats["failed_calls"],
+            "success_rate": round(success_rate, 3),
+            "last_used": stats["last_used"],
+        }
+    
+    return {
+        "tools": tools_with_rates,
+        "recent_calls": activity.get("recent_calls", [])[:10],  # Return last 10
+    }

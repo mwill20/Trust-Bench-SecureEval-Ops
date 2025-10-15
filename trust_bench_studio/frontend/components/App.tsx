@@ -5,6 +5,7 @@ import { OrchestratorNode, AgentNode } from "./NodeComponents";
 import ReportListItem from "./ReportListItem";
 import ReportViewer from "./ReportViewer";
 import BaselineComparison from "./BaselineComparison";
+import MCPActivityDashboard from "./MCPActivityDashboard";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -386,18 +387,9 @@ const ReportsPanel: React.FC<{
           )}
         </section>
 
-        {/* MCP Activity Section */}
-        <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
-          <h3 className="text-lg font-semibold mb-2">Last MCP Cleanup</h3>
-          {lastCleanup ? (
-            <pre className="bg-gray-900/80 border border-gray-700 rounded-md p-4 text-sm overflow-x-auto">
-              {JSON.stringify(lastCleanup, null, 2)}
-            </pre>
-          ) : (
-            <p className="text-gray-400">
-              No cleanup actions have been executed yet.
-            </p>
-          )}
+        {/* MCP Activity Dashboard */}
+        <section>
+          <MCPActivityDashboard />
         </section>
       </div>
     </div>
