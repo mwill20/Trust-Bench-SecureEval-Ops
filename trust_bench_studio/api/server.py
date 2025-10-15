@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
+import platform
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -27,6 +30,9 @@ from trust_bench_studio.utils.run_store import (
     load_run_summary,
     _load_json,
 )
+
+# Track server startup time
+SERVER_START_TIME = time.time()
 
 MAX_INPUT_LENGTH = 2048
 PERMITTED_TOOLS = {
@@ -101,8 +107,69 @@ app.add_middleware(
 
 
 @app.get("/api/health")
-def health_check() -> Dict[str, str]:
-    return {"status": "ok"}
+def health_check() -> Dict[str, Any]:
+    """Enhanced health check with uptime and version info."""
+    uptime_seconds = time.time() - SERVER_START_TIME
+    return {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat(),
+        "uptime_seconds": uptime_seconds,
+        "version": "0.3-alpha",
+    }
+
+
+@app.get("/api/system/environment")
+def get_system_environment() -> Dict[str, Any]:
+    """Get system environment information."""
+    return {
+        "python_version": sys.version,
+        "python_path": sys.executable,
+        "working_directory": str(Path.cwd()),
+        "platform": platform.platform(),
+        "env_vars": {
+            "GROQ_API_KEY": bool(os.getenv("GROQ_API_KEY")),
+            "OPENAI_API_KEY": bool(os.getenv("OPENAI_API_KEY")),
+            "TRUST_BENCH_LLM_PROVIDER": os.getenv("TRUST_BENCH_LLM_PROVIDER", "groq"),
+            "PYTHONPATH": bool(os.getenv("PYTHONPATH")),
+        },
+    }
+
+
+@app.get("/api/system/services")
+def get_system_services() -> Dict[str, Any]:
+    """Get status of system services."""
+    services = [
+        {
+            "name": "FastAPI Backend",
+            "status": "running",
+            "description": "Main API server handling requests",
+            "icon": "🚀",
+        },
+        {
+            "name": "File System",
+            "status": "running" if STUDIO_DATA_DIR.exists() else "error",
+            "description": "Data directory for settings and reports",
+            "icon": "💾",
+        },
+    ]
+    
+    # Check if evaluation runs exist
+    try:
+        runs = list_runs()
+        runs_status = "running" if runs else "stopped"
+        runs_desc = f"Found {len(runs)} evaluation runs" if runs else "No evaluation runs found"
+    except Exception:
+        runs_status = "error"
+        runs_desc = "Error accessing evaluation runs"
+    
+    services.append({
+        "name": "Evaluation Runs",
+        "status": runs_status,
+        "description": runs_desc,
+        "icon": "📊",
+    })
+    
+    return {"services": services}
 
 
 @app.get("/api/agents")
@@ -280,6 +347,56 @@ def cleanup_workspace() -> Dict[str, Any]:
     result = {"status": "ok", "message": message}
     _record_mcp_call("cleanup_workspace", success=True, response=result)
     return result
+
+
+class EvaluationRequest(BaseModel):
+    repo_url: str = Field(..., description="GitHub repository URL to evaluate")
+    profile: Optional[str] = Field(default="default", description="Evaluation profile to use")
+
+
+@app.post("/api/evaluate")
+def run_evaluation(request: EvaluationRequest) -> Dict[str, Any]:
+    """
+    Trigger a Trust Bench evaluation using demo data.
+    
+    NOTE: This is currently a demo implementation that uses pre-generated test data.
+    To evaluate arbitrary GitHub repositories, the system would need to:
+    1. Clone the target repository
+    2. Extract code, documentation, and test data
+    3. Generate evaluation questions from the repository content
+    4. Run metrics against the extracted data
+    
+    For full implementation, see TRUSTBENCH_VISION.md
+    """
+    # Sanitize the repo URL
+    repo_url = _sanitize_user_input(request.repo_url, "repo_url")
+    
+    # Validate it's a GitHub URL
+    if not repo_url.startswith("https://github.com/"):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid repository URL. Must be a GitHub URL starting with https://github.com/"
+        )
+    
+    # For demo mode, return the latest evaluation results
+    # In production, this would trigger repository cloning and analysis
+    try:
+        summary = _load_latest_summary()
+        verdict = synthesize_verdict(summary, None)
+        
+        return {
+            "status": "complete",
+            "repo_url": repo_url,
+            "verdict": verdict,
+            "summary": _summary_to_dict(summary),
+            "message": f"Demo mode: Showing evaluation results for pre-configured test data. Repository-specific analysis of {repo_url} requires full implementation (see TRUSTBENCH_VISION.md)."
+        }
+        
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Evaluation failed: {str(exc)}"
+        )
 
 
 @app.get("/api/reports/list")

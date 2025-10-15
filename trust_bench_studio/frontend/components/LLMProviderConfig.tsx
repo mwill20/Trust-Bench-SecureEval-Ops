@@ -397,8 +397,13 @@ const LLMProviderConfig: React.FC<LLMProviderConfigProps> = ({ apiBase }) => {
                 <div className="flex items-center gap-3 pt-2">
                   <button
                     onClick={() => testProvider(providerKey)}
-                    disabled={isTesting || !config.enabled || !config.api_key}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    disabled={isTesting || !config.api_key}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    title={
+                      !config.api_key
+                        ? "Please enter an API key first"
+                        : "Test connection to provider"
+                    }
                   >
                     {isTesting ? (
                       <>
