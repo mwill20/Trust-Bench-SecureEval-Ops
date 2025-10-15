@@ -6,6 +6,7 @@ import ReportListItem from "./ReportListItem";
 import ReportViewer from "./ReportViewer";
 import BaselineComparison from "./BaselineComparison";
 import MCPActivityDashboard from "./MCPActivityDashboard";
+import EvaluationSettings from "./EvaluationSettings";
 import {
   INITIAL_AGENTS,
   VERDICT_STYLES,
@@ -397,33 +398,8 @@ const ReportsPanel: React.FC<{
 };
 
 const SettingsPanel: React.FC = () => (
-  <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto space-y-6">
-    <h2 className="text-2xl font-bold">Settings</h2>
-    <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
-      <h3 className="text-lg font-semibold mb-2">Environment</h3>
-      <p className="text-sm text-gray-300">
-        The frontend expects{" "}
-        <code className="text-blue-300">VITE_API_BASE</code> (defaulting to
-        http://127.0.0.1:8000) for API communication. LLM providers are
-        configured server-side via{" "}
-        <code className="text-blue-300">TRUST_BENCH_LLM_PROVIDER</code>,
-        <code className="text-blue-300">GROQ_API_KEY</code>, and{" "}
-        <code className="text-blue-300">OPENAI_API_KEY</code>.
-      </p>
-    </section>
-    <section className="bg-gray-800/60 border border-gray-700 rounded-lg p-5">
-      <h3 className="text-lg font-semibold mb-2">Security Guardrails</h3>
-      <ul className="list-disc list-inside text-sm text-gray-300 space-y-1">
-        <li>
-          User inputs are length-capped and sanitized before being forwarded.
-        </li>
-        <li>
-          Agent transcripts and findings are rendered in escaped blocks to
-          prevent HTML injection.
-        </li>
-        <li>MCP endpoints are allow-listed and enforce argument caps.</li>
-      </ul>
-    </section>
+  <div className="flex-1 bg-gray-900 text-gray-200 p-8 overflow-y-auto">
+    <EvaluationSettings apiBase={API_BASE} />
   </div>
 );
 

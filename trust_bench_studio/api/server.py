@@ -671,3 +671,71 @@ def get_mcp_activity() -> Dict[str, Any]:
         "tools": tools_with_rates,
         "recent_calls": activity.get("recent_calls", [])[:10],  # Return last 10
     }
+
+
+# =============================================================================
+# Settings Endpoints
+# =============================================================================
+
+SETTINGS_FILE = STUDIO_DATA_DIR / "evaluation_settings.json"
+
+DEFAULT_SETTINGS = {
+    "active_profile": "default",
+    "custom_thresholds": {
+        "task_fidelity": 0.7,
+        "security_eval": 0.8,
+        "system_perf": 0.75,
+        "ethics_refusal": 0.85,
+    },
+    "enabled_agents": {
+        "task_fidelity": True,
+        "security_eval": True,
+        "system_perf": True,
+        "ethics_refusal": True,
+    },
+    "run_options": {
+        "max_samples": 100,
+        "timeout_seconds": 300,
+        "parallel_agents": True,
+        "save_artifacts": True,
+    },
+}
+
+
+def _load_settings() -> Dict[str, Any]:
+    """Load evaluation settings from disk."""
+    if not SETTINGS_FILE.exists():
+        return DEFAULT_SETTINGS.copy()
+    try:
+        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return DEFAULT_SETTINGS.copy()
+
+
+def _save_settings(settings: Dict[str, Any]) -> None:
+    """Save evaluation settings to disk."""
+    SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(settings, f, indent=2)
+
+
+class EvaluationSettingsUpdate(BaseModel):
+    active_profile: str = Field(..., description="Active profile name")
+    custom_thresholds: Dict[str, float] = Field(..., description="Custom threshold values")
+    enabled_agents: Dict[str, bool] = Field(..., description="Which agents to run")
+    run_options: Dict[str, Any] = Field(..., description="Run configuration options")
+
+
+@app.get("/api/settings/evaluation")
+def get_evaluation_settings() -> Dict[str, Any]:
+    """Get current evaluation settings."""
+    return _load_settings()
+
+
+@app.post("/api/settings/evaluation")
+def update_evaluation_settings(settings: EvaluationSettingsUpdate) -> Dict[str, Any]:
+    """Update evaluation settings."""
+    settings_dict = settings.model_dump()
+    _save_settings(settings_dict)
+    return {"status": "ok", "message": "Settings updated successfully", "settings": settings_dict}
