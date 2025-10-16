@@ -26,7 +26,7 @@ Add new tasks as the scope evolves.
 
 ## Phase 1 – Repository Ingestion MVP
 
-- [ ] Design the job schema (`job_store.py`) and scaffold service stubs (`GitHubService`, `JobManager`).
+- [x] Design the job schema (`job_store.py`) and scaffold service stubs (`GitHubService`, `JobManager`).
 - [ ] Implement `POST /api/repositories/analyze` and `GET /api/repositories/{id}/status` with mocked analysis data.
 - [ ] Build `RepositoryInput.tsx` and `AnalysisProgress.tsx`, wiring them to the mocked endpoints.
 - [ ] Smoke-test the new endpoints and UI flow; commit and push the working state.
