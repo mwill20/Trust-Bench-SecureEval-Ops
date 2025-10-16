@@ -21,7 +21,7 @@ Add new tasks as the scope evolves.
 ## Phase 0 – Foundations
 
 - [x] Confirm the FastAPI backend (`uvicorn`) and React frontend (Vite dev server) launch successfully.
-- [ ] Document the current `/api/evaluate` → Settings tab data flow, including usage of `runs/` and `trust_bench_studio/data/`.
+- [x] Document the current `/api/evaluate` → Settings tab data flow, including usage of `runs/` and `trust_bench_studio/data/`.
 - [ ] Finalize team policy to push to `main` after each checklist completion (baseline workflow confirmation).
 
 ## Phase 1 – Repository Ingestion MVP
