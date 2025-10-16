@@ -25,6 +25,7 @@ class JobManager:
                 "workspace": str(checkout.workdir),
                 **checkout.metadata,
             },
+            message="Job queued for analysis",
         )
         return self.store.get_job(job.id)  # type: ignore[return-value]
 

@@ -36,3 +36,4 @@ def test_job_manager_allocates_workspace(tmp_path):
     assert workspace.exists()
     assert workspace.is_dir()
     assert job.metadata["status"] == "pending_clone"
+    assert job.message == "Job queued for analysis"

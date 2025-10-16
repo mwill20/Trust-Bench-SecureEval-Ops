@@ -16,6 +16,7 @@ from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from trust_bench_studio.api.repositories import router as repositories_router
 from trust_bench_studio.utils import (
     load_agents_manifest,
     synthesize_verdict,
@@ -104,6 +105,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(repositories_router, prefix="/api/repositories", tags=["repositories"])
 
 
 @app.get("/api/health")
