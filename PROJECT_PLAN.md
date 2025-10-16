@@ -20,7 +20,7 @@ Add new tasks as the scope evolves.
 
 ## Phase 0 – Foundations
 
-- [ ] Confirm the FastAPI backend (`uvicorn`) and React frontend (Vite dev server) launch successfully.
+- [x] Confirm the FastAPI backend (`uvicorn`) and React frontend (Vite dev server) launch successfully.
 - [ ] Document the current `/api/evaluate` → Settings tab data flow, including usage of `runs/` and `trust_bench_studio/data/`.
 - [ ] Finalize team policy to push to `main` after each checklist completion (baseline workflow confirmation).
 
@@ -64,4 +64,3 @@ Add new tasks as the scope evolves.
 - **User Experience** – Progress states accurate, error messaging actionable, reports clear.
 - **Maintainability** – Cohesive modules, helpful docstrings/comments, configuration centralized.
 - **Test Coverage** – Critical paths covered by unit/integration tests; manual test notes captured when needed.
-
