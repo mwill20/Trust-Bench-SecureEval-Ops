@@ -4,6 +4,8 @@
 It benchmarks large-language-model (LLM) agents across multiple trust dimensions:
 task fidelity, system performance, security compliance, and ethical refusal.
 
+> **🛡️ STABLE FALLBACK STATE:** This version (`v0.3.0-stable-auto-jobs`) is a fully working system with automatic job processing. Use as fallback if future development breaks functionality. See [FALLBACK_CONFIG.md](FALLBACK_CONFIG.md) for reversion instructions.
+
 ---
 
 ## 🚀 Features
