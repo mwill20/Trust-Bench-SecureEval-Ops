@@ -122,6 +122,8 @@ class JobStore:
 
     def get_job(self, job_id: str) -> Optional[JobStatus]:
         with self._lock:
+            # First try to refresh from disk in case another process updated it
+            self._refresh_job_from_disk(job_id)
             job = self._jobs.get(job_id)
             return JobStatus.from_dict(job.to_dict()) if job else None
 
@@ -171,6 +173,19 @@ class JobStore:
             return JobStatus.from_dict(job.to_dict())
 
     # -- internal helpers -----------------------------------------------
+    def _refresh_job_from_disk(self, job_id: str) -> None:
+        """Refresh a specific job from disk if it exists."""
+        job_dir = self.root / job_id
+        status_path = job_dir / self.STATUS_FILENAME
+        if status_path.exists():
+            try:
+                data = json.loads(status_path.read_text(encoding="utf-8"))
+                job = JobStatus.from_dict(data)
+                self._jobs[job.id] = job
+            except (json.JSONDecodeError, OSError, KeyError, ValueError):
+                # If there's an error reading, keep the existing version
+                pass
+
     def _hydrate_existing(self) -> None:
         for child in self.root.iterdir():
             if not child.is_dir():
