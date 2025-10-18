@@ -17,25 +17,32 @@ task fidelity, system performance, security compliance, and ethical refusal.
 
 ## 🧩 Quick Start
 
-### Option 1: One-Click Startup (Recommended)
-Simply double-click one of these files in Windows Explorer:
+### Option 1: Full System with Auto Job Processing ⭐ (Recommended)
+**Repository analysis jobs complete automatically in the background!**
 
-- **`start_trust_bench.bat`** - Complete system startup (first time)
-- **`quick_start.bat`** - Fast startup for development (subsequent runs)
+Simply double-click one of these files:
+- **`start_auto.bat`** - Complete system with background job processor
+- Or run: **`start_with_worker.ps1`** - PowerShell version with automatic processing
+- Or run: **`start_services.py`** - Python-based service manager
 
-### Option 2: PowerShell Script
 ```powershell
-# Full startup with dependency checks
-.\start_trust_bench.ps1
+# Automatic job processing (recommended for normal use)
+.\start_with_worker.ps1
 
-# Quick startup (skips npm install)
-.\start_trust_bench.ps1 -SkipInstall
-
-# Development mode with detailed logging
-.\start_trust_bench.ps1 -DevMode
+# Or use the Python service manager
+python start_services.py
 ```
 
-### Option 3: Manual Setup
+### Option 2: Manual System Control
+```powershell
+# Full system startup (includes job processor)
+.\start_simple.ps1
+
+# Quick startup (skips dependency checks)  
+.\start_simple.ps1 -SkipInstall
+```
+
+### Option 3: Development Setup
 ```bash
 # Backend setup
 python -m venv .venv
@@ -48,4 +55,5 @@ npm install
 
 # Start services (in separate terminals)
 python -m uvicorn trust_bench_studio.api.server:app --host 127.0.0.1 --port 8001 --reload
+python job_processor_demo.py  # ⚡ Background worker for automatic job processing
 npm run dev

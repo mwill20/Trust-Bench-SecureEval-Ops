@@ -129,6 +129,10 @@ class JobStore:
 
     def list_jobs(self) -> Iterable[JobStatus]:
         with self._lock:
+            # Ensure we incorporate any jobs created by other processes
+            self._hydrate_existing()
+            for job_id in list(self._jobs.keys()):
+                self._refresh_job_from_disk(job_id)
             return [JobStatus.from_dict(job.to_dict()) for job in self._jobs.values()]
 
     def update_job(
