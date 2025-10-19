@@ -17,6 +17,12 @@ from flask import Flask, render_template_string, request, jsonify, send_file
 
 app = Flask(__name__)
 
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Serve static assets like logos and images"""
+    assets_dir = os.path.join(os.path.dirname(__file__), 'assets')
+    return send_file(os.path.join(assets_dir, filename))
+
 def is_valid_github_url(url):
     """Check if the URL is a valid GitHub repository URL"""
     try:
@@ -84,12 +90,18 @@ HTML_TEMPLATE = """
             background: white;
             border-radius: 10px;
             padding: 30px;
+            padding-top: 270px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
         }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            height: 240px;
+            width: 240px;
+            object-fit: contain;
+            z-index: 10;
         }
         .subtitle {
             text-align: center;
@@ -107,10 +119,23 @@ HTML_TEMPLATE = """
         }
         input[type="text"], select {
             width: 100%;
-            padding: 10px;
+            padding: 20px;
             border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 24px;
+            min-height: 60px;
+            line-height: 1.4;
+        }
+        #repoUrl, input[type="url"] {
+            width: 150% !important;
+            max-width: 600px !important;
+            padding: 20px !important;
+            border: 2px solid #ddd !important;
+            border-radius: 8px !important;
+            font-size: 24px !important;
+            min-height: 60px !important;
+            line-height: 1.4 !important;
+            box-sizing: border-box !important;
         }
         .btn {
             background: #667eea;
@@ -253,7 +278,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <h1>🤖 Trust Bench Multi-Agent Auditor</h1>
+        <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" class="logo">
         <p class="subtitle">AI-powered repository security and quality analysis</p>
         
         <form id="auditForm">
@@ -357,7 +382,10 @@ HTML_TEMPLATE = """
         </div>
         
         <div class="loading" id="loading">
-            <h3>🤖 Agents are analyzing your repository...</h3>
+            <h3>
+                <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" style="height: 48px; width: 48px; margin-right: 12px; vertical-align: middle;">
+                Agents are analyzing your repository...
+            </h3>
             <p>📥 Cloning repository...</p>
             <p>🔒 SecurityAgent scanning for vulnerabilities and secrets...</p>
             <p>⚡ QualityAgent checking code quality and test coverage...</p>
