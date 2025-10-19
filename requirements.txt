@@ -1,6 +1,0 @@
-﻿# Base dependencies for Trust_Bench core tooling
--r requirements-phase1.txt
-python-dotenv>=1.0
-requests>=2.32
-uvicorn>=0.30
-fastapi>=0.115

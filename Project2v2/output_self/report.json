@@ -1,0 +1,159 @@
+{
+  "generated_at": "2025-10-19T13:48:04.512042+00:00",
+  "repo_root": "C:\\Projects\\Trust_Bench_Clean\\Project2v2",
+  "summary": {
+    "overall_score": 61.33,
+    "grade": "fair",
+    "notes": "Composite built from agent contributions."
+  },
+  "agents": {
+    "SecurityAgent": {
+      "score": 60.0,
+      "summary": "Scanned 11 files and detected 2 potential secret hit(s).",
+      "details": {
+        "matches": [
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+            "pattern": "Private RSA Key",
+            "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+          }
+        ],
+        "scanned": 11
+      }
+    },
+    "QualityAgent": {
+      "score": 24.0,
+      "summary": "Indexed 11 files across 4 language group(s); 0 appear to be tests.",
+      "details": {
+        "language_histogram": {
+          "python": 7,
+          "markdown": 2,
+          "other": 1,
+          "json": 1
+        },
+        "total_files": 11,
+        "test_files": 0,
+        "test_ratio": 0.0
+      }
+    },
+    "DocumentationAgent": {
+      "score": 100.0,
+      "summary": "Found 1 README file(s) with roughly 271 words and 4 section heading(s).",
+      "details": {
+        "readme_paths": [
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md"
+        ],
+        "total_words": 271,
+        "sections": 4,
+        "has_quickstart": false,
+        "has_architecture": false
+      }
+    }
+  },
+  "conversation": [
+    {
+      "sender": "Manager",
+      "recipient": "SecurityAgent",
+      "content": "Task assigned: Scan the repository for high-signal secrets or credentials.",
+      "data": {
+        "tool": "secret_scan"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "QualityAgent",
+      "content": "Task assigned: Summarize repository structure and gauge test coverage.",
+      "data": {
+        "tool": "repository_structure"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "DocumentationAgent",
+      "content": "Task assigned: Review README files and verify documentation depth.",
+      "data": {
+        "tool": "documentation_review"
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "Manager",
+      "content": "Secret scan completed.",
+      "data": {
+        "name": "secret_scan",
+        "score": 60.0,
+        "summary": "Scanned 11 files and detected 2 potential secret hit(s).",
+        "details": {
+          "matches": [
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+              "pattern": "Private RSA Key",
+              "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+            }
+          ],
+          "scanned": 11
+        }
+      }
+    },
+    {
+      "sender": "QualityAgent",
+      "recipient": "Manager",
+      "content": "Repository structure summarized.",
+      "data": {
+        "name": "repository_structure",
+        "score": 24.0,
+        "summary": "Indexed 11 files across 4 language group(s); 0 appear to be tests.",
+        "details": {
+          "language_histogram": {
+            "python": 7,
+            "markdown": 2,
+            "other": 1,
+            "json": 1
+          },
+          "total_files": 11,
+          "test_files": 0,
+          "test_ratio": 0.0
+        }
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "Manager",
+      "content": "Documentation review finished.",
+      "data": {
+        "name": "documentation_review",
+        "score": 100.0,
+        "summary": "Found 1 README file(s) with roughly 271 words and 4 section heading(s).",
+        "details": {
+          "readme_paths": [
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md"
+          ],
+          "total_words": 271,
+          "sections": 4,
+          "has_quickstart": false,
+          "has_architecture": false
+        }
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "All Agents",
+      "content": "Evaluation complete. Grade: FAIR (61.33 pts).",
+      "data": {
+        "overall_score": 61.33,
+        "grade": "fair",
+        "notes": "Composite built from agent contributions."
+      }
+    }
+  ]
+}

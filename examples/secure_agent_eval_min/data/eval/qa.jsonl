@@ -1,2 +1,0 @@
-{"question": "What is vector search?", "answer": "Vector search retrieves items by similarity in embedding space.", "contexts": ["Embeddings map items into vectors", "Similarity is computed (e.g., cosine)"]}
-{"question": "What is RAG?", "answer": "Retrieval-Augmented Generation uses retrieved context to ground model outputs.", "contexts": ["RAG reduces hallucination by adding context", "Pipeline: retrieve \u2192 augment \u2192 generate"]}
