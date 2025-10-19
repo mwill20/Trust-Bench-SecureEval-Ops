@@ -18,8 +18,20 @@ from flask import Flask, render_template_string, request, jsonify, send_file
 
 try:
     from .llm_utils import LLMError, chat_with_llm, test_provider_credentials
+    from .security_utils import (
+        ValidationError,
+        sanitize_prompt,
+        security_filters_enabled,
+        validate_repo_url,
+    )
 except ImportError:
     from llm_utils import LLMError, chat_with_llm, test_provider_credentials
+    from security_utils import (
+        ValidationError,
+        sanitize_prompt,
+        security_filters_enabled,
+        validate_repo_url,
+    )
 
 app = Flask(__name__)
 
@@ -1020,15 +1032,23 @@ def index():
 def analyze():
     temp_dir = None
     try:
-        data = request.json
-        repo_url = data.get('repo_url', '')
+        data = request.json or {}
+        repo_url = (data.get('repo_url') or '').strip()
         
-        # Validate GitHub URL
-        if not is_valid_github_url(repo_url):
-            return jsonify({
-                'success': False,
-                'error': 'Please provide a valid GitHub repository URL (e.g., https://github.com/owner/repo)'
-            })
+        if security_filters_enabled():
+            try:
+                repo_url = validate_repo_url(repo_url)
+            except ValidationError as exc:
+                return jsonify({
+                    'success': False,
+                    'error': str(exc)
+                })
+        else:
+            if not is_valid_github_url(repo_url):
+                return jsonify({
+                    'success': False,
+                    'error': 'Please provide a valid GitHub repository URL (e.g., https://github.com/owner/repo)'
+                })
         
         # Extract repo information for naming
         owner, repo_name = extract_repo_info(repo_url)
@@ -1129,7 +1149,11 @@ def api_chat():
             'error': 'Invalid JSON payload.'
         }), 400
 
-    question = str(payload.get('question', '') or '').strip()
+    raw_question = payload.get('question', '')
+    if security_filters_enabled():
+        question = sanitize_prompt(raw_question)
+    else:
+        question = str(raw_question or '').strip()
     provider_raw = payload.get('provider')
     provider = str(provider_raw).strip().lower() if provider_raw else None
     api_key_raw = payload.get('api_key')

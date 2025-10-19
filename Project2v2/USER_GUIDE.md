@@ -116,3 +116,9 @@ The agents will analyze any repository with **intelligent collaboration**:
 - ✅ All dependencies installed
 
 **Go explore!** The system is completely functional and ready for hands-on experimentation. Try analyzing different repositories and see how the AI agents evaluate code security, quality, and documentation!
+
+## Security Tips (Optional Hardening)
+
+- Set the environment variable `ENABLE_SECURITY_FILTERS=true` (default) to enable stricter validation and sanitization for repository URLs and chat prompts.
+- Disable the flag (`false`/`0`/`off`) temporarily if you need to compare behaviour or diagnose unexpected rejections.
+- The new `security_utils.py` module houses the initial validators; extend it and add tests following the review → plan → build → test loop when you broaden coverage.

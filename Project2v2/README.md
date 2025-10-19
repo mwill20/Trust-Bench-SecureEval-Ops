@@ -97,6 +97,10 @@ $env:LLM_PROVIDER = "openai"
 
 Only one provider key is required at a time; add more keys if you plan to switch providers from the dropdown.
 
+### Security Features (optional)
+
+Enable incremental validation and sanitization by setting the `ENABLE_SECURITY_FILTERS` environment variable (defaults to `true`). This routes all repository URLs through stricter checks and sanitises chat prompts before they reach the backend. Toggle it off (`0`, `false`, `off`) if you need to diagnose issues or compare behaviour.
+
 If you prefer not to set environment variables, you can paste a key into the web UI chat panel. The key stays in your browser session and is only transmitted when you test the connection or send a chat request.
 
 ### LLM Utility Module
