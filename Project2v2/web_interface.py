@@ -1,4 +1,4 @@
-"""
+﻿"""
 Simple web interface for the Trust Bench Multi-Agent Repository Auditor.
 Run this to get a web UI for submitting repositories for analysis.
 """
@@ -115,877 +115,882 @@ def _load_latest_context() -> Optional[Dict[str, Any]]:
     }
 
 # HTML template for the web interface
-HTML_TEMPLATE = """
-<!DOCTYPE html>
+HTML_TEMPLATE = """﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trust Bench Multi-Agent Auditor</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        :root {
+            --primary: #667eea;
+            --accent: #424a75;
+            --panel-bg: rgba(255, 255, 255, 0.94);
         }
-        .container {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            padding-top: 270px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1f2440;
+        }
+        .sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .sidebar h2 {
+            margin: 0 0 12px;
+            font-size: 22px;
+            color: var(--accent);
+        }
+        .sidebar-section {
+            background: #f5f6ff;
+            border: 1px solid #dfe3ff;
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .sidebar-section h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: #2f3669;
+        }
+        .sidebar label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .sidebar input[type="url"],
+        .sidebar input[type="password"],
+        .sidebar select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccd2ff;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .primary-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .primary-btn:disabled {
+            background: #b8bff6;
+            cursor: not-allowed;
+        }
+        .outline-btn {
+            background: #eef0ff;
+            color: var(--accent);
+            padding: 10px 16px;
+            border: 1px solid #ccd2ff;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .outline-btn:disabled {
+            background: #e5e7fb;
+            color: #9aa2cf;
+            cursor: not-allowed;
+        }
+        .privacy-note {
+            font-size: 12px;
+            color: #555d82;
+            line-height: 1.4;
+        }
+        .main-container {
+            flex: 1;
+            padding: 48px 48px 64px;
+            overflow-y: auto;
+        }
+        .content-card {
             position: relative;
+            background: var(--panel-bg);
+            border-radius: 20px;
+            padding: 42px 38px 50px;
+            box-shadow: 0 18px 46px rgba(0,0,0,0.2);
+            max-width: 1080px;
+            margin: 0 auto;
         }
         .logo {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            height: 240px;
-            width: 240px;
-            object-fit: contain;
-            z-index: 10;
+            top: -100px;
+            left: 40px;
+            height: 160px;
+            width: auto;
         }
         .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        input[type="text"], select {
-            width: 100%;
-            padding: 20px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 24px;
-            min-height: 60px;
-            line-height: 1.4;
-        }
-        #repoUrl, input[type="url"] {
-            width: 150% !important;
-            max-width: 600px !important;
-            padding: 20px !important;
-            border: 2px solid #ddd !important;
-            border-radius: 8px !important;
-            font-size: 24px !important;
-            min-height: 60px !important;
-            line-height: 1.4 !important;
-            box-sizing: border-box !important;
-        }
-        .btn {
-            background: #667eea;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn:hover {
-            background: #5a6fd8;
-        }
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .results {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            display: none;
-        }
-        .loading {
-            text-align: center;
-            color: #667eea;
-            display: none;
-        }
-        .score {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .excellent { color: #28a745; }
-        .good { color: #17a2b8; }
-        .fair { color: #ffc107; }
-        .needs_attention { color: #dc3545; }
-        .agent-results {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .agent-card {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #667eea;
+            margin: 80px 0 28px;
+            font-size: 20px;
+            color: #3c4366;
         }
         .progress-workflow {
-            margin: 30px 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
         .progress-step {
-            text-align: center;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #e0e0e0;
-            background: #f9f9f9;
+            background: #f5f6ff;
+            border: 1px solid #dfe3ff;
+            border-radius: 12px;
+            padding: 18px;
             transition: all 0.3s ease;
-            margin-bottom: 15px;
         }
-        .progress-single {
-            /* Single steps like Input, Orchestrator, Results */
+        .progress-step-icon {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
         }
-        .progress-agents {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
+        .progress-step-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
         }
-        .progress-agents .progress-step {
-            flex: 1;
-            margin-bottom: 0;
+        .progress-step-desc {
+            color: #555d82;
             font-size: 14px;
+            margin-bottom: 12px;
         }
         .progress-step.active {
-            border-color: #667eea;
-            background: #f0f8ff;
-            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 22px rgba(102, 126, 234, 0.2);
         }
         .progress-step.completed {
             border-color: #28a745;
-            background: #f0fff4;
+            background: #ecfff3;
         }
-        .progress-step-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-        .progress-step-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .progress-step-desc {
-            font-size: 12px;
-            color: #666;
-        }
-        .agent-details {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border: 1px solid #e0e0e0;
-            display: none;
-            font-size: 11px;
-            text-align: left;
-        }
-        .agent-details.show {
-            display: block;
-        }
-        .agent-details h4 {
-            margin: 0 0 8px 0;
-            font-size: 12px;
-            color: #333;
-        }
-        .agent-details ul {
-            margin: 0;
-            padding-left: 15px;
-        }
-        .agent-details li {
-            margin: 3px 0;
+        .progress-agents {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
         }
         .toggle-details {
             background: none;
             border: none;
-            color: #667eea;
+            color: var(--primary);
             cursor: pointer;
-            font-size: 11px;
-            margin-top: 5px;
+            font-size: 13px;
             text-decoration: underline;
         }
-        .toggle-details:hover {
-            color: #5a6fd8;
+        .agent-details {
+            display: none;
+            margin-top: 12px;
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #e1e4ff;
+            font-size: 13px;
         }
-        .chat-panel {
-            margin-top: 30px;
-            background: #f8f9ff;
-            border: 1px solid #e0e0ff;
-            border-radius: 8px;
-            padding: 20px;
-        }
-        .chat-panel h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-        .api-key-panel {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .api-key-panel label {
-            font-weight: 600;
-        }
-        .api-key-panel input {
-            flex: 1;
-            min-width: 220px;
-            padding: 8px 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        .api-key-panel button {
-            background: #17a2b8;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 16px;
-            cursor: pointer;
-        }
-        .api-key-panel button:disabled {
-            background: #9bc7d2;
-            cursor: not-allowed;
-        }
-        .api-key-status {
-            flex-basis: 100%;
-            font-size: 12px;
-            min-height: 18px;
-        }
-        .privacy-note {
+        .agent-details.show {
             display: block;
-            font-size: 12px;
-            color: #555;
-            margin-top: 4px;
         }
-        .provider-select {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
+        .agent-details ul {
+            margin: 0;
+            padding-left: 18px;
         }
-        .provider-select select {
-            flex: 0 0 180px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+        .loading {
+            margin-top: 28px;
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 22px;
+            display: none;
+        }
+        .results {
+            margin-top: 28px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e1e4ff;
+            display: none;
+        }
+        .agent-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+        .agent-card {
+            background: #f6f7ff;
+            border: 1px solid #dfe3ff;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .score.excellent { color: #28a745; }
+        .score.good { color: #17a2b8; }
+        .score.fair { color: #ffc107; }
+        .score.needs_attention { color: #dc3545; }
+        .chat-panel {
+            margin-top: 28px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e1e4ff;
+            display: none;
         }
         .chat-history {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: white;
+            border: 1px solid #d9def7;
+            border-radius: 8px;
+            background: #f9faff;
             min-height: 160px;
-            max-height: 240px;
+            max-height: 260px;
             overflow-y: auto;
-            padding: 12px;
-            margin-bottom: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
             font-size: 14px;
-        }
-        .chat-message {
-            margin-bottom: 12px;
-        }
-        .chat-message strong {
-            display: block;
-            margin-bottom: 4px;
         }
         .chat-input {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 12px;
         }
         .chat-input textarea {
             flex: 1;
-            min-height: 80px;
-            border: 1px solid #ccc;
+            min-height: 90px;
+            border: 1px solid #ccd2ff;
             border-radius: 6px;
-            padding: 10px;
+            padding: 12px;
             font-size: 14px;
             resize: vertical;
         }
         .chat-input button {
-            background: #667eea;
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 6px;
-            padding: 10px 20px;
+            padding: 12px 18px;
             cursor: pointer;
         }
-        .chat-input button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
         .chat-status {
-            margin-top: 6px;
+            margin-top: 8px;
             font-size: 12px;
             color: #555;
-            min-height: 20px;
+            min-height: 18px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" class="logo">
-        <p class="subtitle">AI-powered repository security and quality analysis</p>
-        
-        <form id="auditForm">
-            <div class="form-group">
-                <label for="repoUrl">GitHub Repository URL:</label>
-                <input type="url" id="repoUrl" name="repoUrl" 
-                       placeholder="Enter GitHub repo URL (e.g., https://github.com/owner/repo)" 
-                       required>
-                <small style="color: #666; display: block; margin-top: 5px;">
-                    💡 Paste any public GitHub repository URL to analyze its security, quality, and documentation
-                </small>
+    <aside class="sidebar">
+        <div>
+            <h2>How to Use</h2>
+            <div class="sidebar-section">
+                <h3>Add a repo of interest</h3>
+                <form id="auditForm">
+                    <label for="repoUrl">GitHub Repository URL</label>
+                    <input type="url" id="repoUrl" name="repoUrl" placeholder="https://github.com/owner/repo" required>
+                    <button type="submit" class="primary-btn" id="analyzeBtn">Analyze Repository</button>
+                </form>
             </div>
-            
-            <button type="submit" class="btn" id="analyzeBtn">🔍 Analyze Repository</button>
-        </form>
-        
-        <div class="progress-workflow" id="progressWorkflow" style="display: none;">
-            <!-- Input -->
-            <div class="progress-step progress-single" id="step-input">
-                <div class="progress-step-icon">📥</div>
-                <div class="progress-step-title">Input</div>
-                <div class="progress-step-desc">GitHub URL received</div>
-            </div>
-            
-            <!-- Orchestrator -->
-            <div class="progress-step progress-single" id="step-orchestration">
-                <div class="progress-step-icon">🎯</div>
-                <div class="progress-step-title">Orchestrator</div>
-                <div class="progress-step-desc">Manager assigns tasks to specialized agents</div>
-                <button class="toggle-details" onclick="toggleDetails('orchestrator-details')">Show Details ▼</button>
-                <div class="agent-details" id="orchestrator-details">
-                    <h4>🎯 Orchestrator Capabilities:</h4>
-                    <ul>
-                        <li><strong>Task Management:</strong> Coordinates all agent activities</li>
-                        <li><strong>Workflow Control:</strong> Manages analysis sequence and timing</li>
-                        <li><strong>Collaboration Facilitation:</strong> Enables direct agent-to-agent communication</li>
-                        <li><strong>Result Compilation:</strong> Combines collaborative findings into final score</li>
-                        <li><strong>Quality Assurance:</strong> Tracks collaboration metrics and adjustments</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Three Agents Working in Parallel -->
-            <div class="progress-agents">
-                <div class="progress-step" id="step-security">
-                    <div class="progress-step-icon">🔒</div>
-                    <div class="progress-step-title">Security Agent</div>
-                    <div class="progress-step-desc">Scanning for secrets & vulnerabilities</div>
-                    <button class="toggle-details" onclick="toggleDetails('security-details')">Show Details ▼</button>
-                    <div class="agent-details" id="security-details">
-                        <h4>🔒 Security Scanning & Collaboration:</h4>
-                        <ul>
-                            <li><strong>Secret Detection:</strong> API keys, tokens, passwords</li>
-                            <li><strong>Credential Scanning:</strong> AWS keys, GitHub tokens, DB strings</li>
-                            <li><strong>Risk Assessment:</strong> Categorizes findings by risk level</li>
-                            <li><strong>Collaborative Alerts:</strong> Notifies other agents about security context</li>
-                            <li><strong>Cross-Agent Impact:</strong> Findings influence quality and documentation scores</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="progress-step" id="step-quality">
-                    <div class="progress-step-icon">⚡</div>
-                    <div class="progress-step-title">Quality Agent</div>
-                    <div class="progress-step-desc">Analyzing code & tests</div>
-                    <button class="toggle-details" onclick="toggleDetails('quality-details')">Show Details ▼</button>
-                    <div class="agent-details" id="quality-details">
-                        <h4>⚡ Code Quality & Cross-Analysis:</h4>
-                        <ul>
-                            <li><strong>Language Detection:</strong> Identifies programming languages</li>
-                            <li><strong>Security Integration:</strong> Adjusts scores based on security findings</li>
-                            <li><strong>Test Coverage:</strong> Calculates test-to-code ratios</li>
-                            <li><strong>Collaborative Metrics:</strong> Shares quality data with documentation agent</li>
-                            <li><strong>Dynamic Scoring:</strong> Adapts assessment based on security context</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="progress-step" id="step-documentation">
-                    <div class="progress-step-icon">📚</div>
-                    <div class="progress-step-title">Documentation Agent</div>
-                    <div class="progress-step-desc">Reviewing docs & READMEs</div>
-                    <button class="toggle-details" onclick="toggleDetails('documentation-details')">Show Details ▼</button>
-                    <div class="agent-details" id="documentation-details">
-                        <h4>📚 Documentation & Context Analysis:</h4>
-                        <ul>
-                            <li><strong>README Evaluation:</strong> Quality, length, structure</li>
-                            <li><strong>Quality-Aware Scoring:</strong> Adjusts expectations based on project size/complexity</li>
-                            <li><strong>Security Gap Detection:</strong> Identifies missing security documentation</li>
-                            <li><strong>Cross-Agent Communication:</strong> Collaborates with quality and security teams</li>
-                            <li><strong>Contextual Assessment:</strong> Adapts scoring based on collaborative insights</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Results -->
-            <div class="progress-step progress-single" id="step-results">
-                <div class="progress-step-icon">📊</div>
-                <div class="progress-step-title">Results</div>
-                <div class="progress-step-desc">Scores compiled and comprehensive report generated</div>
-            </div>
-        </div>
-        
-        <div class="loading" id="loading">
-            <h3>
-                <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" style="height: 48px; width: 48px; margin-right: 12px; vertical-align: middle;">
-                Agents are analyzing your repository...
-            </h3>
-            <p>📥 Cloning repository...</p>
-            <p>🔒 SecurityAgent scanning for vulnerabilities and secrets...</p>
-            <p>⚡ QualityAgent checking code quality and test coverage...</p>
-            <p>📚 DocumentationAgent reviewing documentation...</p>
-            <p><em>This may take 30-60 seconds for large repositories</em></p>
-        </div>
-        
-        <div class="results" id="results">
-            <h2>📊 Analysis Results</h2>
-            <div id="resultsContent"></div>
-        </div>
-        <div class="chat-panel" id="chatPanel">
-            <div class="api-key-panel">
-                <label for="apiKeyInput">API Key:</label>
-                <input type="password" id="apiKeyInput" autocomplete="off" placeholder="Paste your key for selected provider">
-                <button type="button" id="testKeyBtn">Test Connection</button>
-                <span class="api-key-status" id="apiKeyStatus"></span>
-                <span class="privacy-note">Your API key is never stored or tracked. It is used only for this session and never leaves your browser except to test or send a chat request.</span>
-            </div>
-            <h2>Ask the Agents</h2>
-            <div class="provider-select">
-                <label for="providerSelect">LLM Provider:</label>
+            <div class="sidebar-section optional">
+                <h3>Optional</h3>
+                <p style="margin: 0 0 8px; font-weight: 600; color: #2f2f44;">Ask the Agents</p>
+                <label for="providerSelect">LLM Provider</label>
                 <select id="providerSelect">
                     <option value="openai">OpenAI</option>
                     <option value="groq">Groq</option>
                     <option value="gemini">Gemini</option>
                 </select>
+                <label for="apiKeyInput">Add your API Key</label>
+                <input type="password" id="apiKeyInput" autocomplete="off" placeholder="Enter key for selected provider">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                    <button type="button" class="outline-btn" id="testKeyBtn">Test Connection</button>
+                    <span class="api-key-status" id="apiKeyStatus"></span>
+                </div>
+                <span class="privacy-note">Your API key is never stored or tracked. It is used only for this session and never leaves your browser except to test or send a chat request.</span>
             </div>
-            <div class="chat-history" id="chatHistory">
-                <div class="chat-message" id="chatPlaceholder" data-initial="true">
-                    <strong>Status</strong>
-                    <span>Run an analysis to generate a fresh report before asking a question.</span>
+        </div>
+    </aside>
+
+    <main class="main-container">
+        <div class="content-card">
+            <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" class="logo">
+            <p class="subtitle">AI-powered repository security and quality analysis</p>
+
+            <div class="progress-workflow" id="progressWorkflow" style="display: none;">
+                <div class="progress-step progress-single" id="step-input">
+                    <div class="progress-step-icon">Step 1</div>
+                    <div class="progress-step-title">Input</div>
+                    <div class="progress-step-desc">GitHub URL received</div>
+                </div>
+                <div class="progress-step progress-single" id="step-orchestration">
+                    <div class="progress-step-icon">Step 2</div>
+                    <div class="progress-step-title">Orchestrator</div>
+                    <div class="progress-step-desc">Manager assigns tasks to specialized agents</div>
+                    <button class="toggle-details" onclick="toggleDetails('orchestrator-details')">Show details</button>
+                    <div class="agent-details" id="orchestrator-details">
+                        <h4>Orchestrator capabilities:</h4>
+                        <ul>
+                            <li>Coordinates all agent activities</li>
+                            <li>Controls workflow sequencing</li>
+                            <li>Enables agent-to-agent collaboration</li>
+                            <li>Combines findings into final score</li>
+                            <li>Tracks collaboration metrics</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="progress-agents">
+                    <div class="progress-step" id="step-security">
+                        <div class="progress-step-icon">Security</div>
+                        <div class="progress-step-title">Security Agent</div>
+                        <div class="progress-step-desc">Scanning for secrets & vulnerabilities</div>
+                        <button class="toggle-details" onclick="toggleDetails('security-details')">Show details</button>
+                        <div class="agent-details" id="security-details">
+                            <h4>Security scanning & collaboration:</h4>
+                            <ul>
+                                <li>Secret detection for keys, tokens, passwords</li>
+                                <li>Credential scanning for cloud and CI keys</li>
+                                <li>Risk assessment and severity ranking</li>
+                                <li>Alerts quality/documentation agents</li>
+                                <li>Findings influence shared scoring</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="progress-step" id="step-quality">
+                        <div class="progress-step-icon">Quality</div>
+                        <div class="progress-step-title">Quality Agent</div>
+                        <div class="progress-step-desc">Analyzing code & tests</div>
+                        <button class="toggle-details" onclick="toggleDetails('quality-details')">Show details</button>
+                        <div class="agent-details" id="quality-details">
+                            <h4>Code quality & collaboration:</h4>
+                            <ul>
+                                <li>Identifies languages and structure</li>
+                                <li>Integrates security context into scores</li>
+                                <li>Calculates test coverage ratios</li>
+                                <li>Shares metrics with documentation agent</li>
+                                <li>Adapts scoring dynamically</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="progress-step" id="step-documentation">
+                        <div class="progress-step-icon">Docs</div>
+                        <div class="progress-step-title">Documentation Agent</div>
+                        <div class="progress-step-desc">Reviewing docs & READMEs</div>
+                        <button class="toggle-details" onclick="toggleDetails('documentation-details')">Show details</button>
+                        <div class="agent-details" id="documentation-details">
+                            <h4>Documentation & context analysis:</h4>
+                            <ul>
+                                <li>Reviews README structure and depth</li>
+                                <li>Adjusts expectations by project size</li>
+                                <li>Flags missing security guidance</li>
+                                <li>Collaborates with security and quality</li>
+                                <li>Adapts scoring using shared context</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-step progress-single" id="step-results">
+                    <div class="progress-step-icon">Step 3</div>
+                    <div class="progress-step-title">Results</div>
+                    <div class="progress-step-desc">Scores compiled and comprehensive report generated</div>
                 </div>
             </div>
-            <div class="chat-input">
-                <textarea id="chatQuestion" placeholder="Ask about the latest Trust Bench report..."></textarea>
-                <button type="button" id="sendChatBtn">Send</button>
+
+            <div class="loading" id="loading">
+                <h3>Agents are analyzing your repository...</h3>
+                <p>Cloning repository...</p>
+                <p>Security agent scanning for vulnerabilities and secrets...</p>
+                <p>Quality agent checking code quality and test coverage...</p>
+                <p>Documentation agent reviewing documentation...</p>
+                <p><em>This may take 30-60 seconds for large repositories.</em></p>
             </div>
-            <div class="chat-status" id="chatStatus"></div>
+            <div class="results" id="results">
+                <h2>Analysis Results</h2>
+                <div id="resultsContent"></div>
+                <button type="button" class="outline-btn" id="downloadReportBtn" style="display: none; margin-top: 16px;">Download report</button>
+            </div>
+
+            <div class="chat-panel" id="chatPanel">
+                <h2>Ask the Agents</h2>
+                <div class="chat-history" id="chatHistory">
+                    <div class="chat-message" id="chatPlaceholder" data-initial="true">
+                        <strong>Status</strong>
+                        <span>Run an analysis to generate a fresh report before asking a question.</span>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <textarea id="chatQuestion" placeholder="Ask about the latest Trust Bench report..."></textarea>
+                    <button type="button" id="sendChatBtn">Send</button>
+                </div>
+                <div class="chat-status" id="chatStatus"></div>
+            </div>
         </div>
-    </div>
+    </main>
 
-    <script>
-        const defaultProvider = "{{ default_provider }}";
+        <script>
+        (function () {
+            const defaultProvider = "{{ default_provider }}";
+            const auditForm = document.getElementById('auditForm');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const repoUrlInput = document.getElementById('repoUrl');
+            const providerSelect = document.getElementById('providerSelect');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const testKeyBtn = document.getElementById('testKeyBtn');
+            const apiKeyStatus = document.getElementById('apiKeyStatus');
+            const chatPanel = document.getElementById('chatPanel');
+            const chatHistory = document.getElementById('chatHistory');
+            const chatQuestion = document.getElementById('chatQuestion');
+            const chatStatus = document.getElementById('chatStatus');
+            const chatPlaceholder = document.getElementById('chatPlaceholder');
+            const sendChatBtn = document.getElementById('sendChatBtn');
+            const downloadReportBtn = document.getElementById('downloadReportBtn');
+            const progressWorkflow = document.getElementById('progressWorkflow');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
 
-        const chatPanel = document.getElementById('chatPanel');
-        const providerSelect = document.getElementById('providerSelect');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const testKeyBtn = document.getElementById('testKeyBtn');
-        const apiKeyStatus = document.getElementById('apiKeyStatus');
-        const chatHistory = document.getElementById('chatHistory');
-        const chatQuestion = document.getElementById('chatQuestion');
-        const chatStatus = document.getElementById('chatStatus');
-        const chatPlaceholder = document.getElementById('chatPlaceholder');
-        const sendChatBtn = document.getElementById('sendChatBtn');
+            let latestReportPath = null;
 
-        function getApiKey(provider) {
-            if (!provider) {
-                return '';
-            }
-            try {
-                return sessionStorage.getItem(`llm_api_key_${provider}`) || '';
-            } catch (err) {
-                return '';
-            }
-        }
-
-        function setApiKey(provider, key) {
-            if (!provider) {
-                return;
-            }
-            try {
-                if (key) {
-                    sessionStorage.setItem(`llm_api_key_${provider}`, key);
-                } else {
-                    sessionStorage.removeItem(`llm_api_key_${provider}`);
+            function getApiKey(provider) {
+                if (!provider) {
+                    return '';
                 }
-            } catch (err) {
-                // Ignore storage errors (e.g., private browsing restrictions).
-            }
-        }
-
-        function updateApiKeyInput(clearStatus = true) {
-            if (!providerSelect || !apiKeyInput) {
-                return;
-            }
-            const provider = providerSelect.value;
-            apiKeyInput.value = getApiKey(provider);
-            if (clearStatus && apiKeyStatus) {
-                apiKeyStatus.textContent = '';
-                apiKeyStatus.style.color = '#555';
-            }
-        }
-
-        function appendChatMessage(author, text) {
-            if (!chatHistory) {
-                return;
-            }
-
-            if (chatPlaceholder && chatPlaceholder.parentElement) {
-                chatPlaceholder.parentElement.removeChild(chatPlaceholder);
-            }
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'chat-message';
-
-            const label = document.createElement('strong');
-            label.textContent = author;
-            wrapper.appendChild(label);
-
-            const body = document.createElement('div');
-            body.textContent = text;
-            wrapper.appendChild(body);
-
-            chatHistory.appendChild(wrapper);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        function updateChatStatus(message, isError = false) {
-            if (!chatStatus) {
-                return;
-            }
-            chatStatus.textContent = message || '';
-            chatStatus.style.color = isError ? '#b00020' : '#555';
-        }
-
-        async function sendChatMessage() {
-            if (!chatQuestion || !sendChatBtn) {
-                return;
-            }
-
-            const question = chatQuestion.value.trim();
-            if (!question) {
-                updateChatStatus('Enter a question before sending.', true);
-                return;
-            }
-
-            const provider = providerSelect ? providerSelect.value : null;
-            const apiKey = provider ? getApiKey(provider) : '';
-
-            appendChatMessage('You', question);
-            chatQuestion.value = '';
-            updateChatStatus('Waiting for response...');
-            sendChatBtn.disabled = true;
-
-            try {
-                const payload = {
-                    question,
-                    provider,
-                };
-                if (apiKey) {
-                    payload.api_key = apiKey;
+                try {
+                    return sessionStorage.getItem(`llm_api_key_${provider}`) || '';
+                } catch (err) {
+                    return '';
                 }
+            }
 
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-                const data = await response.json();
-
-                if (!data.success) {
-                    appendChatMessage('System', data.error || 'The provider did not return a response.');
-                    updateChatStatus(data.error || 'The provider did not return a response.', true);
+            function setApiKey(provider, key) {
+                if (!provider) {
                     return;
                 }
-
-                const providerLabel = (data.provider || provider || 'provider').toUpperCase();
-                appendChatMessage(providerLabel, data.answer || '(No answer returned)');
-
-                if (data.context_available) {
-                    const sourceNote = data.context_source ? ` (${data.context_source})` : '';
-                    updateChatStatus(`Answered using the latest report context${sourceNote}.`);
-                } else {
-                    updateChatStatus('Answered without local report context. Run an analysis for better results.');
+                try {
+                    if (key) {
+                        sessionStorage.setItem(`llm_api_key_${provider}`, key);
+                    } else {
+                        sessionStorage.removeItem(`llm_api_key_${provider}`);
+                    }
+                } catch (err) {
+                    // Ignore storage errors (e.g. private browsing restrictions).
                 }
-            } catch (error) {
-                appendChatMessage('System', 'Unable to reach the chat service.');
-                updateChatStatus('Unable to reach the chat service.', true);
-            } finally {
-                sendChatBtn.disabled = false;
             }
-        }
 
-        if (chatStatus) {
-            chatStatus.textContent = 'Run an analysis to capture the latest context.';
-        }
-        if (providerSelect && defaultProvider) {
-            providerSelect.value = defaultProvider;
-        }
-        if (providerSelect && apiKeyInput) {
-            providerSelect.addEventListener('change', () => updateApiKeyInput());
-            apiKeyInput.addEventListener('input', () => {
-                setApiKey(providerSelect.value, apiKeyInput.value.trim());
-                if (apiKeyStatus) {
+            function updateApiKeyInput(clearStatus = true) {
+                if (!providerSelect || !apiKeyInput) {
+                    return;
+                }
+                const provider = providerSelect.value;
+                apiKeyInput.value = getApiKey(provider);
+                if (clearStatus && apiKeyStatus) {
                     apiKeyStatus.textContent = '';
                     apiKeyStatus.style.color = '#555';
                 }
-            });
-            updateApiKeyInput(false);
-        }
-        if (sendChatBtn) {
-            sendChatBtn.addEventListener('click', sendChatMessage);
-        }
-        if (chatQuestion) {
-            chatQuestion.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    sendChatMessage();
-                }
-            });
-        }
-        if (testKeyBtn && apiKeyInput && providerSelect) {
-            testKeyBtn.addEventListener('click', async function() {
-                const provider = providerSelect.value;
-                const apiKey = apiKeyInput.value.trim();
+            }
 
-                if (!apiKeyStatus) {
+            function appendChatMessage(author, text) {
+                if (!chatHistory) {
                     return;
                 }
-                if (!provider) {
-                    apiKeyStatus.textContent = 'Select a provider first.';
-                    apiKeyStatus.style.color = '#b00020';
-                    return;
+                if (chatPlaceholder && chatPlaceholder.parentElement) {
+                    chatPlaceholder.parentElement.removeChild(chatPlaceholder);
                 }
-                if (!apiKey) {
-                    apiKeyStatus.textContent = 'Enter an API key first.';
-                    apiKeyStatus.style.color = '#b00020';
-                    return;
-                }
+                const wrapper = document.createElement('div');
+                wrapper.className = 'chat-message';
 
-                apiKeyStatus.textContent = 'Testing...';
-                apiKeyStatus.style.color = '#555';
-                testKeyBtn.disabled = true;
+                const label = document.createElement('strong');
+                label.textContent = author;
+                wrapper.appendChild(label);
+
+                const body = document.createElement('div');
+                body.textContent = text;
+                wrapper.appendChild(body);
+
+                chatHistory.appendChild(wrapper);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+
+            function updateChatStatus(message, isError = false) {
+                if (!chatStatus) {
+                    return;
+                }
+                chatStatus.textContent = message || '';
+                chatStatus.style.color = isError ? '#b00020' : '#555';
+            }
+
+            async function sendChatMessage() {
+                if (!chatQuestion || !sendChatBtn) {
+                    return;
+                }
+                const question = chatQuestion.value.trim();
+                if (!question) {
+                    updateChatStatus('Enter a question before sending.', true);
+                    return;
+                }
+                const provider = providerSelect ? providerSelect.value : null;
+                const apiKey = provider ? getApiKey(provider) : '';
+
+                appendChatMessage('You', question);
+                chatQuestion.value = '';
+                updateChatStatus('Waiting for response...');
+                sendChatBtn.disabled = true;
 
                 try {
-                    const resp = await fetch('/api/test-llm-key', {
+                    const payload = { question, provider };
+                    if (apiKey) {
+                        payload.api_key = apiKey;
+                    }
+
+                    const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ provider, api_key: apiKey }),
+                        body: JSON.stringify(payload),
                     });
-                    const data = await resp.json();
-                    if (data.success) {
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        const message = data && data.error ? data.error : `Chat failed (${response.status})`;
+                        appendChatMessage('System', message);
+                        updateChatStatus(message, true);
+                        return;
+                    }
+
+                    const providerLabel = (data.provider || provider || 'provider').toUpperCase();
+                    appendChatMessage(providerLabel, data.answer || '(No answer returned)');
+
+                    if (data.context_available) {
+                        const sourceNote = data.context_source ? ` (${data.context_source})` : '';
+                        updateChatStatus(`Answered using the latest report context${sourceNote}.`);
+                    } else {
+                        updateChatStatus('Answered without local report context. Run an analysis for better results.');
+                    }
+                } catch (error) {
+                    appendChatMessage('System', 'Unable to reach the chat service.');
+                    updateChatStatus('Unable to reach the chat service.', true);
+                } finally {
+                    sendChatBtn.disabled = false;
+                }
+            }
+
+            function updateProgressStep(stepId, state) {
+                const step = document.getElementById(stepId);
+                if (!step) {
+                    return;
+                }
+                step.classList.remove('active', 'completed');
+                if (state === 'active' || state === 'completed') {
+                    step.classList.add(state);
+                }
+            }
+
+            function resetProgressSteps() {
+                ['step-input', 'step-orchestration', 'step-security', 'step-quality', 'step-documentation', 'step-results'].forEach(id => {
+                    const step = document.getElementById(id);
+                    if (step) {
+                        step.classList.remove('active', 'completed');
+                    }
+                });
+            }
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            window.toggleDetails = function toggleDetails(detailsId) {
+                const details = document.getElementById(detailsId);
+                if (!details) {
+                    return;
+                }
+                const button = details.previousElementSibling;
+                const isVisible = details.classList.toggle('show');
+                if (button) {
+                    button.textContent = isVisible ? 'Hide details' : 'Show details';
+                }
+            };
+
+            function isValidGitHubUrl(url) {
+                try {
+                    const parsed = new URL(url);
+                    const segments = parsed.pathname.split('/').filter(Boolean);
+                    return parsed.hostname === 'github.com' && segments.length >= 2;
+                } catch (err) {
+                    return false;
+                }
+            }
+
+            function displayResults(report) {
+                if (!resultsContent) {
+                    return;
+                }
+                if (!report) {
+                    resultsContent.innerHTML = '';
+                    return;
+                }
+                const repoInfo = report.repository_info || {};
+                const summary = report.summary || {};
+                const agents = report.agents || {};
+
+                let html = '';
+                if (repoInfo.url && repoInfo.owner && repoInfo.name) {
+                    html += `<div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
+                                <h3>Repository: <a href="${repoInfo.url}" target="_blank" rel="noopener">${repoInfo.owner}/${repoInfo.name}</a></h3>
+                             </div>`;
+                }
+
+                if (typeof summary.overall_score !== 'undefined' && summary.grade) {
+                    html += `<div class="score ${summary.grade}">
+                                Overall Score: ${summary.overall_score}/100
+                                <br>Grade: ${summary.grade.toUpperCase()}
+                             </div>`;
+                }
+
+                html += '<div class="agent-results">';
+                Object.entries(agents).forEach(([agentName, agentData]) => {
+                    const score = typeof agentData.score !== 'undefined' ? agentData.score : 'N/A';
+                    const summaryText = agentData.summary || 'No summary available.';
+                    html += `<div class="agent-card">
+                                <h3>${agentName}</h3>
+                                <p><strong>Score:</strong> ${score}/100</p>
+                                <p><strong>Summary:</strong> ${summaryText}</p>
+                             </div>`;
+                });
+                html += '</div>';
+
+                if (Array.isArray(report.conversation) && report.conversation.length > 0) {
+                    html += '<h3>Agent Conversation Log</h3><ul>';
+                    report.conversation.forEach(msg => {
+                        const sender = msg.sender || 'Unknown';
+                        const recipient = msg.recipient || 'Unknown';
+                        const content = msg.content || '';
+                        html += `<li><strong>${sender} &rarr; ${recipient}:</strong> ${content}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                resultsContent.innerHTML = html;
+            }
+
+            if (chatStatus) {
+                chatStatus.textContent = 'Run an analysis to capture the latest context.';
+            }
+            if (providerSelect && defaultProvider) {
+                providerSelect.value = defaultProvider;
+            }
+            if (providerSelect && apiKeyInput) {
+                providerSelect.addEventListener('change', () => updateApiKeyInput());
+                apiKeyInput.addEventListener('input', () => {
+                    setApiKey(providerSelect.value, apiKeyInput.value.trim());
+                    if (apiKeyStatus) {
+                        apiKeyStatus.textContent = '';
+                        apiKeyStatus.style.color = '#555';
+                    }
+                });
+                updateApiKeyInput(false);
+            }
+            if (sendChatBtn) {
+                sendChatBtn.addEventListener('click', event => {
+                    event.preventDefault();
+                    sendChatMessage();
+                });
+            }
+            if (chatQuestion) {
+                chatQuestion.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        sendChatMessage();
+                    }
+                });
+            }
+            if (testKeyBtn && apiKeyInput && providerSelect && apiKeyStatus) {
+                testKeyBtn.addEventListener('click', async () => {
+                    const provider = providerSelect.value;
+                    const apiKey = apiKeyInput.value.trim();
+
+                    if (!provider) {
+                        apiKeyStatus.textContent = 'Select a provider first.';
+                        apiKeyStatus.style.color = '#b00020';
+                        return;
+                    }
+                    if (!apiKey) {
+                        apiKeyStatus.textContent = 'Enter an API key first.';
+                        apiKeyStatus.style.color = '#b00020';
+                        return;
+                    }
+
+                    apiKeyStatus.textContent = 'Testing...';
+                    apiKeyStatus.style.color = '#555';
+                    testKeyBtn.disabled = true;
+
+                    try {
+                        const response = await fetch('/api/test-llm-key', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ provider, api_key: apiKey }),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            const message = data && data.error ? data.error : `Connection failed (${response.status})`;
+                            apiKeyStatus.textContent = message;
+                            apiKeyStatus.style.color = '#b00020';
+                            return;
+                        }
+
                         apiKeyStatus.textContent = 'Connection successful!';
                         apiKeyStatus.style.color = '#28a745';
                         setApiKey(provider, apiKey);
-                    } else {
-                        apiKeyStatus.textContent = data.error || 'Connection failed.';
+                    } catch (err) {
+                        apiKeyStatus.textContent = 'Unable to reach the server.';
                         apiKeyStatus.style.color = '#b00020';
+                    } finally {
+                        testKeyBtn.disabled = false;
                     }
-                } catch (err) {
-                    apiKeyStatus.textContent = 'Unable to reach the server.';
-                    apiKeyStatus.style.color = '#b00020';
-                } finally {
-                    testKeyBtn.disabled = false;
-                }
-            });
-        }
-
-        document.getElementById('auditForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const repoUrl = document.getElementById('repoUrl').value;
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const loading = document.getElementById('loading');
-            const results = document.getElementById('results');
-            const progressWorkflow = document.getElementById('progressWorkflow');
-            
-            // Validate GitHub URL
-            if (!isValidGitHubUrl(repoUrl)) {
-                alert('Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)');
-                return;
-            }
-            
-            // Show progress workflow and start analysis
-            progressWorkflow.style.display = 'flex';
-            results.style.display = 'none';
-            
-            // Step 1: Input received
-            updateProgressStep('step-input', 'active');
-            await sleep(500);
-            updateProgressStep('step-input', 'completed');
-            
-            // Step 2: Orchestration
-            updateProgressStep('step-orchestration', 'active');
-            analyzeBtn.disabled = true;
-            analyzeBtn.textContent = '🔄 Cloning and Analyzing...';
-            loading.style.display = 'block';
-            updateChatStatus('Generating a fresh report for your repository...');
-            await sleep(1000);
-            
-            try {
-                updateProgressStep('step-orchestration', 'completed');
-                
-                // Step 3: Agents working in parallel
-                updateProgressStep('step-security', 'active');
-                updateProgressStep('step-quality', 'active');
-                updateProgressStep('step-documentation', 'active');
-                
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ repo_url: repoUrl })
                 });
-                
-                const data = await response.json();
-                
-                // Complete all agent steps
-                updateProgressStep('step-security', 'completed');
-                updateProgressStep('step-quality', 'completed');
-                updateProgressStep('step-documentation', 'completed');
-                
-                // Step 4: Results
-                updateProgressStep('step-results', 'active');
-                await sleep(500);
-                
-                if (data.success) {
-                    displayResults(data.report);
-                    updateProgressStep('step-results', 'completed');
+            }
 
-                    const repoInfo = data.report && data.report.repository_info;
-                    if (repoInfo && repoInfo.owner && repoInfo.name) {
-                        updateChatStatus(`Latest context loaded from ${repoInfo.owner}/${repoInfo.name}. Ask a follow-up question anytime.`);
-                        if (chatPlaceholder && chatPlaceholder.parentElement) {
-                            const placeholderBody = chatPlaceholder.querySelector('span');
-                            if (placeholderBody) {
-                                placeholderBody.textContent = `Context ready for ${repoInfo.owner}/${repoInfo.name}. Ask a question whenever you're ready.`;
+            if (downloadReportBtn) {
+                downloadReportBtn.addEventListener('click', () => {
+                    if (!latestReportPath) {
+                        return;
+                    }
+                    const url = new URL('/download-report', window.location.origin);
+                    url.searchParams.append('output_dir', latestReportPath);
+                    window.location.href = url.toString();
+                });
+            }
+
+            if (auditForm) {
+                auditForm.addEventListener('submit', async event => {
+                    event.preventDefault();
+
+                    const repoUrl = repoUrlInput ? repoUrlInput.value : '';
+
+                    if (!isValidGitHubUrl(repoUrl)) {
+                        alert('Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)');
+                        return;
+                    }
+
+                    if (progressWorkflow) {
+                        progressWorkflow.style.display = 'flex';
+                    }
+                    if (results) {
+                        results.style.display = 'none';
+                    }
+                    if (chatPanel) {
+                        chatPanel.style.display = 'none';
+                    }
+                    if (downloadReportBtn) {
+                        downloadReportBtn.style.display = 'none';
+                    }
+                    latestReportPath = null;
+
+                    updateProgressStep('step-input', 'active');
+                    await sleep(300);
+                    updateProgressStep('step-input', 'completed');
+
+                    updateProgressStep('step-orchestration', 'active');
+                    if (analyzeBtn) {
+                        analyzeBtn.disabled = true;
+                        analyzeBtn.textContent = 'Analyzing...';
+                    }
+                    if (loading) {
+                        loading.style.display = 'block';
+                    }
+                    updateChatStatus('Generating a fresh report for your repository...');
+                    await sleep(600);
+
+                    try {
+                        updateProgressStep('step-orchestration', 'completed');
+
+                        updateProgressStep('step-security', 'active');
+                        updateProgressStep('step-quality', 'active');
+                        updateProgressStep('step-documentation', 'active');
+
+                        const response = await fetch('/analyze', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ repo_url: repoUrl })
+                        });
+
+                        const data = await response.json();
+
+                        updateProgressStep('step-security', 'completed');
+                        updateProgressStep('step-quality', 'completed');
+                        updateProgressStep('step-documentation', 'completed');
+
+                        updateProgressStep('step-results', 'active');
+                        await sleep(400);
+
+                        if (response.ok && data.success) {
+                            displayResults(data.report);
+                            updateProgressStep('step-results', 'completed');
+
+                            latestReportPath = data.output_dir;
+                            if (downloadReportBtn && latestReportPath) {
+                                downloadReportBtn.style.display = 'inline-block';
+                            }
+
+                            const repoInfo = data.report && data.report.repository_info;
+                            if (repoInfo && repoInfo.owner && repoInfo.name) {
+                                updateChatStatus(`Latest context loaded from ${repoInfo.owner}/${repoInfo.name}. Ask a follow-up question anytime.`);
+                                if (chatPlaceholder && chatPlaceholder.parentElement) {
+                                    const placeholderBody = chatPlaceholder.querySelector('span');
+                                    if (placeholderBody) {
+                                        placeholderBody.textContent = `Context ready for ${repoInfo.owner}/${repoInfo.name}. Ask a question whenever you're ready.`;
+                                    }
+                                }
+                            } else {
+                                updateChatStatus('Latest context loaded. Ask a follow-up question anytime.');
+                            }
+
+                            if (results) {
+                                results.style.display = 'block';
+                            }
+                            if (chatPanel) {
+                                chatPanel.style.display = 'block';
+                            }
+                        } else {
+                            const message = data && data.error ? data.error : `Analysis failed (${response.status})`;
+                            if (resultsContent) {
+                                resultsContent.innerHTML = `<div style="color: #c62828;"><h3>Error</h3><p>${message}</p></div>`;
+                            }
+                            resetProgressSteps();
+                            updateChatStatus(message, true);
+                            if (results) {
+                                results.style.display = 'block';
                             }
                         }
-                    } else {
-                        updateChatStatus('Latest context loaded. Ask a follow-up question anytime.');
-                        if (chatPlaceholder && chatPlaceholder.parentElement) {
-                            const placeholderBody = chatPlaceholder.querySelector('span');
-                            if (placeholderBody) {
-                                placeholderBody.textContent = 'Latest context loaded. Ask a follow-up question anytime.';
-                            }
+                    } catch (error) {
+                        if (resultsContent) {
+                            resultsContent.innerHTML = `<div style="color: #c62828;"><h3>Error</h3><p>${error.message}</p></div>`;
+                        }
+                        if (results) {
+                            results.style.display = 'block';
+                        }
+                        updateChatStatus(error.message || 'Unexpected error during analysis.', true);
+                        resetProgressSteps();
+                    } finally {
+                        if (analyzeBtn) {
+                            analyzeBtn.disabled = false;
+                            analyzeBtn.textContent = 'Analyze Repository';
+                        }
+                        if (loading) {
+                            loading.style.display = 'none';
                         }
                     }
-                } else {
-                    document.getElementById('resultsContent').innerHTML = 
-                        '<div style="color: red;"><h3>Error:</h3><p>' + data.error + '</p></div>';
-                    resetProgressSteps();
-                    updateChatStatus(data.error || 'Analysis failed to complete.', true);
-                }
-                
-                results.style.display = 'block';
-            } catch (error) {
-                document.getElementById('resultsContent').innerHTML = 
-                    '<div style="color: red;"><h3>Error:</h3><p>' + error.message + '</p></div>';
-                results.style.display = 'block';
-                updateChatStatus(error.message || 'Unexpected error during analysis.', true);
-                resetProgressSteps();
-            } finally {
-                analyzeBtn.disabled = false;
-                analyzeBtn.textContent = '🔍 Analyze Repository';
-                loading.style.display = 'none';
-            }
-        });
-        function updateProgressStep(stepId, state) {
-            const step = document.getElementById(stepId);
-            step.className = 'progress-step ' + state;
-        }
-        
-        function resetProgressSteps() {
-            ['step-input', 'step-orchestration', 'step-security', 'step-quality', 'step-documentation', 'step-results'].forEach(id => {
-                document.getElementById(id).className = 'progress-step';
-            });
-        }
-        
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        
-        function toggleDetails(detailsId) {
-            const details = document.getElementById(detailsId);
-            const button = details.previousElementSibling;
-            
-            if (details.classList.contains('show')) {
-                details.classList.remove('show');
-                button.innerHTML = 'Show Details ▼';
+                });
             } else {
-                details.classList.add('show');
-                button.innerHTML = 'Hide Details ▲';
+                console.warn('Audit form element not found; analysis submission will not work.');
             }
-        }
-        
-        function isValidGitHubUrl(url) {
-            try {
-                const parsed = new URL(url);
-                return parsed.hostname === 'github.com' && 
-                       parsed.pathname.split('/').length >= 3 &&
-                       parsed.pathname.split('/')[1] !== '' &&
-                       parsed.pathname.split('/')[2] !== '';
-            } catch {
-                return false;
-            }
-        }
-        
-        function displayResults(report) {
-            const summary = report.summary;
-            const agents = report.agents;
-            const repoInfo = report.repository_info;
-            
-            let html = `
-                <div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px;">
-                    <h3>📦 Repository: <a href="${repoInfo.url}" target="_blank">${repoInfo.owner}/${repoInfo.name}</a></h3>
-                </div>
-                
-                <div class="score ${summary.grade}">
-                    Overall Score: ${summary.overall_score}/100
-                    <br>Grade: ${summary.grade.toUpperCase()}
-                </div>
-                
-                <div class="agent-results">
-            `;
-            
-            for (const [agentName, agentData] of Object.entries(agents)) {
-                html += `
-                    <div class="agent-card">
-                        <h3>${agentName}</h3>
-                        <p><strong>Score:</strong> ${agentData.score}/100</p>
-                        <p><strong>Summary:</strong> ${agentData.summary}</p>
-                    </div>
-                `;
-            }
-            
-            html += '</div>';
-            
-            // Add conversation log
-            if (report.conversation && report.conversation.length > 0) {
-                html += '<h3>🗣️ Agent Conversation Log</h3><ul>';
-                report.conversation.forEach(msg => {
-                    html += `<li><strong>${msg.sender} → ${msg.recipient}:</strong> ${msg.content}</li>`;
-                });
-                html += '</ul>';
-            }
-            
-            document.getElementById('resultsContent').innerHTML = html;
-        }
+        })();
     </script>
 </body>
 </html>
@@ -1069,6 +1074,34 @@ def analyze():
             except:
                 pass  # Best effort cleanup
 
+
+@app.route('/download-report')
+def download_report():
+    output_dir = request.args.get('output_dir', '')
+    if not output_dir:
+        return jsonify({
+            'success': False,
+            'error': 'Missing output directory.'
+        }), 400
+
+    base_dir = Path(__file__).parent.resolve()
+    candidate_dir = (base_dir / output_dir).resolve()
+
+    if not str(candidate_dir).startswith(str(base_dir)):
+        return jsonify({
+            'success': False,
+            'error': 'Invalid output directory.'
+        }), 400
+
+    report_path = candidate_dir / 'report.json'
+    if not report_path.exists():
+        return jsonify({
+            'success': False,
+            'error': 'Report not found.'
+        }), 404
+
+    download_name = f"{candidate_dir.name}_report.json"
+    return send_file(report_path, as_attachment=True, download_name=download_name)
 
 
 @app.route('/api/chat', methods=['POST'])
@@ -1175,7 +1208,7 @@ def api_test_llm_key():
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting Trust Bench Multi-Agent Auditor Web Interface...")
-    print("📍 Open your browser to: http://localhost:5000")
-    print("🔍 Ready to analyze repositories!")
+    print("≡ƒÜÇ Starting Trust Bench Multi-Agent Auditor Web Interface...")
+    print("≡ƒôì Open your browser to: http://localhost:5000")
+    print("≡ƒöì Ready to analyze repositories!")
     app.run(debug=True, host='0.0.0.0', port=5000)
