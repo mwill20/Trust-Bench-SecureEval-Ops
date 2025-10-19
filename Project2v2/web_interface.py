@@ -267,18 +267,6 @@ HTML_TEMPLATE = """
                 </small>
             </div>
             
-            <div class="form-group">
-                <label for="presetRepo">Or try a sample repository:</label>
-                <select id="presetRepo" name="presetRepo">
-                    <option value="">-- Choose a sample --</option>
-                    <option value="https://github.com/microsoft/vscode">Microsoft VS Code</option>
-                    <option value="https://github.com/facebook/react">Facebook React</option>
-                    <option value="https://github.com/tensorflow/tensorflow">TensorFlow</option>
-                    <option value="https://github.com/nodejs/node">Node.js</option>
-                    <option value="https://github.com/python/cpython">Python</option>
-                </select>
-            </div>
-            
             <button type="submit" class="btn" id="analyzeBtn">🔍 Analyze Repository</button>
         </form>
         
@@ -384,12 +372,6 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        document.getElementById('presetRepo').addEventListener('change', function() {
-            if (this.value) {
-                document.getElementById('repoUrl').value = this.value;
-            }
-        });
-
         document.getElementById('auditForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
