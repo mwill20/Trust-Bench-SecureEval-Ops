@@ -224,12 +224,24 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             max-width: 1080px;
             margin: 0 auto;
         }
+        .logo-title-flex {
+            display: flex;
+            align-items: center;
+            gap: 48px;
+            margin-bottom: 24px;
+        }
         .logo {
-            position: absolute;
-            top: -100px;
-            left: 40px;
-            height: 160px;
-            width: auto;
+            display: block;
+            margin: 0;
+            height: 360px;
+            width: 360px;
+            object-fit: contain;
+        }
+        .main-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2f3669;
+            margin: 0;
         }
         .subtitle {
             margin: 80px 0 28px;
@@ -419,7 +431,10 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
     <main class="main-container">
         <div class="content-card">
-            <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" class="logo">
+            <div class="logo-title-flex">
+                <img src="/assets/images/TrustBench.png" alt="Trust Bench Logo" class="logo">
+                <span class="main-title">Trust Bench Multi-Agent Auditor</span>
+            </div>
             <p class="subtitle">AI-powered repository security and quality analysis</p>
 
             <div class="progress-workflow" id="progressWorkflow" style="display: none;">
