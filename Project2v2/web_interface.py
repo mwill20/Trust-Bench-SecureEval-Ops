@@ -12,8 +12,14 @@ import re
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
+from typing import Any, Dict, Optional
 
 from flask import Flask, render_template_string, request, jsonify, send_file
+
+try:
+    from .llm_utils import LLMError, chat_with_llm, test_provider_credentials
+except ImportError:
+    from llm_utils import LLMError, chat_with_llm, test_provider_credentials
 
 app = Flask(__name__)
 
@@ -68,6 +74,45 @@ def clone_repository(repo_url, target_dir):
         raise Exception("Repository cloning timed out (120s limit)")
     except Exception as e:
         raise Exception(f"Failed to clone repository: {str(e)}")
+
+
+def _find_latest_report_path(base_dir: Optional[Path] = None) -> Optional[Path]:
+    """Return the most recently modified report.json if one exists."""
+    base = base_dir or Path(__file__).parent
+    candidates = []
+
+    for directory in base.glob("github_analysis_*"):
+        report_path = directory / "report.json"
+        if report_path.exists():
+            candidates.append(report_path)
+
+    for static_dir in ("output", "output_self"):
+        report_path = base / static_dir / "report.json"
+        if report_path.exists():
+            candidates.append(report_path)
+
+    if not candidates:
+        return None
+
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def _load_latest_context() -> Optional[Dict[str, Any]]:
+    """Load the latest audit report and conversation data for LLM context."""
+    report_path = _find_latest_report_path()
+    if not report_path:
+        return None
+
+    with report_path.open("r", encoding="utf-8") as handle:
+        report_data = json.load(handle)
+
+    messages = report_data.pop("conversation", [])
+
+    return {
+        "report": report_data,
+        "messages": messages,
+        "report_path": str(report_path),
+    }
 
 # HTML template for the web interface
 HTML_TEMPLATE = """
@@ -274,6 +319,120 @@ HTML_TEMPLATE = """
         .toggle-details:hover {
             color: #5a6fd8;
         }
+        .chat-panel {
+            margin-top: 30px;
+            background: #f8f9ff;
+            border: 1px solid #e0e0ff;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .chat-panel h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .api-key-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .api-key-panel label {
+            font-weight: 600;
+        }
+        .api-key-panel input {
+            flex: 1;
+            min-width: 220px;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .api-key-panel button {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+        .api-key-panel button:disabled {
+            background: #9bc7d2;
+            cursor: not-allowed;
+        }
+        .api-key-status {
+            flex-basis: 100%;
+            font-size: 12px;
+            min-height: 18px;
+        }
+        .privacy-note {
+            display: block;
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+        }
+        .provider-select {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .provider-select select {
+            flex: 0 0 180px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .chat-history {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            min-height: 160px;
+            max-height: 240px;
+            overflow-y: auto;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .chat-message {
+            margin-bottom: 12px;
+        }
+        .chat-message strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .chat-input textarea {
+            flex: 1;
+            min-height: 80px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .chat-input button {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .chat-input button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .chat-status {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #555;
+            min-height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -397,9 +556,254 @@ HTML_TEMPLATE = """
             <h2>📊 Analysis Results</h2>
             <div id="resultsContent"></div>
         </div>
+        <div class="chat-panel" id="chatPanel">
+            <div class="api-key-panel">
+                <label for="apiKeyInput">API Key:</label>
+                <input type="password" id="apiKeyInput" autocomplete="off" placeholder="Paste your key for selected provider">
+                <button type="button" id="testKeyBtn">Test Connection</button>
+                <span class="api-key-status" id="apiKeyStatus"></span>
+                <span class="privacy-note">Your API key is never stored or tracked. It is used only for this session and never leaves your browser except to test or send a chat request.</span>
+            </div>
+            <h2>Ask the Agents</h2>
+            <div class="provider-select">
+                <label for="providerSelect">LLM Provider:</label>
+                <select id="providerSelect">
+                    <option value="openai">OpenAI</option>
+                    <option value="groq">Groq</option>
+                    <option value="gemini">Gemini</option>
+                </select>
+            </div>
+            <div class="chat-history" id="chatHistory">
+                <div class="chat-message" id="chatPlaceholder" data-initial="true">
+                    <strong>Status</strong>
+                    <span>Run an analysis to generate a fresh report before asking a question.</span>
+                </div>
+            </div>
+            <div class="chat-input">
+                <textarea id="chatQuestion" placeholder="Ask about the latest Trust Bench report..."></textarea>
+                <button type="button" id="sendChatBtn">Send</button>
+            </div>
+            <div class="chat-status" id="chatStatus"></div>
+        </div>
     </div>
 
     <script>
+        const defaultProvider = "{{ default_provider }}";
+
+        const chatPanel = document.getElementById('chatPanel');
+        const providerSelect = document.getElementById('providerSelect');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const testKeyBtn = document.getElementById('testKeyBtn');
+        const apiKeyStatus = document.getElementById('apiKeyStatus');
+        const chatHistory = document.getElementById('chatHistory');
+        const chatQuestion = document.getElementById('chatQuestion');
+        const chatStatus = document.getElementById('chatStatus');
+        const chatPlaceholder = document.getElementById('chatPlaceholder');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+
+        function getApiKey(provider) {
+            if (!provider) {
+                return '';
+            }
+            try {
+                return sessionStorage.getItem(`llm_api_key_${provider}`) || '';
+            } catch (err) {
+                return '';
+            }
+        }
+
+        function setApiKey(provider, key) {
+            if (!provider) {
+                return;
+            }
+            try {
+                if (key) {
+                    sessionStorage.setItem(`llm_api_key_${provider}`, key);
+                } else {
+                    sessionStorage.removeItem(`llm_api_key_${provider}`);
+                }
+            } catch (err) {
+                // Ignore storage errors (e.g., private browsing restrictions).
+            }
+        }
+
+        function updateApiKeyInput(clearStatus = true) {
+            if (!providerSelect || !apiKeyInput) {
+                return;
+            }
+            const provider = providerSelect.value;
+            apiKeyInput.value = getApiKey(provider);
+            if (clearStatus && apiKeyStatus) {
+                apiKeyStatus.textContent = '';
+                apiKeyStatus.style.color = '#555';
+            }
+        }
+
+        function appendChatMessage(author, text) {
+            if (!chatHistory) {
+                return;
+            }
+
+            if (chatPlaceholder && chatPlaceholder.parentElement) {
+                chatPlaceholder.parentElement.removeChild(chatPlaceholder);
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chat-message';
+
+            const label = document.createElement('strong');
+            label.textContent = author;
+            wrapper.appendChild(label);
+
+            const body = document.createElement('div');
+            body.textContent = text;
+            wrapper.appendChild(body);
+
+            chatHistory.appendChild(wrapper);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function updateChatStatus(message, isError = false) {
+            if (!chatStatus) {
+                return;
+            }
+            chatStatus.textContent = message || '';
+            chatStatus.style.color = isError ? '#b00020' : '#555';
+        }
+
+        async function sendChatMessage() {
+            if (!chatQuestion || !sendChatBtn) {
+                return;
+            }
+
+            const question = chatQuestion.value.trim();
+            if (!question) {
+                updateChatStatus('Enter a question before sending.', true);
+                return;
+            }
+
+            const provider = providerSelect ? providerSelect.value : null;
+            const apiKey = provider ? getApiKey(provider) : '';
+
+            appendChatMessage('You', question);
+            chatQuestion.value = '';
+            updateChatStatus('Waiting for response...');
+            sendChatBtn.disabled = true;
+
+            try {
+                const payload = {
+                    question,
+                    provider,
+                };
+                if (apiKey) {
+                    payload.api_key = apiKey;
+                }
+
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    appendChatMessage('System', data.error || 'The provider did not return a response.');
+                    updateChatStatus(data.error || 'The provider did not return a response.', true);
+                    return;
+                }
+
+                const providerLabel = (data.provider || provider || 'provider').toUpperCase();
+                appendChatMessage(providerLabel, data.answer || '(No answer returned)');
+
+                if (data.context_available) {
+                    const sourceNote = data.context_source ? ` (${data.context_source})` : '';
+                    updateChatStatus(`Answered using the latest report context${sourceNote}.`);
+                } else {
+                    updateChatStatus('Answered without local report context. Run an analysis for better results.');
+                }
+            } catch (error) {
+                appendChatMessage('System', 'Unable to reach the chat service.');
+                updateChatStatus('Unable to reach the chat service.', true);
+            } finally {
+                sendChatBtn.disabled = false;
+            }
+        }
+
+        if (chatStatus) {
+            chatStatus.textContent = 'Run an analysis to capture the latest context.';
+        }
+        if (providerSelect && defaultProvider) {
+            providerSelect.value = defaultProvider;
+        }
+        if (providerSelect && apiKeyInput) {
+            providerSelect.addEventListener('change', () => updateApiKeyInput());
+            apiKeyInput.addEventListener('input', () => {
+                setApiKey(providerSelect.value, apiKeyInput.value.trim());
+                if (apiKeyStatus) {
+                    apiKeyStatus.textContent = '';
+                    apiKeyStatus.style.color = '#555';
+                }
+            });
+            updateApiKeyInput(false);
+        }
+        if (sendChatBtn) {
+            sendChatBtn.addEventListener('click', sendChatMessage);
+        }
+        if (chatQuestion) {
+            chatQuestion.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendChatMessage();
+                }
+            });
+        }
+        if (testKeyBtn && apiKeyInput && providerSelect) {
+            testKeyBtn.addEventListener('click', async function() {
+                const provider = providerSelect.value;
+                const apiKey = apiKeyInput.value.trim();
+
+                if (!apiKeyStatus) {
+                    return;
+                }
+                if (!provider) {
+                    apiKeyStatus.textContent = 'Select a provider first.';
+                    apiKeyStatus.style.color = '#b00020';
+                    return;
+                }
+                if (!apiKey) {
+                    apiKeyStatus.textContent = 'Enter an API key first.';
+                    apiKeyStatus.style.color = '#b00020';
+                    return;
+                }
+
+                apiKeyStatus.textContent = 'Testing...';
+                apiKeyStatus.style.color = '#555';
+                testKeyBtn.disabled = true;
+
+                try {
+                    const resp = await fetch('/api/test-llm-key', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ provider, api_key: apiKey }),
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        apiKeyStatus.textContent = 'Connection successful!';
+                        apiKeyStatus.style.color = '#28a745';
+                        setApiKey(provider, apiKey);
+                    } else {
+                        apiKeyStatus.textContent = data.error || 'Connection failed.';
+                        apiKeyStatus.style.color = '#b00020';
+                    }
+                } catch (err) {
+                    apiKeyStatus.textContent = 'Unable to reach the server.';
+                    apiKeyStatus.style.color = '#b00020';
+                } finally {
+                    testKeyBtn.disabled = false;
+                }
+            });
+        }
+
         document.getElementById('auditForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -429,6 +833,7 @@ HTML_TEMPLATE = """
             analyzeBtn.disabled = true;
             analyzeBtn.textContent = '🔄 Cloning and Analyzing...';
             loading.style.display = 'block';
+            updateChatStatus('Generating a fresh report for your repository...');
             await sleep(1000);
             
             try {
@@ -461,10 +866,30 @@ HTML_TEMPLATE = """
                 if (data.success) {
                     displayResults(data.report);
                     updateProgressStep('step-results', 'completed');
+
+                    const repoInfo = data.report && data.report.repository_info;
+                    if (repoInfo && repoInfo.owner && repoInfo.name) {
+                        updateChatStatus(`Latest context loaded from ${repoInfo.owner}/${repoInfo.name}. Ask a follow-up question anytime.`);
+                        if (chatPlaceholder && chatPlaceholder.parentElement) {
+                            const placeholderBody = chatPlaceholder.querySelector('span');
+                            if (placeholderBody) {
+                                placeholderBody.textContent = `Context ready for ${repoInfo.owner}/${repoInfo.name}. Ask a question whenever you're ready.`;
+                            }
+                        }
+                    } else {
+                        updateChatStatus('Latest context loaded. Ask a follow-up question anytime.');
+                        if (chatPlaceholder && chatPlaceholder.parentElement) {
+                            const placeholderBody = chatPlaceholder.querySelector('span');
+                            if (placeholderBody) {
+                                placeholderBody.textContent = 'Latest context loaded. Ask a follow-up question anytime.';
+                            }
+                        }
+                    }
                 } else {
                     document.getElementById('resultsContent').innerHTML = 
                         '<div style="color: red;"><h3>Error:</h3><p>' + data.error + '</p></div>';
                     resetProgressSteps();
+                    updateChatStatus(data.error || 'Analysis failed to complete.', true);
                 }
                 
                 results.style.display = 'block';
@@ -472,6 +897,7 @@ HTML_TEMPLATE = """
                 document.getElementById('resultsContent').innerHTML = 
                     '<div style="color: red;"><h3>Error:</h3><p>' + error.message + '</p></div>';
                 results.style.display = 'block';
+                updateChatStatus(error.message || 'Unexpected error during analysis.', true);
                 resetProgressSteps();
             } finally {
                 analyzeBtn.disabled = false;
@@ -479,7 +905,6 @@ HTML_TEMPLATE = """
                 loading.style.display = 'none';
             }
         });
-        
         function updateProgressStep(stepId, state) {
             const step = document.getElementById(stepId);
             step.className = 'progress-step ' + state;
@@ -568,7 +993,8 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_TEMPLATE)
+    default_provider = os.getenv('LLM_PROVIDER', 'openai').lower()
+    return render_template_string(HTML_TEMPLATE, default_provider=default_provider)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -642,6 +1068,111 @@ def analyze():
                 shutil.rmtree(temp_dir)
             except:
                 pass  # Best effort cleanup
+
+
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    try:
+        payload = request.get_json(force=True) or {}
+    except Exception:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid JSON payload.'
+        }), 400
+
+    question = str(payload.get('question', '') or '').strip()
+    provider_raw = payload.get('provider')
+    provider = str(provider_raw).strip().lower() if provider_raw else None
+    api_key_raw = payload.get('api_key')
+    api_key = None
+    if isinstance(api_key_raw, str):
+        trimmed = api_key_raw.strip()
+        api_key = trimmed or None
+
+    if not question:
+        return jsonify({
+            'success': False,
+            'error': 'Question is required.'
+        }), 400
+
+    try:
+        context = _load_latest_context()
+    except Exception as exc:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to load context: {exc}'
+        }), 500
+
+    try:
+        llm_response = chat_with_llm(
+            question=question,
+            context=context,
+            provider_override=provider,
+            api_key_override=api_key,
+        )
+    except LLMError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc)
+        }), 400
+    except Exception as exc:
+        return jsonify({
+            'success': False,
+            'error': f'Unexpected error: {exc}'
+        }), 500
+
+    return jsonify({
+        'success': True,
+        'answer': llm_response.get('answer', ''),
+        'provider': llm_response.get('provider'),
+        'context_available': bool(context),
+        'context_source': context.get('report_path') if context else None,
+    })
+
+@app.route('/api/test-llm-key', methods=['POST'])
+def api_test_llm_key():
+    try:
+        payload = request.get_json(force=True) or {}
+    except Exception:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid JSON payload.'
+        }), 400
+
+    provider_raw = payload.get('provider')
+    api_key_raw = payload.get('api_key')
+    provider = str(provider_raw).strip().lower() if provider_raw else ''
+    api_key = api_key_raw.strip() if isinstance(api_key_raw, str) else ''
+
+    if not provider:
+        return jsonify({
+            'success': False,
+            'error': 'Provider is required.'
+        }), 400
+    if not api_key:
+        return jsonify({
+            'success': False,
+            'error': 'API key is required.'
+        }), 400
+
+    try:
+        test_provider_credentials(provider, api_key)
+    except LLMError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc)
+        }), 400
+    except Exception as exc:
+        return jsonify({
+            'success': False,
+            'error': f'Unexpected error: {exc}'
+        }), 500
+
+    return jsonify({
+        'success': True,
+        'provider': provider,
+    })
 
 if __name__ == '__main__':
     print("🚀 Starting Trust Bench Multi-Agent Auditor Web Interface...")

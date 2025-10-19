@@ -37,7 +37,7 @@ Double-click `launch.bat` for a menu with multiple options:
 ```powershell
 python web_interface.py
 ```
-Then open http://localhost:5000 in your browser for a beautiful web UI with real-time collaboration visualization.
+Then open http://localhost:5000 in your browser for a beautiful web UI with real-time collaboration visualization and an LLM-powered chat panel.
 
 ### Option 3: Command Line
 ```powershell
@@ -67,7 +67,7 @@ run_audit.bat "C:\path\to\repo"    # Analyze specific path
   - `orchestrator.py` – LangGraph workflow with collaboration tracking
   - `tools.py` – Secret scanning, structure analysis, documentation review tools
   - `types.py` – Shared data structures and messaging protocols
-- `requirements.txt` – Focused dependency list (LangGraph + Flask).
+- `requirements.txt` – Focused dependency list (LangGraph, Flask, Requests).
 
 ## Setup
 
@@ -78,6 +78,30 @@ pip install -r requirements.txt
 ```
 
 If you already installed dependencies at the repository root, you can reuse that environment.
+
+### Environment Variables for LLM Chat
+
+Configure at least one provider before launching the web interface so the chat panel can answer questions. The helper inspects these environment variables:
+
+- `LLM_PROVIDER` (optional) – defaults to `openai`; choose `openai`, `groq`, or `gemini`
+- `OPENAI_API_KEY` (optional) – required when `LLM_PROVIDER` is `openai`; override model with `OPENAI_MODEL`
+- `GROQ_API_KEY` (optional) – required when `LLM_PROVIDER` is `groq`; override model with `GROQ_MODEL` (defaults to `llama-3.1-8b-instant`)
+- `GEMINI_API_KEY` (optional) – required when `LLM_PROVIDER` is `gemini`; override model with `GEMINI_MODEL`
+
+Example (PowerShell):
+
+```powershell
+$env:OPENAI_API_KEY = "sk-..."
+$env:LLM_PROVIDER = "openai"
+```
+
+Only one provider key is required at a time; add more keys if you plan to switch providers from the dropdown.
+
+If you prefer not to set environment variables, you can paste a key into the web UI chat panel. The key stays in your browser session and is only transmitted when you test the connection or send a chat request.
+
+### LLM Utility Module
+
+The `llm_utils.py` helper centralizes chat completions for Groq, OpenAI, and Gemini. It relies on the environment variables above and keeps API calls out of the Flask views so providers can be swapped without code changes.
 
 ## Agent Collaboration in Action
 
