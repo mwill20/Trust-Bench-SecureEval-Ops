@@ -36,6 +36,13 @@ class ValidationError(ValueError):
 
 
 _REPO_REGEX = re.compile(r"^/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(/.*)?$")
+_PROMPT_INJECTION_PATTERNS = [
+    re.compile(r"forget\s+previous\s+instructions", re.IGNORECASE),
+    re.compile(r"ignore\s+all\s+previous", re.IGNORECASE),
+    re.compile(r"reset\s+conversation", re.IGNORECASE),
+    re.compile(r"system\s*prompt", re.IGNORECASE),
+    re.compile(r"you\s+are\s+now\s+.*assistant", re.IGNORECASE),
+]
 
 
 def validate_repo_url(raw_url: str) -> str:
@@ -66,11 +73,13 @@ def sanitize_prompt(text: str, max_length: int = 4000) -> str:
     """
     Basic prompt sanitization to reduce prompt injection patterns.
 
-    Currently removes control characters and truncates to max_length.
+    Removes control characters, strips obvious injection attempts, and truncates.
     """
     value = normalize_text(text)
     # Remove ASCII control chars except newlines/tabs.
     value = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", value)
+    for pattern in _PROMPT_INJECTION_PATTERNS:
+        value = pattern.sub("", value)
     if len(value) > max_length:
         value = value[:max_length]
     return value
@@ -89,6 +98,18 @@ def safe_log_message(message: str, max_length: int = 500) -> str:
     return cleaned
 
 
+def mask_api_key(key: Optional[str], prefix: int = 4, suffix: int = 2) -> str:
+    """
+    Return a masked representation of an API key for safe logging/display.
+    """
+    value = normalize_text(key)
+    if not value:
+        return ""
+    if len(value) <= prefix + suffix:
+        return "*" * len(value)
+    return f"{value[:prefix]}{'*' * (len(value) - prefix - suffix)}{value[-suffix:]}"
+
+
 __all__ = [
     "security_filters_enabled",
     "normalize_text",
@@ -97,5 +118,5 @@ __all__ = [
     "sanitize_prompt",
     "escape_html",
     "safe_log_message",
+    "mask_api_key",
 ]
-

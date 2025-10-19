@@ -562,6 +562,51 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
         <script>
         (function () {
             const defaultProvider = "{{ default_provider }}";
+            const PROMPT_INJECTION_PATTERNS = [
+                new RegExp("forget\\s+previous\\s+instructions", "gi"),
+                new RegExp("ignore\\s+all\\s+previous", "gi"),
+                new RegExp("reset\\s+conversation", "gi"),
+                new RegExp("system\\s*prompt", "gi"),
+                new RegExp("you\\s+are\\s+now\\s+.*assistant", "gi"),
+            ];
+
+            function sanitizeInput(value, maxLength = 4000) {
+                if (value === undefined || value === null) {
+                    return '';
+                }
+                let text = String(value);
+                text = text.replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, '');
+                PROMPT_INJECTION_PATTERNS.forEach((pattern) => {
+                    text = text.replace(pattern, '');
+                });
+                if (text.length > maxLength) {
+                    text = text.slice(0, maxLength);
+                }
+                return text.trim();
+            }
+
+            function maskApiKeyForDisplay(key, prefix = 4, suffix = 2) {
+                const normalized = sanitizeInput(key, 200);
+                if (!normalized) {
+                    return '';
+                }
+                if (normalized.length <= prefix + suffix) {
+                    return '*'.repeat(normalized.length);
+                }
+                const maskedLength = normalized.length - prefix - suffix;
+                return `${normalized.slice(0, prefix)}${'*'.repeat(maskedLength)}${normalized.slice(-suffix)}`;
+            }
+
+            function escapeHtml(value) {
+                const str = value === null || value === undefined ? '' : String(value);
+                return str
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
             const auditForm = document.getElementById('auditForm');
             const analyzeBtn = document.getElementById('analyzeBtn');
             const repoUrlInput = document.getElementById('repoUrl');
@@ -605,7 +650,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         sessionStorage.removeItem(`llm_api_key_${provider}`);
                     }
                 } catch (err) {
-                    // Ignore storage errors (e.g. private browsing restrictions).
+                    /* ignore */
                 }
             }
 
@@ -647,7 +692,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 if (!chatStatus) {
                     return;
                 }
-                chatStatus.textContent = message || '';
+                chatStatus.textContent = sanitizeInput(message || '');
                 chatStatus.style.color = isError ? '#b00020' : '#555';
             }
 
@@ -655,7 +700,8 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 if (!chatQuestion || !sendChatBtn) {
                     return;
                 }
-                const question = chatQuestion.value.trim();
+                const rawQuestion = chatQuestion.value;
+                const question = sanitizeInput(rawQuestion);
                 if (!question) {
                     updateChatStatus('Enter a question before sending.', true);
                     return;
@@ -684,17 +730,17 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
                     if (!response.ok || !data.success) {
                         const message = data && data.error ? data.error : `Chat failed (${response.status})`;
-                        appendChatMessage('System', message);
+                        appendChatMessage('System', sanitizeInput(message));
                         updateChatStatus(message, true);
                         return;
                     }
 
-                    const providerLabel = (data.provider || provider || 'provider').toUpperCase();
-                    appendChatMessage(providerLabel, data.answer || '(No answer returned)');
+                    const providerLabel = sanitizeInput((data.provider || provider || 'provider').toUpperCase());
+                    appendChatMessage(providerLabel, sanitizeInput(data.answer || '(No answer returned)'));
 
                     if (data.context_available) {
                         const sourceNote = data.context_source ? ` (${data.context_source})` : '';
-                        updateChatStatus(`Answered using the latest report context${sourceNote}.`);
+                        updateChatStatus(`Answered using the latest report context${sanitizeInput(sourceNote)}.`);
                     } else {
                         updateChatStatus('Answered without local report context. Run an analysis for better results.');
                     }
@@ -718,7 +764,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             }
 
             function resetProgressSteps() {
-                ['step-input', 'step-orchestration', 'step-security', 'step-quality', 'step-documentation', 'step-results'].forEach(id => {
+                ['step-input', 'step-orchestration', 'step-security', 'step-quality', 'step-documentation', 'step-results'].forEach((id) => {
                     const step = document.getElementById(id);
                     if (step) {
                         step.classList.remove('active', 'completed');
@@ -727,7 +773,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             }
 
             function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
+                return new Promise((resolve) => setTimeout(resolve, ms));
             }
 
             window.toggleDetails = function toggleDetails(detailsId) {
@@ -764,17 +810,23 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 const summary = report.summary || {};
                 const agents = report.agents || {};
 
+                const safeUrl = escapeHtml(repoInfo.url || '#');
+                const safeOwner = escapeHtml(repoInfo.owner || '');
+                const safeName = escapeHtml(repoInfo.name || '');
+
                 let html = '';
                 if (repoInfo.url && repoInfo.owner && repoInfo.name) {
                     html += `<div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
-                                <h3>Repository: <a href="${repoInfo.url}" target="_blank" rel="noopener">${repoInfo.owner}/${repoInfo.name}</a></h3>
+                                <h3>Repository: <a href="${safeUrl}" target="_blank" rel="noopener">${safeOwner}/${safeName}</a></h3>
                              </div>`;
                 }
 
                 if (typeof summary.overall_score !== 'undefined' && summary.grade) {
-                    html += `<div class="score ${summary.grade}">
-                                Overall Score: ${summary.overall_score}/100
-                                <br>Grade: ${summary.grade.toUpperCase()}
+                    const safeGrade = escapeHtml(summary.grade);
+                    const safeScore = escapeHtml(summary.overall_score);
+                    html += `<div class="score ${safeGrade}">
+                                Overall Score: ${safeScore}/100
+                                <br>Grade: ${safeGrade.toUpperCase()}
                              </div>`;
                 }
 
@@ -783,19 +835,19 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     const score = typeof agentData.score !== 'undefined' ? agentData.score : 'N/A';
                     const summaryText = agentData.summary || 'No summary available.';
                     html += `<div class="agent-card">
-                                <h3>${agentName}</h3>
-                                <p><strong>Score:</strong> ${score}/100</p>
-                                <p><strong>Summary:</strong> ${summaryText}</p>
+                                <h3>${escapeHtml(agentName)}</h3>
+                                <p><strong>Score:</strong> ${escapeHtml(score)}</p>
+                                <p><strong>Summary:</strong> ${escapeHtml(summaryText)}</p>
                              </div>`;
                 });
                 html += '</div>';
 
                 if (Array.isArray(report.conversation) && report.conversation.length > 0) {
                     html += '<h3>Agent Conversation Log</h3><ul>';
-                    report.conversation.forEach(msg => {
-                        const sender = msg.sender || 'Unknown';
-                        const recipient = msg.recipient || 'Unknown';
-                        const content = msg.content || '';
+                    report.conversation.forEach((msg) => {
+                        const sender = escapeHtml(msg.sender || 'Unknown');
+                        const recipient = escapeHtml(msg.recipient || 'Unknown');
+                        const content = escapeHtml(msg.content || '');
                         html += `<li><strong>${sender} &rarr; ${recipient}:</strong> ${content}</li>`;
                     });
                     html += '</ul>';
@@ -805,7 +857,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             }
 
             if (chatStatus) {
-                chatStatus.textContent = 'Run an analysis to capture the latest context.';
+                updateChatStatus('Run an analysis to capture the latest context.');
             }
             if (providerSelect && defaultProvider) {
                 providerSelect.value = defaultProvider;
@@ -813,7 +865,9 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             if (providerSelect && apiKeyInput) {
                 providerSelect.addEventListener('change', () => updateApiKeyInput());
                 apiKeyInput.addEventListener('input', () => {
-                    setApiKey(providerSelect.value, apiKeyInput.value.trim());
+                    const sanitizedKey = sanitizeInput(apiKeyInput.value, 200);
+                    apiKeyInput.value = sanitizedKey;
+                    setApiKey(providerSelect.value, sanitizedKey);
                     if (apiKeyStatus) {
                         apiKeyStatus.textContent = '';
                         apiKeyStatus.style.color = '#555';
@@ -822,13 +876,13 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 updateApiKeyInput(false);
             }
             if (sendChatBtn) {
-                sendChatBtn.addEventListener('click', event => {
+                sendChatBtn.addEventListener('click', (event) => {
                     event.preventDefault();
                     sendChatMessage();
                 });
             }
             if (chatQuestion) {
-                chatQuestion.addEventListener('keydown', event => {
+                chatQuestion.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' && !event.shiftKey) {
                         event.preventDefault();
                         sendChatMessage();
@@ -838,11 +892,15 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             if (testKeyBtn && apiKeyInput && providerSelect && apiKeyStatus) {
                 testKeyBtn.addEventListener('click', async () => {
                     const provider = providerSelect.value;
-                    const apiKey = apiKeyInput.value.trim();
+                    let apiKey = sanitizeInput(apiKeyInput.value, 200);
+                    apiKeyInput.value = apiKey;
 
                     if (!provider) {
-                        apiKeyStatus.textContent = 'Select a provider first.';
-                        apiKeyStatus.style.color = '#b00020';
+                        updateChatStatus('Select an LLM provider before testing.', true);
+                        if (apiKeyStatus) {
+                            apiKeyStatus.textContent = 'Select a provider first.';
+                            apiKeyStatus.style.color = '#b00020';
+                        }
                         return;
                     }
                     if (!apiKey) {
@@ -866,7 +924,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
                         if (!response.ok || !data.success) {
                             const message = data && data.error ? data.error : `Connection failed (${response.status})`;
-                            apiKeyStatus.textContent = message;
+                            apiKeyStatus.textContent = sanitizeInput(message);
                             apiKeyStatus.style.color = '#b00020';
                             return;
                         }
@@ -895,10 +953,14 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             }
 
             if (auditForm) {
-                auditForm.addEventListener('submit', async event => {
+                auditForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
 
-                    const repoUrl = repoUrlInput ? repoUrlInput.value : '';
+                    const rawRepoUrl = repoUrlInput ? repoUrlInput.value : '';
+                    const repoUrl = sanitizeInput(rawRepoUrl, 2048);
+                    if (repoUrlInput) {
+                        repoUrlInput.value = repoUrl;
+                    }
 
                     if (!isValidGitHubUrl(repoUrl)) {
                         alert('Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)');
@@ -967,11 +1029,12 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
                             const repoInfo = data.report && data.report.repository_info;
                             if (repoInfo && repoInfo.owner && repoInfo.name) {
-                                updateChatStatus(`Latest context loaded from ${repoInfo.owner}/${repoInfo.name}. Ask a follow-up question anytime.`);
+                                const statusMessage = sanitizeInput(`Latest context loaded from ${repoInfo.owner}/${repoInfo.name}. Ask a follow-up question anytime.`);
+                                updateChatStatus(statusMessage);
                                 if (chatPlaceholder && chatPlaceholder.parentElement) {
                                     const placeholderBody = chatPlaceholder.querySelector('span');
                                     if (placeholderBody) {
-                                        placeholderBody.textContent = `Context ready for ${repoInfo.owner}/${repoInfo.name}. Ask a question whenever you're ready.`;
+                                        placeholderBody.textContent = sanitizeInput(`Context ready for ${repoInfo.owner}/${repoInfo.name}. Ask a question whenever you're ready.`);
                                     }
                                 }
                             } else {
@@ -987,7 +1050,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         } else {
                             const message = data && data.error ? data.error : `Analysis failed (${response.status})`;
                             if (resultsContent) {
-                                resultsContent.innerHTML = `<div style="color: #c62828;"><h3>Error</h3><p>${message}</p></div>`;
+                                resultsContent.innerHTML = `<div style="color: #c62828;"><h3>Error</h3><p>${escapeHtml(message)}</p></div>`;
                             }
                             resetProgressSteps();
                             updateChatStatus(message, true);
@@ -997,7 +1060,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         }
                     } catch (error) {
                         if (resultsContent) {
-                            resultsContent.innerHTML = `<div style="color: #c62828;"><h3>Error</h3><p>${error.message}</p></div>`;
+                            resultsContent.innerHTML = `<div style="color: #c62828;"><h3>Error</h3><p>${escapeHtml(error.message)}</p></div>`;
                         }
                         if (results) {
                             results.style.display = 'block';
