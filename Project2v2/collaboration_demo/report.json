@@ -1,0 +1,259 @@
+{
+  "generated_at": "2025-10-19T15:31:51.266857+00:00",
+  "repo_root": "C:\\Projects\\Trust_Bench_Clean\\Project2v2",
+  "summary": {
+    "overall_score": 30.0,
+    "grade": "needs_attention",
+    "notes": "Composite built from agent contributions."
+  },
+  "agents": {
+    "SecurityAgent": {
+      "score": 0.0,
+      "summary": "Scanned 58 files and detected 6 potential secret hit(s).",
+      "details": {
+        "matches": [
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\collaboration_test\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+            "pattern": "Private RSA Key",
+            "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output_self\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\quick_test\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\test_output\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+          }
+        ],
+        "scanned": 58
+      }
+    },
+    "QualityAgent": {
+      "score": 0,
+      "summary": "Indexed 58 files across 4 language group(s); 0 appear to be tests. (Adjusted for 6 security findings)",
+      "details": {
+        "language_histogram": {
+          "markdown": 25,
+          "other": 4,
+          "python": 9,
+          "json": 20
+        },
+        "total_files": 58,
+        "test_files": 0,
+        "test_ratio": 0.0
+      }
+    },
+    "DocumentationAgent": {
+      "score": 90.0,
+      "summary": "Found 2 README file(s) with roughly 2052 words and 20 section heading(s). (Adjusted based on quality metrics) (Adjusted for security gaps)",
+      "details": {
+        "readme_paths": [
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md",
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README_NEW.md"
+        ],
+        "total_words": 2052,
+        "sections": 20,
+        "has_quickstart": true,
+        "has_architecture": false,
+        "collaboration_adjustments": [
+          "No tests found by QualityAgent - documentation lacks testing info - reduced score by 5",
+          "Security issues found but not addressed in docs - reduced score by 5"
+        ]
+      }
+    }
+  },
+  "conversation": [
+    {
+      "sender": "Manager",
+      "recipient": "SecurityAgent",
+      "content": "Task assigned: Scan the repository for high-signal secrets or credentials.",
+      "data": {
+        "tool": "secret_scan"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "QualityAgent",
+      "content": "Task assigned: Summarize repository structure and gauge test coverage.",
+      "data": {
+        "tool": "repository_structure"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "DocumentationAgent",
+      "content": "Task assigned: Review README files and verify documentation depth.",
+      "data": {
+        "tool": "documentation_review"
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "Manager",
+      "content": "Secret scan completed. Risk level: HIGH (6 findings).",
+      "data": {
+        "name": "secret_scan",
+        "score": 0.0,
+        "summary": "Scanned 58 files and detected 6 potential secret hit(s).",
+        "details": {
+          "matches": [
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\collaboration_test\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+              "pattern": "Private RSA Key",
+              "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output_self\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\quick_test\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\test_output\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+            }
+          ],
+          "scanned": 58
+        }
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "QualityAgent",
+      "content": "FYI: Found 6 security issues that may impact quality assessment.",
+      "data": {
+        "security_context": {
+          "findings_count": 6,
+          "risk_level": "high"
+        }
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "DocumentationAgent",
+      "content": "Alert: 6 security findings detected - please check if docs address security practices.",
+      "data": {
+        "security_alert": {
+          "findings_count": 6,
+          "risk_level": "high"
+        }
+      }
+    },
+    {
+      "sender": "QualityAgent",
+      "recipient": "SecurityAgent",
+      "content": "Incorporated your 6 security findings into quality assessment.",
+      "data": {
+        "security_penalty": 25
+      }
+    },
+    {
+      "sender": "QualityAgent",
+      "recipient": "Manager",
+      "content": "Repository structure summarized. Adjusted quality score down by 25 points due to 6 security finding(s) from SecurityAgent.",
+      "data": {
+        "name": "repository_structure",
+        "score": 0,
+        "summary": "Indexed 58 files across 4 language group(s); 0 appear to be tests. (Adjusted for 6 security findings)",
+        "details": {
+          "language_histogram": {
+            "markdown": 25,
+            "other": 4,
+            "python": 9,
+            "json": 20
+          },
+          "total_files": 58,
+          "test_files": 0,
+          "test_ratio": 0.0
+        }
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "QualityAgent",
+      "content": "Used your metrics (files: 58, test ratio: 0.0%) to enhance documentation assessment.",
+      "data": {
+        "collaboration": "quality_metrics_integration"
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "SecurityAgent",
+      "content": "Noted your 6 findings - documentation lacks security guidance.",
+      "data": {
+        "security_doc_gap": true
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "Manager",
+      "content": "Documentation review finished. No tests found by QualityAgent - documentation lacks testing info - reduced score by 5; Security issues found but not addressed in docs - reduced score by 5",
+      "data": {
+        "name": "documentation_review",
+        "score": 90.0,
+        "summary": "Found 2 README file(s) with roughly 2052 words and 20 section heading(s). (Adjusted based on quality metrics) (Adjusted for security gaps)",
+        "details": {
+          "readme_paths": [
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md",
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README_NEW.md"
+          ],
+          "total_words": 2052,
+          "sections": 20,
+          "has_quickstart": true,
+          "has_architecture": false
+        }
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "All Agents",
+      "content": "Evaluation complete. Grade: NEEDS_ATTENTION (30.0 pts). Agents collaborated on 5 cross-communications. Collaborative adjustments: Security findings influenced quality and documentation scores; Quality assessment incorporated security analysis; Documentation score adjusted based on quality metrics.",
+      "data": {
+        "overall_score": 30.0,
+        "grade": "needs_attention",
+        "notes": "Composite built from agent contributions.",
+        "collaboration_metrics": {
+          "interactions": 5,
+          "adjustments": [
+            "Security findings influenced quality and documentation scores",
+            "Quality assessment incorporated security analysis",
+            "Documentation score adjusted based on quality metrics"
+          ]
+        }
+      }
+    }
+  ]
+}

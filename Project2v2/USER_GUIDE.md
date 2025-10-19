@@ -63,37 +63,43 @@ python main.py --repo .. --output parent_analysis
 python main.py --repo test_repo --output test_results
 ```
 
-## 📊 What You'll See
+## 📊 What You'll See - Enhanced Agent Collaboration
 
-The agents will analyze any repository and provide:
+The agents will analyze any repository with **intelligent collaboration**:
 
-### 🛡️ SecurityAgent
-- Scans for AWS keys, GitHub tokens, private keys
-- Rates security from 0-100
-- Shows exact file locations and snippets
+### 🛡️ SecurityAgent (Proactive Communicator)
+- Scans for AWS keys, GitHub tokens, private keys, etc.
+- Rates security from 0-100 and shows exact file locations
+- **NEW**: Immediately alerts other agents about security findings
+- **Collaboration**: `"FYI: Found 5 security issues that may impact quality assessment"`
 
-### 🔍 QualityAgent  
-- Analyzes code structure and languages
-- Counts test files and coverage ratio
-- Rates overall code quality
+### 🔍 QualityAgent (Security-Aware Assessor)
+- Analyzes code structure, languages, and test coverage  
+- Rates overall code quality from 0-100
+- **NEW**: Adjusts scores based on SecurityAgent findings (up to 25-point penalty)
+- **Collaboration**: `"Adjusted quality score down by 25 points due to 5 security finding(s)"`
 
-### 📝 DocumentationAgent
-- Reviews README files
-- Counts words and sections
-- Checks for quickstart guides
+### 📝 DocumentationAgent (Context-Aware Reviewer)
+- Reviews README files, counts sections, checks completeness
+- **NEW**: Uses QualityAgent metrics (test coverage, file counts) in assessment
+- **NEW**: Penalizes docs that don't address security or testing gaps  
+- **Collaboration**: `"No tests found by QualityAgent - documentation lacks testing info"`
 
-### 🤖 Manager
-- Coordinates all agents
-- Provides final composite score
-- Logs complete agent conversation
+### 🤖 Manager (Collaboration Orchestrator)
+- Coordinates all agents and tracks cross-communications
+- Provides final composite score reflecting collaborative intelligence
+- **NEW**: Reports collaboration metrics: `"Agents collaborated on 5 cross-communications"`
+- Logs complete agent conversation showing decision-making process
 
-## 🎮 Fun Things to Try
+## 🎮 Fun Things to Try - See Collaboration in Action!
 
-1. **Compare Scores:** Analyze different repositories and compare grades
-2. **Test Security:** Create a file with fake credentials and watch SecurityAgent catch it
-3. **Documentation Impact:** Add more content to README.md and see the score improve
-4. **Agent Conversations:** Read the conversation logs to see how agents communicate
-5. **Custom Repositories:** Point it at any Git repository on your machine
+1. **Watch Collaboration Live:** Use the web interface to see agents communicate in real-time progress cards
+2. **Compare Collaborative vs Individual Scores:** Notice how security findings reduce quality/documentation scores
+3. **Test Cross-Agent Intelligence:** Create a file with fake credentials and watch how it impacts all three agents
+4. **Study Conversation Logs:** Read detailed agent-to-agent messages in the final reports
+5. **Analyze Documentation Gaps:** See how missing tests or security docs get caught through collaboration
+6. **Custom Repository Analysis:** Point it at your own projects and discover collaborative insights
+7. **Collaboration Metrics:** Check the final summary for collaboration statistics like "Agents collaborated on X cross-communications"
 
 ## 📈 Expected Results
 

@@ -41,17 +41,45 @@ def _evaluate_agent_outputs(results: Dict[str, AgentResult]) -> Dict[str, Any]:
 def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
     report = _evaluate_agent_outputs(state.get("agent_results", {}))
     messages = list(state.get("messages", []))
+    shared_memory = state.get("shared_memory", {})
+    
+    # Count collaboration interactions
+    collaboration_count = sum(1 for msg in messages if msg.get("sender") != "Manager" and msg.get("recipient") != "Manager")
+    
+    # Check for collaborative adjustments
+    security_context = shared_memory.get("security_context", {})
+    quality_metrics = shared_memory.get("quality_metrics", {})
+    doc_adjustments = shared_memory.get("documentation", {}).get("collaboration_adjustments", [])
+    
+    collaboration_summary = []
+    if security_context.get("requires_attention"):
+        collaboration_summary.append(f"Security findings influenced quality and documentation scores")
+    if quality_metrics.get("adjusted_for_security"):
+        collaboration_summary.append(f"Quality assessment incorporated security analysis")
+    if doc_adjustments:
+        collaboration_summary.append(f"Documentation score adjusted based on quality metrics")
+    
+    collab_note = f" Agents collaborated on {collaboration_count} cross-communications." if collaboration_count > 0 else ""
+    if collaboration_summary:
+        collab_note += f" Collaborative adjustments: {'; '.join(collaboration_summary)}."
+    
     messages.append(
         {
             "sender": "Manager",
-            "recipient": "All Agents",
-            "content": f"Evaluation complete. Grade: {report['grade'].upper()} ({report['overall_score']} pts).",
-            "data": report,
+            "recipient": "All Agents", 
+            "content": f"Evaluation complete. Grade: {report['grade'].upper()} ({report['overall_score']} pts).{collab_note}",
+            "data": {**report, "collaboration_metrics": {"interactions": collaboration_count, "adjustments": collaboration_summary}},
         }
     )
-    shared_memory = dict(state.get("shared_memory", {}))
-    shared_memory["composite_assessment"] = report
-    return {"messages": messages, "shared_memory": shared_memory, "report": report}
+    
+    updated_shared_memory = dict(shared_memory)
+    updated_shared_memory["composite_assessment"] = report
+    updated_shared_memory["collaboration_summary"] = {
+        "total_interactions": collaboration_count,
+        "collaborative_adjustments": collaboration_summary
+    }
+    
+    return {"messages": messages, "shared_memory": updated_shared_memory, "report": report}
 
 
 def build_orchestrator() -> Any:

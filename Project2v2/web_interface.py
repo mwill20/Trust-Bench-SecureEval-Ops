@@ -163,6 +163,92 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             border-left: 4px solid #667eea;
         }
+        .progress-workflow {
+            margin: 30px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .progress-step {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        .progress-single {
+            /* Single steps like Input, Orchestrator, Results */
+        }
+        .progress-agents {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .progress-agents .progress-step {
+            flex: 1;
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+        .progress-step.active {
+            border-color: #667eea;
+            background: #f0f8ff;
+            transform: translateY(-2px);
+        }
+        .progress-step.completed {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        .progress-step-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .progress-step-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .progress-step-desc {
+            font-size: 12px;
+            color: #666;
+        }
+        .agent-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            display: none;
+            font-size: 11px;
+            text-align: left;
+        }
+        .agent-details.show {
+            display: block;
+        }
+        .agent-details h4 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            color: #333;
+        }
+        .agent-details ul {
+            margin: 0;
+            padding-left: 15px;
+        }
+        .agent-details li {
+            margin: 3px 0;
+        }
+        .toggle-details {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 5px;
+            text-decoration: underline;
+        }
+        .toggle-details:hover {
+            color: #5a6fd8;
+        }
     </style>
 </head>
 <body>
@@ -196,6 +282,92 @@ HTML_TEMPLATE = """
             <button type="submit" class="btn" id="analyzeBtn">🔍 Analyze Repository</button>
         </form>
         
+        <div class="progress-workflow" id="progressWorkflow" style="display: none;">
+            <!-- Input -->
+            <div class="progress-step progress-single" id="step-input">
+                <div class="progress-step-icon">📥</div>
+                <div class="progress-step-title">Input</div>
+                <div class="progress-step-desc">GitHub URL received</div>
+            </div>
+            
+            <!-- Orchestrator -->
+            <div class="progress-step progress-single" id="step-orchestration">
+                <div class="progress-step-icon">🎯</div>
+                <div class="progress-step-title">Orchestrator</div>
+                <div class="progress-step-desc">Manager assigns tasks to specialized agents</div>
+                <button class="toggle-details" onclick="toggleDetails('orchestrator-details')">Show Details ▼</button>
+                <div class="agent-details" id="orchestrator-details">
+                    <h4>🎯 Orchestrator Capabilities:</h4>
+                    <ul>
+                        <li><strong>Task Management:</strong> Coordinates all agent activities</li>
+                        <li><strong>Workflow Control:</strong> Manages analysis sequence and timing</li>
+                        <li><strong>Collaboration Facilitation:</strong> Enables direct agent-to-agent communication</li>
+                        <li><strong>Result Compilation:</strong> Combines collaborative findings into final score</li>
+                        <li><strong>Quality Assurance:</strong> Tracks collaboration metrics and adjustments</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Three Agents Working in Parallel -->
+            <div class="progress-agents">
+                <div class="progress-step" id="step-security">
+                    <div class="progress-step-icon">🔒</div>
+                    <div class="progress-step-title">Security Agent</div>
+                    <div class="progress-step-desc">Scanning for secrets & vulnerabilities</div>
+                    <button class="toggle-details" onclick="toggleDetails('security-details')">Show Details ▼</button>
+                    <div class="agent-details" id="security-details">
+                        <h4>🔒 Security Scanning & Collaboration:</h4>
+                        <ul>
+                            <li><strong>Secret Detection:</strong> API keys, tokens, passwords</li>
+                            <li><strong>Credential Scanning:</strong> AWS keys, GitHub tokens, DB strings</li>
+                            <li><strong>Risk Assessment:</strong> Categorizes findings by risk level</li>
+                            <li><strong>Collaborative Alerts:</strong> Notifies other agents about security context</li>
+                            <li><strong>Cross-Agent Impact:</strong> Findings influence quality and documentation scores</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="progress-step" id="step-quality">
+                    <div class="progress-step-icon">⚡</div>
+                    <div class="progress-step-title">Quality Agent</div>
+                    <div class="progress-step-desc">Analyzing code & tests</div>
+                    <button class="toggle-details" onclick="toggleDetails('quality-details')">Show Details ▼</button>
+                    <div class="agent-details" id="quality-details">
+                        <h4>⚡ Code Quality & Cross-Analysis:</h4>
+                        <ul>
+                            <li><strong>Language Detection:</strong> Identifies programming languages</li>
+                            <li><strong>Security Integration:</strong> Adjusts scores based on security findings</li>
+                            <li><strong>Test Coverage:</strong> Calculates test-to-code ratios</li>
+                            <li><strong>Collaborative Metrics:</strong> Shares quality data with documentation agent</li>
+                            <li><strong>Dynamic Scoring:</strong> Adapts assessment based on security context</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="progress-step" id="step-documentation">
+                    <div class="progress-step-icon">📚</div>
+                    <div class="progress-step-title">Documentation Agent</div>
+                    <div class="progress-step-desc">Reviewing docs & READMEs</div>
+                    <button class="toggle-details" onclick="toggleDetails('documentation-details')">Show Details ▼</button>
+                    <div class="agent-details" id="documentation-details">
+                        <h4>📚 Documentation & Context Analysis:</h4>
+                        <ul>
+                            <li><strong>README Evaluation:</strong> Quality, length, structure</li>
+                            <li><strong>Quality-Aware Scoring:</strong> Adjusts expectations based on project size/complexity</li>
+                            <li><strong>Security Gap Detection:</strong> Identifies missing security documentation</li>
+                            <li><strong>Cross-Agent Communication:</strong> Collaborates with quality and security teams</li>
+                            <li><strong>Contextual Assessment:</strong> Adapts scoring based on collaborative insights</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            <div class="progress-step progress-single" id="step-results">
+                <div class="progress-step-icon">📊</div>
+                <div class="progress-step-title">Results</div>
+                <div class="progress-step-desc">Scores compiled and comprehensive report generated</div>
+            </div>
+        </div>
+        
         <div class="loading" id="loading">
             <h3>🤖 Agents are analyzing your repository...</h3>
             <p>📥 Cloning repository...</p>
@@ -225,6 +397,7 @@ HTML_TEMPLATE = """
             const analyzeBtn = document.getElementById('analyzeBtn');
             const loading = document.getElementById('loading');
             const results = document.getElementById('results');
+            const progressWorkflow = document.getElementById('progressWorkflow');
             
             // Validate GitHub URL
             if (!isValidGitHubUrl(repoUrl)) {
@@ -232,13 +405,30 @@ HTML_TEMPLATE = """
                 return;
             }
             
-            // Show loading, hide results
+            // Show progress workflow and start analysis
+            progressWorkflow.style.display = 'flex';
+            results.style.display = 'none';
+            
+            // Step 1: Input received
+            updateProgressStep('step-input', 'active');
+            await sleep(500);
+            updateProgressStep('step-input', 'completed');
+            
+            // Step 2: Orchestration
+            updateProgressStep('step-orchestration', 'active');
             analyzeBtn.disabled = true;
             analyzeBtn.textContent = '🔄 Cloning and Analyzing...';
             loading.style.display = 'block';
-            results.style.display = 'none';
+            await sleep(1000);
             
             try {
+                updateProgressStep('step-orchestration', 'completed');
+                
+                // Step 3: Agents working in parallel
+                updateProgressStep('step-security', 'active');
+                updateProgressStep('step-quality', 'active');
+                updateProgressStep('step-documentation', 'active');
+                
                 const response = await fetch('/analyze', {
                     method: 'POST',
                     headers: {
@@ -249,11 +439,22 @@ HTML_TEMPLATE = """
                 
                 const data = await response.json();
                 
+                // Complete all agent steps
+                updateProgressStep('step-security', 'completed');
+                updateProgressStep('step-quality', 'completed');
+                updateProgressStep('step-documentation', 'completed');
+                
+                // Step 4: Results
+                updateProgressStep('step-results', 'active');
+                await sleep(500);
+                
                 if (data.success) {
                     displayResults(data.report);
+                    updateProgressStep('step-results', 'completed');
                 } else {
                     document.getElementById('resultsContent').innerHTML = 
                         '<div style="color: red;"><h3>Error:</h3><p>' + data.error + '</p></div>';
+                    resetProgressSteps();
                 }
                 
                 results.style.display = 'block';
@@ -261,12 +462,41 @@ HTML_TEMPLATE = """
                 document.getElementById('resultsContent').innerHTML = 
                     '<div style="color: red;"><h3>Error:</h3><p>' + error.message + '</p></div>';
                 results.style.display = 'block';
+                resetProgressSteps();
             } finally {
                 analyzeBtn.disabled = false;
                 analyzeBtn.textContent = '🔍 Analyze Repository';
                 loading.style.display = 'none';
             }
         });
+        
+        function updateProgressStep(stepId, state) {
+            const step = document.getElementById(stepId);
+            step.className = 'progress-step ' + state;
+        }
+        
+        function resetProgressSteps() {
+            ['step-input', 'step-orchestration', 'step-security', 'step-quality', 'step-documentation', 'step-results'].forEach(id => {
+                document.getElementById(id).className = 'progress-step';
+            });
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function toggleDetails(detailsId) {
+            const details = document.getElementById(detailsId);
+            const button = details.previousElementSibling;
+            
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                button.innerHTML = 'Show Details ▼';
+            } else {
+                details.classList.add('show');
+                button.innerHTML = 'Hide Details ▲';
+            }
+        }
         
         function isValidGitHubUrl(url) {
             try {

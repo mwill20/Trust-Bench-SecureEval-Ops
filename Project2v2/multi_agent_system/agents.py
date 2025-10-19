@@ -76,16 +76,51 @@ def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
 def security_agent(state: MultiAgentState) -> Dict[str, Any]:
     repo_root = state["repo_root"]
     tool_result = run_secret_scan(repo_root)
-
+    
+    # Prepare findings for other agents to use
+    security_findings = tool_result.details.get("matches", [])
+    
+    # Enhanced security analysis context
+    risk_level = "low"
+    if len(security_findings) > 5:
+        risk_level = "high"
+    elif len(security_findings) > 0:
+        risk_level = "medium"
+    
     messages = _append_message(
         state.get("messages", []),
         sender="SecurityAgent",
         recipient="Manager",
-        content="Secret scan completed.",
+        content=f"Secret scan completed. Risk level: {risk_level.upper()} ({len(security_findings)} findings).",
         data=serialize_tool_result(tool_result),
     )
+    
+    # Proactively notify other agents about security context
+    if security_findings:
+        messages = _append_message(
+            messages,
+            sender="SecurityAgent",
+            recipient="QualityAgent",
+            content=f"FYI: Found {len(security_findings)} security issues that may impact quality assessment.",
+            data={"security_context": {"findings_count": len(security_findings), "risk_level": risk_level}}
+        )
+        
+        messages = _append_message(
+            messages,
+            sender="SecurityAgent",
+            recipient="DocumentationAgent", 
+            content=f"Alert: {len(security_findings)} security findings detected - please check if docs address security practices.",
+            data={"security_alert": {"findings_count": len(security_findings), "risk_level": risk_level}}
+        )
+    
     shared_memory = deepcopy(state.get("shared_memory", {}))
-    shared_memory["security_findings"] = tool_result.details.get("matches", [])
+    shared_memory["security_findings"] = security_findings
+    shared_memory["security_context"] = {
+        "risk_level": risk_level,
+        "findings_count": len(security_findings),
+        "requires_attention": len(security_findings) > 0
+    }
+    
     return {
         "messages": messages,
         "shared_memory": shared_memory,
@@ -95,39 +130,159 @@ def security_agent(state: MultiAgentState) -> Dict[str, Any]:
 
 def quality_agent(state: MultiAgentState) -> Dict[str, Any]:
     repo_root = state["repo_root"]
+    shared_memory = state.get("shared_memory", {})
+    
     tool_result = analyze_repository_structure(repo_root)
-
+    
+    # Collaborate with Security Agent findings
+    security_findings = shared_memory.get("security_findings", [])
+    if security_findings:
+        # Reduce quality score if security issues found
+        security_penalty = min(len(security_findings) * 5, 25)  # Max 25 point penalty
+        adjusted_score = max(0, tool_result.score - security_penalty)
+        
+        # Create new tool result with adjusted score
+        from .types import ToolResult
+        tool_result = ToolResult(
+            name=tool_result.name,
+            score=adjusted_score,
+            summary=f"{tool_result.summary} (Adjusted for {len(security_findings)} security findings)",
+            details=tool_result.details
+        )
+        
+        # Add collaboration note
+        collab_message = f"Adjusted quality score down by {security_penalty} points due to {len(security_findings)} security finding(s) from SecurityAgent."
+        
+        # Send direct message to SecurityAgent
+        messages = _append_message(
+            state.get("messages", []),
+            sender="QualityAgent",
+            recipient="SecurityAgent",
+            content=f"Incorporated your {len(security_findings)} security findings into quality assessment.",
+            data={"security_penalty": security_penalty}
+        )
+    else:
+        messages = list(state.get("messages", []))
+        collab_message = "No security issues found - maintaining base quality score."
+    
+    # Report back to Manager
     messages = _append_message(
-        state.get("messages", []),
+        messages,
         sender="QualityAgent",
         recipient="Manager",
-        content="Repository structure summarized.",
+        content=f"Repository structure summarized. {collab_message}",
         data=serialize_tool_result(tool_result),
     )
-    shared_memory = deepcopy(state.get("shared_memory", {}))
-    shared_memory["language_histogram"] = tool_result.details.get("language_histogram", {})
+    
+    updated_shared_memory = deepcopy(shared_memory)
+    updated_shared_memory["language_histogram"] = tool_result.details.get("language_histogram", {})
+    updated_shared_memory["quality_metrics"] = {
+        "total_files": tool_result.details.get("total_files", 0),
+        "test_ratio": tool_result.details.get("test_ratio", 0),
+        "adjusted_for_security": len(security_findings) > 0
+    }
+    
     return {
         "messages": messages,
-        "shared_memory": shared_memory,
+        "shared_memory": updated_shared_memory,
         **_store_agent_result(state, "QualityAgent", tool_result),
     }
 
 
 def documentation_agent(state: MultiAgentState) -> Dict[str, Any]:
     repo_root = state["repo_root"]
+    shared_memory = state.get("shared_memory", {})
+    
     tool_result = evaluate_documentation(repo_root)
-
+    
+    # Collaborate with Quality Agent findings
+    quality_metrics = shared_memory.get("quality_metrics", {})
+    security_findings = shared_memory.get("security_findings", [])
+    
+    messages = list(state.get("messages", []))
+    collaboration_notes = []
+    
+    if quality_metrics:
+        total_files = quality_metrics.get("total_files", 0)
+        test_ratio = quality_metrics.get("test_ratio", 0)
+        
+        # Adjust documentation score based on project size and quality
+        adjusted_score = tool_result.score
+        
+        if total_files > 100:
+            # Large projects need better documentation
+            if tool_result.score < 80:
+                size_penalty = 10
+                adjusted_score = max(0, adjusted_score - size_penalty)
+                collaboration_notes.append(f"Large project ({total_files} files) needs better documentation - reduced score by {size_penalty}")
+        
+        if test_ratio == 0 and total_files > 10:
+            # No tests detected - documentation should mention testing approach
+            test_penalty = 5
+            adjusted_score = max(0, adjusted_score - test_penalty)
+            collaboration_notes.append(f"No tests found by QualityAgent - documentation lacks testing info - reduced score by {test_penalty}")
+            
+        # Create adjusted tool result if needed
+        if adjusted_score != tool_result.score:
+            from .types import ToolResult
+            tool_result = ToolResult(
+                name=tool_result.name,
+                score=adjusted_score,
+                summary=f"{tool_result.summary} (Adjusted based on quality metrics)",
+                details=tool_result.details
+            )
+        
+        # Send collaboration message to QualityAgent
+        messages = _append_message(
+            messages,
+            sender="DocumentationAgent",
+            recipient="QualityAgent",
+            content=f"Used your metrics (files: {total_files}, test ratio: {test_ratio:.1%}) to enhance documentation assessment.",
+            data={"collaboration": "quality_metrics_integration"}
+        )
+    
+    if security_findings:
+        # If security issues exist, check if documentation mentions security practices
+        if tool_result.score > 90:  # Only excellent docs should maintain high score with security issues
+            security_doc_penalty = 5
+            adjusted_score = max(0, tool_result.score - security_doc_penalty)
+            collaboration_notes.append(f"Security issues found but not addressed in docs - reduced score by {security_doc_penalty}")
+            
+            # Create adjusted tool result
+            from .types import ToolResult
+            tool_result = ToolResult(
+                name=tool_result.name,
+                score=adjusted_score,
+                summary=f"{tool_result.summary} (Adjusted for security gaps)",
+                details=tool_result.details
+            )
+            
+            # Send message to SecurityAgent
+            messages = _append_message(
+                messages,
+                sender="DocumentationAgent", 
+                recipient="SecurityAgent",
+                content=f"Noted your {len(security_findings)} findings - documentation lacks security guidance.",
+                data={"security_doc_gap": True}
+            )
+    
+    # Report comprehensive analysis to Manager
+    collab_summary = "; ".join(collaboration_notes) if collaboration_notes else "Baseline documentation assessment maintained."
+    
     messages = _append_message(
-        state.get("messages", []),
+        messages,
         sender="DocumentationAgent",
         recipient="Manager",
-        content="Documentation review finished.",
+        content=f"Documentation review finished. {collab_summary}",
         data=serialize_tool_result(tool_result),
     )
-    shared_memory = deepcopy(state.get("shared_memory", {}))
-    shared_memory["documentation"] = tool_result.details
+    
+    updated_shared_memory = deepcopy(shared_memory)
+    updated_shared_memory["documentation"] = tool_result.details
+    updated_shared_memory["documentation"]["collaboration_adjustments"] = collaboration_notes
+    
     return {
         "messages": messages,
-        "shared_memory": shared_memory,
+        "shared_memory": updated_shared_memory,
         **_store_agent_result(state, "DocumentationAgent", tool_result),
     }
