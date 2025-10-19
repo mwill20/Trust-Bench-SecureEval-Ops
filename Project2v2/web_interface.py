@@ -7,12 +7,61 @@ import json
 import os
 import subprocess
 import tempfile
+import shutil
+import re
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 from flask import Flask, render_template_string, request, jsonify, send_file
 
 app = Flask(__name__)
+
+def is_valid_github_url(url):
+    """Check if the URL is a valid GitHub repository URL"""
+    try:
+        parsed = urlparse(url)
+        if parsed.netloc != 'github.com':
+            return False
+        
+        # Expected format: /owner/repo or /owner/repo/
+        path_parts = [p for p in parsed.path.split('/') if p]
+        return len(path_parts) >= 2
+    except:
+        return False
+
+def extract_repo_info(url):
+    """Extract owner and repo name from GitHub URL"""
+    parsed = urlparse(url)
+    path_parts = [p for p in parsed.path.split('/') if p]
+    
+    if len(path_parts) >= 2:
+        return path_parts[0], path_parts[1]
+    return None, None
+
+def clone_repository(repo_url, target_dir):
+    """Clone a GitHub repository to a temporary directory"""
+    try:
+        # Check if git is available
+        git_check = subprocess.run(['git', '--version'], capture_output=True, text=True)
+        if git_check.returncode != 0:
+            raise Exception("Git is not installed or not available in PATH")
+        
+        # Use git clone with depth 1 for faster cloning
+        cmd = ['git', 'clone', '--depth', '1', repo_url, target_dir]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        
+        if result.returncode != 0:
+            if "not found" in result.stderr.lower() or "does not exist" in result.stderr.lower():
+                raise Exception(f"Repository not found or not accessible: {repo_url}")
+            else:
+                raise Exception(f"Git clone failed: {result.stderr}")
+        
+        return True
+    except subprocess.TimeoutExpired:
+        raise Exception("Repository cloning timed out (120s limit)")
+    except Exception as e:
+        raise Exception(f"Failed to clone repository: {str(e)}")
 
 # HTML template for the web interface
 HTML_TEMPLATE = """
@@ -123,19 +172,24 @@ HTML_TEMPLATE = """
         
         <form id="auditForm">
             <div class="form-group">
-                <label for="repoPath">Repository Path:</label>
-                <input type="text" id="repoPath" name="repoPath" 
-                       placeholder="Enter path to repository (e.g., C:\\path\\to\\repo or . for current)" 
-                       value="." required>
+                <label for="repoUrl">GitHub Repository URL:</label>
+                <input type="url" id="repoUrl" name="repoUrl" 
+                       placeholder="Enter GitHub repo URL (e.g., https://github.com/owner/repo)" 
+                       required>
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    💡 Paste any public GitHub repository URL to analyze its security, quality, and documentation
+                </small>
             </div>
             
             <div class="form-group">
-                <label for="presetRepo">Or choose a preset:</label>
+                <label for="presetRepo">Or try a sample repository:</label>
                 <select id="presetRepo" name="presetRepo">
-                    <option value="">-- Custom path --</option>
-                    <option value=".">Current directory (Project2v2)</option>
-                    <option value="..">Parent directory (Trust_Bench_Clean)</option>
-                    <option value="test_repo">Test repository</option>
+                    <option value="">-- Choose a sample --</option>
+                    <option value="https://github.com/microsoft/vscode">Microsoft VS Code</option>
+                    <option value="https://github.com/facebook/react">Facebook React</option>
+                    <option value="https://github.com/tensorflow/tensorflow">TensorFlow</option>
+                    <option value="https://github.com/nodejs/node">Node.js</option>
+                    <option value="https://github.com/python/cpython">Python</option>
                 </select>
             </div>
             
@@ -144,7 +198,11 @@ HTML_TEMPLATE = """
         
         <div class="loading" id="loading">
             <h3>🤖 Agents are analyzing your repository...</h3>
-            <p>SecurityAgent, QualityAgent, and DocumentationAgent are working together...</p>
+            <p>📥 Cloning repository...</p>
+            <p>🔒 SecurityAgent scanning for vulnerabilities and secrets...</p>
+            <p>⚡ QualityAgent checking code quality and test coverage...</p>
+            <p>📚 DocumentationAgent reviewing documentation...</p>
+            <p><em>This may take 30-60 seconds for large repositories</em></p>
         </div>
         
         <div class="results" id="results">
@@ -156,21 +214,27 @@ HTML_TEMPLATE = """
     <script>
         document.getElementById('presetRepo').addEventListener('change', function() {
             if (this.value) {
-                document.getElementById('repoPath').value = this.value;
+                document.getElementById('repoUrl').value = this.value;
             }
         });
 
         document.getElementById('auditForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const repoPath = document.getElementById('repoPath').value;
+            const repoUrl = document.getElementById('repoUrl').value;
             const analyzeBtn = document.getElementById('analyzeBtn');
             const loading = document.getElementById('loading');
             const results = document.getElementById('results');
             
+            // Validate GitHub URL
+            if (!isValidGitHubUrl(repoUrl)) {
+                alert('Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)');
+                return;
+            }
+            
             // Show loading, hide results
             analyzeBtn.disabled = true;
-            analyzeBtn.textContent = '🔄 Analyzing...';
+            analyzeBtn.textContent = '🔄 Cloning and Analyzing...';
             loading.style.display = 'block';
             results.style.display = 'none';
             
@@ -180,7 +244,7 @@ HTML_TEMPLATE = """
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ repo_path: repoPath })
+                    body: JSON.stringify({ repo_url: repoUrl })
                 });
                 
                 const data = await response.json();
@@ -204,11 +268,28 @@ HTML_TEMPLATE = """
             }
         });
         
+        function isValidGitHubUrl(url) {
+            try {
+                const parsed = new URL(url);
+                return parsed.hostname === 'github.com' && 
+                       parsed.pathname.split('/').length >= 3 &&
+                       parsed.pathname.split('/')[1] !== '' &&
+                       parsed.pathname.split('/')[2] !== '';
+            } catch {
+                return false;
+            }
+        }
+        
         function displayResults(report) {
             const summary = report.summary;
             const agents = report.agents;
+            const repoInfo = report.repository_info;
             
             let html = `
+                <div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px;">
+                    <h3>📦 Repository: <a href="${repoInfo.url}" target="_blank">${repoInfo.owner}/${repoInfo.name}</a></h3>
+                </div>
+                
                 <div class="score ${summary.grade}">
                     Overall Score: ${summary.overall_score}/100
                     <br>Grade: ${summary.grade.toUpperCase()}
@@ -251,15 +332,32 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
+    temp_dir = None
     try:
         data = request.json
-        repo_path = data.get('repo_path', '.')
+        repo_url = data.get('repo_url', '')
         
-        # Create a temporary output directory
-        output_dir = f"web_output_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Validate GitHub URL
+        if not is_valid_github_url(repo_url):
+            return jsonify({
+                'success': False,
+                'error': 'Please provide a valid GitHub repository URL (e.g., https://github.com/owner/repo)'
+            })
         
-        # Run the analysis
-        cmd = ['python', 'main.py', '--repo', repo_path, '--output', output_dir]
+        # Extract repo information for naming
+        owner, repo_name = extract_repo_info(repo_url)
+        
+        # Create temporary directory for cloning
+        temp_dir = tempfile.mkdtemp(prefix=f'trustbench_{owner}_{repo_name}_')
+        
+        # Clone the repository
+        clone_repository(repo_url, temp_dir)
+        
+        # Create output directory
+        output_dir = f"github_analysis_{owner}_{repo_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Run the analysis on the cloned repository
+        cmd = ['python', 'main.py', '--repo', temp_dir, '--output', output_dir]
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=Path(__file__).parent)
         
         if result.returncode != 0:
@@ -279,6 +377,13 @@ def analyze():
         with open(report_path, 'r') as f:
             report = json.load(f)
         
+        # Add repository information to the report
+        report['repository_info'] = {
+            'url': repo_url,
+            'owner': owner,
+            'name': repo_name
+        }
+        
         return jsonify({
             'success': True,
             'report': report,
@@ -290,6 +395,13 @@ def analyze():
             'success': False,
             'error': str(e)
         })
+    finally:
+        # Clean up temporary directory
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except:
+                pass  # Best effort cleanup
 
 if __name__ == '__main__':
     print("🚀 Starting Trust Bench Multi-Agent Auditor Web Interface...")
