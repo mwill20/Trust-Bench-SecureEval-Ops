@@ -1,0 +1,4 @@
+# Optional extras for extended analysis, dashboards, or provider integrations.
+ragas>=0.1.0
+semgrep>=1.50.0
+streamlit>=1.36.0

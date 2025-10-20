@@ -1,3 +1,4 @@
-langgraph>=1.0.0
-flask>=2.0.0
-requests>=2.31.0
+-r requirements-phase1.txt
+
+# Legacy aggregator: installing requirements.txt pulls in the core runtime.
+# Install optional extras separately via: pip install -r requirements-optional.txt

@@ -56,15 +56,17 @@ git clone https://github.com/mwill20/Trust_Bench.git
 cd Trust_Bench\Project2v2
 python -m venv .venv
 .\.venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-phase1.txt
+pip install -r requirements-optional.txt  # optional extras
 copy .env_example .env
 # Populate OPENAI_API_KEY / GROQ_API_KEY / GEMINI_API_KEY as desired
 ```
 
 - Requires **Python 3.10+**
-- Dependencies are tracked in `Project2v2/requirements.txt`
+- Core dependencies live in `Project2v2/requirements-phase1.txt`; optional extras live in `Project2v2/requirements-optional.txt`
+- A compatibility shim (`requirements.txt`) still installs the phase 1 set
 - Environment variables are documented in `Project2v2/.env_example`
-- Optional extras (phase-specific requirements) are not yet split out; see README_GAP_PLAN.md
+- Optional extras currently include `ragas`, `semgrep`, and `streamlit` to support RAG evaluation, static analysis, and dashboard demos.
 
 ## Running the System
 
@@ -132,6 +134,8 @@ Trust_Bench/
 │   ├── security_utils.py
 │   ├── main.py
 │   ├── web_interface.py
+│   ├── requirements-phase1.txt
+│   ├── requirements-optional.txt
 │   └── output/ (latest report artifacts)
 ├── README.md (legacy)
 └── READMEv2.2.md

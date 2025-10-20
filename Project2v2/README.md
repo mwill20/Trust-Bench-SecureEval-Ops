@@ -67,15 +67,18 @@ run_audit.bat "C:\path\to\repo"    # Analyze specific path
   - `orchestrator.py` – LangGraph workflow with collaboration tracking
   - `tools.py` – Secret scanning, structure analysis, documentation review tools
   - `types.py` – Shared data structures and messaging protocols
-- `requirements.txt` – Focused dependency list (LangGraph, Flask, Requests).
+- `requirements-phase1.txt` / `requirements-optional.txt` – Core vs. optional dependency sets (legacy `requirements.txt` still installs the core list).
 
 ## Setup
 
 ```powershell
 python -m venv .venv          # optional but recommended
 .\.venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-phase1.txt
+pip install -r requirements-optional.txt  # optional extras
 ```
+
+Optional extras currently include `ragas`, `semgrep`, and `streamlit` for deeper analytics and dashboarding.
 
 If you already installed dependencies at the repository root, you can reuse that environment.
 

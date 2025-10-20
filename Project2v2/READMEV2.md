@@ -76,12 +76,13 @@ git clone https://github.com/mwill20/Trust_Bench.git
 cd Trust_Bench/Project2v2
 python -m venv .venv
 .\.venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-phase1.txt
+pip install -r requirements-optional.txt  # optional extras
 cp .env_example .env  # (if present)
 # Fill in API keys as needed
 ```
 - **Python version:** 3.10+
-- **Dependencies:** See `requirements.txt`
+- **Dependencies:** Install `requirements-phase1.txt` for the core runtime and `requirements-optional.txt` for extras like RAG evaluation, static analysis, and dashboards.
 
 ---
 
@@ -138,6 +139,7 @@ run_audit.bat "C:\path\to\repo"
 }
 ```
 
+
 ---
 
 ## 8️⃣ File Structure
@@ -162,6 +164,11 @@ Project2v2/
 ├── USER_GUIDE.md
 └── ...
 ```
+
+Core dependency manifests:
+- `requirements-phase1.txt` – minimal runtime stack (LangGraph, Flask, requests).
+- `requirements-optional.txt` – optional extras for analytics and dashboards (`ragas`, `semgrep`, `streamlit`).
+- `requirements.txt` – legacy shim that references the phase 1 list for compatibility.
 
 ---
 
