@@ -149,6 +149,16 @@ Agents collaborated on 5 cross-communications:
 
 ## Example Results
 
+### Instrumentation Metrics
+
+Each run now captures deterministic evaluation metrics alongside agent scores:
+
+- **System Latency** – total wall-clock runtime plus per-agent/per-tool timings stored under `metrics.system_latency_seconds` and `metrics.per_agent_latency`.
+- **Faithfulness** – heuristic alignment between each agent’s summary and its underlying tool evidence, exposed at `metrics.faithfulness`.
+- **Refusal Accuracy** – outcome of a simulated unsafe prompt harness, defaulting to 1.0 while LLM integrations are disabled (`metrics.refusal_accuracy`).
+
+Both `report.json` and `report.md` include these values (the Markdown output renders a metrics table by default).
+
 ### Trust_Bench_Clean Analysis (Collaborative Assessment)
 - **Overall Score:** ~30/100 ("needs_attention")
 - **Security:** 5 potential secrets detected → Influences other agents

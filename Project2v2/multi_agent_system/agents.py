@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any, Dict
@@ -39,6 +40,24 @@ def _store_agent_result(
     return {"agent_results": results}
 
 
+def _record_timing(
+    shared_memory: Dict[str, Any],
+    agent_name: str,
+    total_seconds: float,
+    tool_timings: Dict[str, float],
+) -> Dict[str, Any]:
+    timings: Dict[str, Any] = dict(shared_memory.get("timings", {}))
+    timings[agent_name] = {
+        "total_seconds": round(total_seconds, 4),
+        "tool_breakdown": {
+            tool: round(duration, 4) for tool, duration in tool_timings.items()
+        },
+    }
+    updated = dict(shared_memory)
+    updated["timings"] = timings
+    return updated
+
+
 def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
     tasks = [
         {
@@ -60,6 +79,8 @@ def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
     shared_memory = deepcopy(state.get("shared_memory", {}))
     shared_memory["tasks"] = tasks
     shared_memory["session_started_at"] = datetime.now(timezone.utc).isoformat()
+    shared_memory["perf_session_started_at"] = time.perf_counter()
+    shared_memory.setdefault("timings", {})
 
     messages = list(state.get("messages", []))
     for task in tasks:
@@ -75,7 +96,10 @@ def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
 
 def security_agent(state: MultiAgentState) -> Dict[str, Any]:
     repo_root = state["repo_root"]
+    agent_start = time.perf_counter()
+    tool_start = time.perf_counter()
     tool_result = run_secret_scan(repo_root)
+    tool_elapsed = time.perf_counter() - tool_start
     
     # Prepare findings for other agents to use
     security_findings = tool_result.details.get("matches", [])
@@ -120,6 +144,12 @@ def security_agent(state: MultiAgentState) -> Dict[str, Any]:
         "findings_count": len(security_findings),
         "requires_attention": len(security_findings) > 0
     }
+    shared_memory = _record_timing(
+        shared_memory,
+        "SecurityAgent",
+        time.perf_counter() - agent_start,
+        {"run_secret_scan": tool_elapsed},
+    )
     
     return {
         "messages": messages,
@@ -131,8 +161,11 @@ def security_agent(state: MultiAgentState) -> Dict[str, Any]:
 def quality_agent(state: MultiAgentState) -> Dict[str, Any]:
     repo_root = state["repo_root"]
     shared_memory = state.get("shared_memory", {})
+    agent_start = time.perf_counter()
     
+    tool_start = time.perf_counter()
     tool_result = analyze_repository_structure(repo_root)
+    tool_elapsed = time.perf_counter() - tool_start
     
     # Collaborate with Security Agent findings
     security_findings = shared_memory.get("security_findings", [])
@@ -181,6 +214,12 @@ def quality_agent(state: MultiAgentState) -> Dict[str, Any]:
         "test_ratio": tool_result.details.get("test_ratio", 0),
         "adjusted_for_security": len(security_findings) > 0
     }
+    updated_shared_memory = _record_timing(
+        updated_shared_memory,
+        "QualityAgent",
+        time.perf_counter() - agent_start,
+        {"analyze_repository_structure": tool_elapsed},
+    )
     
     return {
         "messages": messages,
@@ -192,8 +231,11 @@ def quality_agent(state: MultiAgentState) -> Dict[str, Any]:
 def documentation_agent(state: MultiAgentState) -> Dict[str, Any]:
     repo_root = state["repo_root"]
     shared_memory = state.get("shared_memory", {})
+    agent_start = time.perf_counter()
     
+    tool_start = time.perf_counter()
     tool_result = evaluate_documentation(repo_root)
+    tool_elapsed = time.perf_counter() - tool_start
     
     # Collaborate with Quality Agent findings
     quality_metrics = shared_memory.get("quality_metrics", {})
@@ -280,6 +322,12 @@ def documentation_agent(state: MultiAgentState) -> Dict[str, Any]:
     updated_shared_memory = deepcopy(shared_memory)
     updated_shared_memory["documentation"] = tool_result.details
     updated_shared_memory["documentation"]["collaboration_adjustments"] = collaboration_notes
+    updated_shared_memory = _record_timing(
+        updated_shared_memory,
+        "DocumentationAgent",
+        time.perf_counter() - agent_start,
+        {"evaluate_documentation": tool_elapsed},
+    )
     
     return {
         "messages": messages,

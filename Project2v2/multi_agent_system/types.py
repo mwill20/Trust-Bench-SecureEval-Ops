@@ -42,4 +42,4 @@ class MultiAgentState(TypedDict, total=False):
     messages: List[Message]
     agent_results: Dict[str, AgentResult]
     report: Dict[str, Any]
-
+    metrics: Dict[str, Any]

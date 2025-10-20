@@ -99,11 +99,13 @@ _Legacy Trust_Bench commands such as `python -m trustbench_core.eval.evaluate_ag
 
 | Metric | Description | Current Status |
 |--------|-------------|----------------|
-| **Faithfulness** | Alignment of agent summaries with tool evidence | _Not instrumented – pending LLM integration_ |
-| **System Latency** | Wall-clock execution time per audit | _Planned – no timer hooks yet_ |
-| **Refusal Accuracy** | Correct handling of prohibited requests | _Planned – requires policy tests_ |
+| **Faithfulness** | Deterministic heuristic comparing each agent’s summary to the evidence returned by its tooling (persisted at `metrics.faithfulness`) | Implemented |
+| **System Latency** | Wall-clock run time plus per-agent/per-tool timings stored under `metrics.system_latency_seconds` and `metrics.per_agent_latency` | Implemented |
+| **Refusal Accuracy** | Offline policy harness that simulates unsafe prompts and records refusal ratio at `metrics.refusal_accuracy` | Implemented (LLM integrations fallback to simulated refusals) |
 | **Injection Block Rate** | Prompt-injection detection effectiveness | `sanitize_prompt` + frontend guards (qualitative) |
 | **Security Scan Findings** | Count of leaked secrets | Available via `report.json > agents.SecurityAgent.details.matches` |
+
+Each run now writes a `metrics` block to `output/report.json` (or the chosen output folder) and a Markdown metrics table to `output/report.md`, capturing overall system latency, averaged faithfulness, refusal accuracy, and per-agent/per-tool timing breakdowns.
 
 Example excerpt (from `output/report.json`):
 

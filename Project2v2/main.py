@@ -58,10 +58,23 @@ def main(argv: list[str] | None = None) -> int:
     outputs = write_report_outputs(report, args.output.resolve())
 
     summary = report.get("summary", {})
+    metrics = report.get("metrics", {})
     print("=== Multi-Agent Evaluation Complete ===")
     print(f"Repository: {report.get('repo_root')}")
     print(f"Overall Score: {summary.get('overall_score', 'n/a')}")
     print(f"Grade: {summary.get('grade', 'n/a')}")
+    if metrics:
+        print(
+            f"System Latency: {metrics.get('system_latency_seconds', 'n/a')} seconds"
+        )
+        print(f"Faithfulness: {metrics.get('faithfulness', 'n/a')}")
+        print(f"Refusal Accuracy: {metrics.get('refusal_accuracy', 'n/a')}")
+    per_agent = metrics.get("per_agent_latency", {}) if metrics else {}
+    if per_agent:
+        print("Per-Agent Timings:")
+        for agent, timing in per_agent.items():
+            total = timing.get("total_seconds", "n/a")
+            print(f"  - {agent}: {total} seconds")
     print(f"Report (JSON): {outputs['json']}")
     print(f"Report (Markdown): {outputs['markdown']}")
     return 0
