@@ -808,6 +808,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 }
                 const repoInfo = report.repository_info || {};
                 const summary = report.summary || {};
+                const metrics = report.metrics || {};
                 const agents = report.agents || {};
 
                 const safeUrl = escapeHtml(repoInfo.url || '#');
@@ -828,6 +829,48 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                                 Overall Score: ${safeScore}/100
                                 <br>Grade: ${safeGrade.toUpperCase()}
                              </div>`;
+                }
+
+                if (metrics && Object.keys(metrics).length > 0) {
+                    const systemLatency = typeof metrics.system_latency_seconds !== 'undefined'
+                        ? escapeHtml(metrics.system_latency_seconds)
+                        : 'n/a';
+                    const faithfulness = typeof metrics.faithfulness !== 'undefined'
+                        ? escapeHtml(metrics.faithfulness)
+                        : 'n/a';
+                    const refusalAccuracy = typeof metrics.refusal_accuracy !== 'undefined'
+                        ? escapeHtml(metrics.refusal_accuracy)
+                        : 'n/a';
+                    const perAgent = metrics.per_agent_latency || {};
+                    const perAgentRows = Object.entries(perAgent).map(([agentName, timing]) => {
+                        const total = timing && typeof timing.total_seconds !== 'undefined'
+                            ? escapeHtml(timing.total_seconds)
+                            : 'n/a';
+                        const toolBreakdown = timing && timing.tool_breakdown
+                            ? Object.entries(timing.tool_breakdown)
+                                .map(([tool, value]) => `<li>${escapeHtml(tool)}: ${escapeHtml(value)} s</li>`)
+                                .join('')
+                            : '';
+                        const toolsHtml = toolBreakdown
+                            ? `<ul class="metric-breakdown">${toolBreakdown}</ul>`
+                            : '';
+                        return `
+                            <div class="metric-row">
+                                <strong>${escapeHtml(agentName)}:</strong> ${total} s
+                                ${toolsHtml}
+                            </div>
+                        `;
+                    }).join('');
+
+                    html += `
+                        <div class="agent-card metrics-card">
+                            <h3>Instrumentation Metrics</h3>
+                            <p><strong>System latency:</strong> ${systemLatency} s</p>
+                            <p><strong>Faithfulness:</strong> ${faithfulness}</p>
+                            <p><strong>Refusal accuracy:</strong> ${refusalAccuracy}</p>
+                            ${perAgentRows ? `<div class="metric-section">${perAgentRows}</div>` : ''}
+                        </div>
+                    `;
                 }
 
                 html += '<div class="agent-results">';
