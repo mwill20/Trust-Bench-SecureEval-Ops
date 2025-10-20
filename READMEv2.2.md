@@ -145,9 +145,13 @@ Trust_Bench/
 
 _Legacy trustbench_core / trust_bench_mcp modules are not included in this refactored workspace._
 
-## MCP Server (Status)
+## MCP Server (Scope Decision)
 
-No MCP server entry point ships with Project2v2. The historical MCP server (`trust_bench_mcp/trust_bench_server.py`) referenced in Module 2 is absent; integration guidance will be added once the server is restored (see README_GAP_PLAN.md).
+Trust_Bench Project2v2 prioritizes deterministic, offline-capable tools orchestrated by LangGraph.
+To keep evaluations reproducible and avoid external runtime dependencies, the prior MCP server has been
+**intentionally deprecated** for this version. All required tool integrations (3+) are provided as
+direct Python callables used by agents. MCP can be reintroduced later if cross-client interoperability
+(Claude Desktop/Cursor) is needed, but it is **not required** for Module 2 compliance.
 
 ## Results / Reports
 

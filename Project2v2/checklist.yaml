@@ -1,0 +1,10 @@
+bonus:
+  description: "Optional enhancements for excellence scoring."
+  optional_features:
+    - "security_safety_checks"
+    - "prompt_injection_detection"
+    - "human_in_the_loop"
+    - "evaluation_metrics"
+    - "multi_provider_support"
+    - "visualization_ui"
+    - "mcp_server_support"

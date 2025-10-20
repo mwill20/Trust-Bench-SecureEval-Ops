@@ -159,6 +159,14 @@ Each run now captures deterministic evaluation metrics alongside agent scores:
 
 Both `report.json` and `report.md` include these values (the Markdown output renders a metrics table by default).
 
+## MCP Server (Scope Decision)
+
+Trust_Bench Project2v2 prioritizes deterministic, offline-capable tools orchestrated by LangGraph.
+To keep evaluations reproducible and avoid external runtime dependencies, the prior MCP server has been
+**intentionally deprecated** for this version. All required tool integrations (3+) are provided as
+direct Python callables used by agents. MCP can be reintroduced later if cross-client interoperability
+(Claude Desktop/Cursor) is needed, but it is **not required** for Module 2 compliance.
+
 ### Trust_Bench_Clean Analysis (Collaborative Assessment)
 - **Overall Score:** ~30/100 ("needs_attention")
 - **Security:** 5 potential secrets detected → Influences other agents
