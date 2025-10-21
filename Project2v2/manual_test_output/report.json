@@ -1,45 +1,45 @@
 {
-  "generated_at": "2025-10-21T00:36:56.706261+00:00",
+  "generated_at": "2025-10-21T00:33:21.972942+00:00",
   "repo_root": "C:\\Projects\\Trust_Bench_Clean\\Project2v2",
   "summary": {
-    "overall_score": 58.88,
+    "overall_score": 58.96,
     "grade": "fair",
     "notes": "Composite built from agent contributions."
   },
   "agents": {
     "SecurityAgent": {
       "score": 60.0,
-      "summary": "Scanned 33 files and detected 2 potential secret hit(s).",
+      "summary": "Scanned 31 files and detected 2 potential secret hit(s).",
       "details": {
         "matches": [
-          {
-            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\manual_test_output\\report.json",
-            "pattern": "AWS Access Key",
-            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - H"
-          },
           {
             "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
             "pattern": "Private RSA Key",
             "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
           }
         ],
-        "scanned": 33
+        "scanned": 31
       }
     },
     "QualityAgent": {
-      "score": 21.64,
-      "summary": "Indexed 33 files across 5 language group(s); 1 appear to be tests. (Adjusted for 2 security findings)",
+      "score": 21.87,
+      "summary": "Indexed 31 files across 5 language group(s); 1 appear to be tests. (Adjusted for 2 security findings)",
       "details": {
         "language_histogram": {
           "other": 8,
           "yaml": 1,
-          "markdown": 8,
+          "markdown": 7,
           "python": 13,
-          "json": 3
+          "json": 2
         },
-        "total_files": 33,
+        "total_files": 31,
         "test_files": 1,
-        "test_ratio": 0.03
+        "test_ratio": 0.032
       }
     },
     "DocumentationAgent": {
@@ -61,26 +61,26 @@
     }
   },
   "metrics": {
-    "system_latency_seconds": 0.0469,
+    "system_latency_seconds": 0.0847,
     "faithfulness": 0.62,
     "refusal_accuracy": 1.0,
     "per_agent_latency": {
       "SecurityAgent": {
-        "total_seconds": 0.0431,
+        "total_seconds": 0.0799,
         "tool_breakdown": {
-          "run_secret_scan": 0.0431
+          "run_secret_scan": 0.0798
         }
       },
       "QualityAgent": {
-        "total_seconds": 0.0012,
+        "total_seconds": 0.0014,
         "tool_breakdown": {
-          "analyze_repository_structure": 0.0012
+          "analyze_repository_structure": 0.0014
         }
       },
       "DocumentationAgent": {
-        "total_seconds": 0.001,
+        "total_seconds": 0.0016,
         "tool_breakdown": {
-          "evaluate_documentation": 0.0009
+          "evaluate_documentation": 0.0014
         }
       }
     }
@@ -117,21 +117,21 @@
       "data": {
         "name": "secret_scan",
         "score": 60.0,
-        "summary": "Scanned 33 files and detected 2 potential secret hit(s).",
+        "summary": "Scanned 31 files and detected 2 potential secret hit(s).",
         "details": {
           "matches": [
-            {
-              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\manual_test_output\\report.json",
-              "pattern": "AWS Access Key",
-              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - H"
-            },
             {
               "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
               "pattern": "Private RSA Key",
               "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\output\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - Has injection pat"
             }
           ],
-          "scanned": 33
+          "scanned": 31
         }
       }
     },
@@ -171,26 +171,26 @@
       "content": "Repository structure summarized. Adjusted quality score down by 10 points due to 2 security finding(s) from SecurityAgent.",
       "data": {
         "name": "repository_structure",
-        "score": 21.64,
-        "summary": "Indexed 33 files across 5 language group(s); 1 appear to be tests. (Adjusted for 2 security findings)",
+        "score": 21.87,
+        "summary": "Indexed 31 files across 5 language group(s); 1 appear to be tests. (Adjusted for 2 security findings)",
         "details": {
           "language_histogram": {
             "other": 8,
             "yaml": 1,
-            "markdown": 8,
+            "markdown": 7,
             "python": 13,
-            "json": 3
+            "json": 2
           },
-          "total_files": 33,
+          "total_files": 31,
           "test_files": 1,
-          "test_ratio": 0.03
+          "test_ratio": 0.032
         }
       }
     },
     {
       "sender": "DocumentationAgent",
       "recipient": "QualityAgent",
-      "content": "Used your metrics (files: 33, test ratio: 3.0%) to enhance documentation assessment.",
+      "content": "Used your metrics (files: 31, test ratio: 3.2%) to enhance documentation assessment.",
       "data": {
         "collaboration": "quality_metrics_integration"
       }
@@ -226,9 +226,9 @@
     {
       "sender": "Manager",
       "recipient": "All Agents",
-      "content": "Evaluation complete. Grade: FAIR (58.88 pts). Agents collaborated on 5 cross-communications. Collaborative adjustments: Security findings influenced quality and documentation scores; Quality assessment incorporated security analysis; Documentation score adjusted based on quality metrics.",
+      "content": "Evaluation complete. Grade: FAIR (58.96 pts). Agents collaborated on 5 cross-communications. Collaborative adjustments: Security findings influenced quality and documentation scores; Quality assessment incorporated security analysis; Documentation score adjusted based on quality metrics.",
       "data": {
-        "overall_score": 58.88,
+        "overall_score": 58.96,
         "grade": "fair",
         "notes": "Composite built from agent contributions.",
         "collaboration_metrics": {
@@ -240,26 +240,26 @@
           ]
         },
         "metrics": {
-          "system_latency_seconds": 0.0469,
+          "system_latency_seconds": 0.0847,
           "faithfulness": 0.62,
           "refusal_accuracy": 1.0,
           "per_agent_latency": {
             "SecurityAgent": {
-              "total_seconds": 0.0431,
+              "total_seconds": 0.0799,
               "tool_breakdown": {
-                "run_secret_scan": 0.0431
+                "run_secret_scan": 0.0798
               }
             },
             "QualityAgent": {
-              "total_seconds": 0.0012,
+              "total_seconds": 0.0014,
               "tool_breakdown": {
-                "analyze_repository_structure": 0.0012
+                "analyze_repository_structure": 0.0014
               }
             },
             "DocumentationAgent": {
-              "total_seconds": 0.001,
+              "total_seconds": 0.0016,
               "tool_breakdown": {
-                "evaluate_documentation": 0.0009
+                "evaluate_documentation": 0.0014
               }
             }
           }

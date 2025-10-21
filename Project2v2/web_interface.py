@@ -1179,14 +1179,22 @@ def analyze():
             })
         
         # Read the generated report
-        report_path = Path(output_dir) / 'report.json'
+        base_dir = Path(__file__).parent.resolve()
+        output_path = (base_dir / output_dir).resolve()
+        if not str(output_path).startswith(str(base_dir)):
+            return jsonify({
+                'success': False,
+                'error': "Invalid report path"
+            })
+
+        report_path = output_path / 'report.json'
         if not report_path.exists():
             return jsonify({
                 'success': False,
                 'error': "Report file not generated"
             })
-        
-        with open(report_path, 'r') as f:
+
+        with report_path.open('r', encoding='utf-8') as f:
             report = json.load(f)
         
         # Add repository information to the report
