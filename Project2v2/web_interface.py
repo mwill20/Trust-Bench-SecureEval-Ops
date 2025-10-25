@@ -222,6 +222,70 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             color: #555d82;
             line-height: 1.4;
         }
+        .metric-slider {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #dfe3ff;
+            outline: none;
+        }
+        .metric-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        .metric-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+        }
+        .metric-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #555d82;
+        }
+        .metric-value {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .agent-metric-group {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f0f2ff;
+            border-radius: 8px;
+        }
+        .agent-metric-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .eval-preset-btn {
+            background: #eef0ff;
+            color: var(--accent);
+            padding: 6px 12px;
+            border: 1px solid #ccd2ff;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin: 2px;
+        }
+        .eval-preset-btn.active {
+            background: var(--primary);
+            color: white;
+        }
         .main-container {
             flex: 1;
             padding: 48px 48px 64px;
@@ -407,6 +471,100 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             color: #555;
             min-height: 18px;
         }
+        
+        /* Agent-specific chat styling */
+        .chat-message {
+            margin-bottom: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f9faff;
+        }
+        
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        
+        .agent-avatar {
+            font-size: 18px;
+        }
+        
+        .agent-info {
+            flex: 1;
+        }
+        
+        .agent-name {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 14px;
+        }
+        
+        .agent-role {
+            font-size: 11px;
+            color: #6b7280;
+            display: block;
+        }
+        
+        .confidence-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .confidence-badge.high {
+            background: #10b981;
+        }
+        
+        .confidence-badge.medium {
+            background: #f59e0b;
+        }
+        
+        .confidence-badge.low {
+            background: #ef4444;
+        }
+        
+        .agent-response {
+            line-height: 1.5;
+        }
+        
+        .chat-message.agent-security {
+            border-left: 4px solid #dc2626;
+            background: #fef2f2;
+        }
+        
+        .chat-message.agent-quality {
+            border-left: 4px solid #2563eb;
+            background: #eff6ff;
+        }
+        
+        .chat-message.agent-docs {
+            border-left: 4px solid #16a34a;
+            background: #f0fdf4;
+        }
+        
+        .chat-message.agent-orchestrator {
+            border-left: 4px solid #7c3aed;
+            background: #f3f4f6;
+        }
+        
+        .chat-message.agent-generic {
+            border-left: 4px solid #6b7280;
+            background: #f9fafb;
+        }
+        
+        .routing-info {
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -420,6 +578,46 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     <input type="url" id="repoUrl" name="repoUrl" placeholder="https://github.com/owner/repo" required>
                     <button type="submit" class="primary-btn" id="analyzeBtn">Analyze Repository</button>
                 </form>
+            </div>
+            <div class="sidebar-section">
+                <h3>Evaluation Metrics</h3>
+                <p style="margin: 0 0 8px; font-weight: 600; color: #2f2f44;">Customize Agent Weights</p>
+                
+                <div style="margin-bottom: 12px;">
+                    <button type="button" class="eval-preset-btn active" id="preset-default">Default</button>
+                    <button type="button" class="eval-preset-btn" id="preset-security">Security Focus</button>
+                    <button type="button" class="eval-preset-btn" id="preset-quality">Quality Focus</button>
+                    <button type="button" class="eval-preset-btn" id="preset-docs">Docs Focus</button>
+                </div>
+
+                <div class="agent-metric-group">
+                    <div class="agent-metric-title">🛡️ Security Agent</div>
+                    <div class="metric-label">
+                        <span>Weight</span>
+                        <span class="metric-value" id="security-weight-value">33%</span>
+                    </div>
+                    <input type="range" class="metric-slider" id="security-weight" min="10" max="70" value="33">
+                </div>
+
+                <div class="agent-metric-group">
+                    <div class="agent-metric-title">🏗️ Quality Agent</div>
+                    <div class="metric-label">
+                        <span>Weight</span>
+                        <span class="metric-value" id="quality-weight-value">33%</span>
+                    </div>
+                    <input type="range" class="metric-slider" id="quality-weight" min="10" max="70" value="33">
+                </div>
+
+                <div class="agent-metric-group">
+                    <div class="agent-metric-title">📚 Documentation Agent</div>
+                    <div class="metric-label">
+                        <span>Weight</span>
+                        <span class="metric-value" id="docs-weight-value">34%</span>
+                    </div>
+                    <input type="range" class="metric-slider" id="docs-weight" min="10" max="70" value="34">
+                </div>
+                
+                <span class="privacy-note">Agent weights are automatically balanced and affect overall scoring calculations.</span>
             </div>
             <div class="sidebar-section optional">
                 <h3>Optional</h3>
@@ -625,8 +823,86 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             const loading = document.getElementById('loading');
             const results = document.getElementById('results');
             const resultsContent = document.getElementById('resultsContent');
+            
+            // Evaluation metrics elements
+            const securityWeightSlider = document.getElementById('security-weight');
+            const qualityWeightSlider = document.getElementById('quality-weight');
+            const docsWeightSlider = document.getElementById('docs-weight');
+            const securityWeightValue = document.getElementById('security-weight-value');
+            const qualityWeightValue = document.getElementById('quality-weight-value');
+            const docsWeightValue = document.getElementById('docs-weight-value');
+            const presetDefaultBtn = document.getElementById('preset-default');
+            const presetSecurityBtn = document.getElementById('preset-security');
+            const presetQualityBtn = document.getElementById('preset-quality');
+            const presetDocsBtn = document.getElementById('preset-docs');
 
             let latestReportPath = null;
+
+            // Evaluation metrics functionality
+            let currentEvalWeights = { security: 33, quality: 33, docs: 34 };
+
+            function updateWeightDisplay(agent, value) {
+                const displayElement = document.getElementById(`${agent}-weight-value`);
+                if (displayElement) {
+                    displayElement.textContent = `${value}%`;
+                }
+                currentEvalWeights[agent] = parseInt(value);
+            }
+
+            function balanceWeights(changedAgent, newValue) {
+                const total = 100;
+                const otherAgents = Object.keys(currentEvalWeights).filter(a => a !== changedAgent);
+                const remainingWeight = total - newValue;
+                
+                // Distribute remaining weight proportionally among other agents
+                const currentOthersTotal = otherAgents.reduce((sum, agent) => sum + currentEvalWeights[agent], 0);
+                
+                otherAgents.forEach(agent => {
+                    const proportion = currentEvalWeights[agent] / currentOthersTotal;
+                    const newAgentWeight = Math.round(remainingWeight * proportion);
+                    currentEvalWeights[agent] = newAgentWeight;
+                    
+                    const slider = document.getElementById(`${agent}-weight`);
+                    if (slider) {
+                        slider.value = newAgentWeight;
+                        updateWeightDisplay(agent, newAgentWeight);
+                    }
+                });
+                
+                currentEvalWeights[changedAgent] = parseInt(newValue);
+            }
+
+            function setEvalPreset(presetName) {
+                const presets = {
+                    default: { security: 33, quality: 33, docs: 34 },
+                    security: { security: 50, quality: 25, docs: 25 },
+                    quality: { security: 25, quality: 50, docs: 25 },
+                    docs: { security: 25, quality: 25, docs: 50 }
+                };
+
+                const preset = presets[presetName];
+                if (preset) {
+                    Object.keys(preset).forEach(agent => {
+                        const slider = document.getElementById(`${agent}-weight`);
+                        if (slider) {
+                            slider.value = preset[agent];
+                            updateWeightDisplay(agent, preset[agent]);
+                        }
+                    });
+                    currentEvalWeights = { ...preset };
+                }
+
+                // Update active preset button
+                document.querySelectorAll('.eval-preset-btn').forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.getElementById(`preset-${presetName}`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+            }
+
+            function getEvalWeights() {
+                return { ...currentEvalWeights };
+            }
 
             function getApiKey(provider) {
                 if (!provider) {
@@ -666,26 +942,118 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 }
             }
 
-            function appendChatMessage(author, text) {
+            function appendChatMessage(author, text, agentData = null) {
                 if (!chatHistory) {
                     return;
                 }
                 if (chatPlaceholder && chatPlaceholder.parentElement) {
                     chatPlaceholder.parentElement.removeChild(chatPlaceholder);
                 }
+                
                 const wrapper = document.createElement('div');
-                wrapper.className = 'chat-message';
+                
+                if (agentData && agentData.agent) {
+                    // Agent-specific message styling
+                    wrapper.className = `chat-message agent-${agentData.agent}`;
+                    
+                    // Agent header with avatar and info
+                    const agentHeader = document.createElement('div');
+                    agentHeader.className = 'agent-header';
+                    
+                    const avatar = document.createElement('span');
+                    avatar.className = 'agent-avatar';
+                    avatar.textContent = getAgentAvatar(agentData.agent);
+                    
+                    const agentInfo = document.createElement('div');
+                    agentInfo.className = 'agent-info';
+                    
+                    const agentName = document.createElement('span');
+                    agentName.className = 'agent-name';
+                    agentName.textContent = getAgentName(agentData.agent);
+                    
+                    const agentRole = document.createElement('span');
+                    agentRole.className = 'agent-role';
+                    agentRole.textContent = getAgentRole(agentData.agent);
+                    
+                    agentInfo.appendChild(agentName);
+                    agentInfo.appendChild(agentRole);
+                    
+                    const confidenceBadge = document.createElement('span');
+                    confidenceBadge.className = `confidence-badge ${getConfidenceLevel(agentData.confidence)}`;
+                    confidenceBadge.textContent = `${Math.round((agentData.confidence || 0.5) * 100)}%`;
+                    
+                    agentHeader.appendChild(avatar);
+                    agentHeader.appendChild(agentInfo);
+                    agentHeader.appendChild(confidenceBadge);
+                    wrapper.appendChild(agentHeader);
+                    
+                    // Show routing reason if available
+                    if (agentData.routing_reason) {
+                        const routingInfo = document.createElement('div');
+                        routingInfo.className = 'routing-info';
+                        routingInfo.textContent = `🎯 ${agentData.routing_reason}`;
+                        wrapper.appendChild(routingInfo);
+                    }
+                    
+                    const responseDiv = document.createElement('div');
+                    responseDiv.className = 'agent-response';
+                    responseDiv.textContent = text;
+                    wrapper.appendChild(responseDiv);
+                    
+                } else {
+                    // Standard message format (user messages)
+                    wrapper.className = 'chat-message';
+                    
+                    const label = document.createElement('strong');
+                    label.textContent = author;
+                    wrapper.appendChild(label);
 
-                const label = document.createElement('strong');
-                label.textContent = author;
-                wrapper.appendChild(label);
-
-                const body = document.createElement('div');
-                body.textContent = text;
-                wrapper.appendChild(body);
+                    const body = document.createElement('div');
+                    body.textContent = text;
+                    wrapper.appendChild(body);
+                }
 
                 chatHistory.appendChild(wrapper);
                 chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+            
+            function getAgentAvatar(agentType) {
+                const avatars = {
+                    'security': '🛡️',
+                    'quality': '🏗️',
+                    'docs': '📚',
+                    'orchestrator': '🎯',
+                    'generic': '🤖'
+                };
+                return avatars[agentType] || '🤖';
+            }
+            
+            function getAgentName(agentType) {
+                const names = {
+                    'security': 'Security Agent',
+                    'quality': 'Quality Agent', 
+                    'docs': 'Documentation Agent',
+                    'orchestrator': 'Orchestrator',
+                    'generic': 'Assistant'
+                };
+                return names[agentType] || 'Assistant';
+            }
+            
+            function getAgentRole(agentType) {
+                const roles = {
+                    'security': 'Vulnerability & Risk Assessment',
+                    'quality': 'Code Quality & Architecture',
+                    'docs': 'Developer Experience & Documentation',
+                    'orchestrator': 'Multi-Agent Coordination',
+                    'generic': 'General Assistant'
+                };
+                return roles[agentType] || 'General Assistant';
+            }
+            
+            function getConfidenceLevel(confidence) {
+                if (confidence >= 0.8) return 'high';
+                if (confidence >= 0.6) return 'medium';
+                return 'low';
             }
 
             function updateChatStatus(message, isError = false) {
@@ -735,14 +1103,32 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         return;
                     }
 
-                    const providerLabel = sanitizeInput((data.provider || provider || 'provider').toUpperCase());
-                    appendChatMessage(providerLabel, sanitizeInput(data.answer || '(No answer returned)'));
-
-                    if (data.context_available) {
-                        const sourceNote = data.context_source ? ` (${data.context_source})` : '';
-                        updateChatStatus(`Answered using the latest report context${sanitizeInput(sourceNote)}.`);
+                    // Handle agent-specific responses
+                    if (data.agent && data.agent !== 'generic') {
+                        appendChatMessage('', sanitizeInput(data.answer || '(No answer returned)'), {
+                            agent: data.agent,
+                            confidence: data.confidence,
+                            routing_reason: data.routing_reason
+                        });
+                        
+                        const agentName = getAgentName(data.agent);
+                        if (data.context_available) {
+                            const sourceNote = data.context_source ? ` (${data.context_source})` : '';
+                            updateChatStatus(`${agentName} responded using latest report context${sanitizeInput(sourceNote)}.`);
+                        } else {
+                            updateChatStatus(`${agentName} responded. Run an analysis for more specific insights.`);
+                        }
                     } else {
-                        updateChatStatus('Answered without local report context. Run an analysis for better results.');
+                        // Generic response
+                        const providerLabel = sanitizeInput((data.provider || provider || 'provider').toUpperCase());
+                        appendChatMessage(providerLabel, sanitizeInput(data.answer || '(No answer returned)'));
+
+                        if (data.context_available) {
+                            const sourceNote = data.context_source ? ` (${data.context_source})` : '';
+                            updateChatStatus(`Answered using the latest report context${sanitizeInput(sourceNote)}.`);
+                        } else {
+                            updateChatStatus('Answered without local report context. Run an analysis for better results.');
+                        }
                     }
                 } catch (error) {
                     appendChatMessage('System', 'Unable to reach the chat service.');
@@ -918,6 +1304,42 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 });
                 updateApiKeyInput(false);
             }
+
+            // Initialize evaluation metrics controls
+            if (securityWeightSlider && qualityWeightSlider && docsWeightSlider) {
+                securityWeightSlider.addEventListener('input', (event) => {
+                    const newValue = parseInt(event.target.value);
+                    balanceWeights('security', newValue);
+                    updateWeightDisplay('security', newValue);
+                });
+
+                qualityWeightSlider.addEventListener('input', (event) => {
+                    const newValue = parseInt(event.target.value);
+                    balanceWeights('quality', newValue);
+                    updateWeightDisplay('quality', newValue);
+                });
+
+                docsWeightSlider.addEventListener('input', (event) => {
+                    const newValue = parseInt(event.target.value);
+                    balanceWeights('docs', newValue);
+                    updateWeightDisplay('docs', newValue);
+                });
+            }
+
+            // Initialize preset buttons
+            if (presetDefaultBtn) {
+                presetDefaultBtn.addEventListener('click', () => setEvalPreset('default'));
+            }
+            if (presetSecurityBtn) {
+                presetSecurityBtn.addEventListener('click', () => setEvalPreset('security'));
+            }
+            if (presetQualityBtn) {
+                presetQualityBtn.addEventListener('click', () => setEvalPreset('quality'));
+            }
+            if (presetDocsBtn) {
+                presetDocsBtn.addEventListener('click', () => setEvalPreset('docs'));
+            }
+
             if (sendChatBtn) {
                 sendChatBtn.addEventListener('click', (event) => {
                     event.preventDefault();
@@ -1049,7 +1471,10 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         const response = await fetch('/analyze', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ repo_url: repoUrl })
+                            body: JSON.stringify({ 
+                                repo_url: repoUrl,
+                                eval_weights: getEvalWeights()
+                            })
                         });
 
                         const data = await response.json();
@@ -1140,6 +1565,7 @@ def analyze():
     try:
         data = request.json or {}
         repo_url = (data.get('repo_url') or '').strip()
+        eval_weights = data.get('eval_weights', {'security': 33, 'quality': 33, 'docs': 34})
         
         if security_filters_enabled():
             try:
@@ -1170,6 +1596,10 @@ def analyze():
         
         # Run the analysis on the cloned repository
         cmd = ['python', 'main.py', '--repo', temp_dir, '--output', output_dir]
+        
+        # Add evaluation weights if provided
+        if eval_weights:
+            cmd.extend(['--eval-weights', json.dumps(eval_weights)])
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=Path(__file__).parent)
         
         if result.returncode != 0:
@@ -1290,6 +1720,36 @@ def api_chat():
             'error': f'Failed to load context: {exc}'
         }), 500
 
+    if context and context.get('report'):
+        # Use orchestrator routing for agent-specific responses
+        try:
+            from agent_router import OrchestrationRouter
+            
+            router = OrchestrationRouter(context['report'])
+            result = router.route_and_respond(
+                question=question,
+                provider_override=provider,
+                api_key_override=api_key
+            )
+            
+            return jsonify({
+                'success': True,
+                'answer': result['response'],
+                'agent': result['agent'],
+                'routing_reason': result['routing_reason'],
+                'confidence': result['confidence'],
+                'context_available': True,
+                'context_source': context.get('report_path')
+            })
+            
+        except ImportError:
+            # Fallback to original behavior if router not available
+            pass
+        except Exception as exc:
+            # Log error but continue with fallback
+            print(f"Router error: {exc}")
+    
+    # Fallback to generic LLM response
     try:
         llm_response = chat_with_llm(
             question=question,
@@ -1312,6 +1772,8 @@ def api_chat():
         'success': True,
         'answer': llm_response.get('answer', ''),
         'provider': llm_response.get('provider'),
+        'agent': 'generic',
+        'confidence': 0.5,
         'context_available': bool(context),
         'context_source': context.get('report_path') if context else None,
     })

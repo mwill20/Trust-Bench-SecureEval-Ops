@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Any, Dict
@@ -15,18 +16,21 @@ from multi_agent_system import (
 from multi_agent_system.types import MultiAgentState
 
 
-def _initial_state(repo_root: Path) -> MultiAgentState:
-    return {
+def _initial_state(repo_root: Path, eval_weights: Dict[str, int] | None = None) -> MultiAgentState:
+    state = {
         "repo_root": repo_root,
         "shared_memory": {},
         "messages": [],
         "agent_results": {},
     }
+    if eval_weights:
+        state["eval_weights"] = eval_weights
+    return state
 
 
-def run_workflow(repo_root: Path) -> Dict[str, Any]:
+def run_workflow(repo_root: Path, eval_weights: Dict[str, int] | None = None) -> Dict[str, Any]:
     graph = build_orchestrator()
-    state = _initial_state(repo_root)
+    state = _initial_state(repo_root, eval_weights)
     return graph.invoke(state)
 
 
@@ -46,6 +50,11 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("multi_agent_output"),
         help="Directory where reports should be written (default: ./multi_agent_output).",
     )
+    parser.add_argument(
+        "--eval-weights",
+        type=str,
+        help="JSON string with evaluation weights for agents (e.g., '{\"security\": 40, \"quality\": 30, \"docs\": 30}').",
+    )
     args = parser.parse_args(argv)
 
     repo_root = args.repo.resolve()
@@ -53,7 +62,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[error] Repository directory does not exist: {repo_root}")
         return 1
 
-    final_state = run_workflow(repo_root)
+    # Parse evaluation weights if provided
+    eval_weights = None
+    if args.eval_weights:
+        try:
+            eval_weights = json.loads(args.eval_weights)
+        except json.JSONDecodeError as e:
+            print(f"[error] Invalid JSON for eval-weights: {e}")
+            return 1
+
+    final_state = run_workflow(repo_root, eval_weights)
     report = build_report_payload(final_state)
     outputs = write_report_outputs(report, args.output.resolve())
 

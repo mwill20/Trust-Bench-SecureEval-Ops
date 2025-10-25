@@ -1,3 +1,4 @@
+<!-- LKG SHA (preclean): 143d89d4496f8500c38024ec794dae7b20cf522a -->
 <p align="center">
   <img src="Project2v2/assets/images/TrustBench.png" alt="Trust Bench logo" width="200" />
 </p>
@@ -218,4 +219,3 @@ Trust_Bench/
 - Project2v2 implementation by @mwill20 and collaborators
 
 _Version Project2v2 - October 2025 - Refactored for offline deterministic evaluation._
-
