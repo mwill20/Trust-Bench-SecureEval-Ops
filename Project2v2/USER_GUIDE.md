@@ -23,6 +23,7 @@ Your multi-agent repository auditor is now set up and ready for exploration! Her
 - Color-coded results (excellent/good/fair/needs_attention)
 - Interactive agent conversation logs
 - **Enhanced UI Indicators**: Consensus journey visualization with negotiation timeline and agent mood mapping
+- **Enhanced Export Features**: Complete analysis bundles with chat transcripts and import/export capabilities
 - **Phase 1: Smart Chat Interface**
   - 🛡️ Ask security questions → Routes to Security Agent
   - ⚡ Ask quality questions → Routes to Quality Agent  
@@ -202,6 +203,21 @@ After analysis completes, explore the new **Consensus Journey** section:
 4. **Conflict Resolution Panels:** Before/after comparisons showing how disagreements were resolved
 5. **Interactive Rounds:** Click to expand each negotiation round for detailed collaboration insights
 
+## 📦 Enhanced Export Features - Permanent Analysis Records
+
+After completing analysis or chat sessions, use the new export capabilities:
+
+1. **Download Analysis Bundle:** Get ZIP containing report.json, report.md, and chat_history.json
+2. **Export Chat Sessions:** Save individual conversation histories with agent routing decisions
+3. **Import Previous Chats:** Load saved conversations to continue discussions or reference past insights  
+4. **Team Collaboration:** Share analysis bundles containing both findings and the questions that led to them
+5. **Audit Trails:** UTC timestamps and metadata preserve complete session history
+
+### Export Options Available:
+- **Legacy JSON Report:** Individual report.json download (unchanged functionality)  
+- **Full Analysis Bundle:** ZIP with reports + complete chat transcript
+- **Chat Export/Import:** Standalone conversation files for session continuity
+
 ## 🎮 Fun Things to Try - See All Phases in Action
 
 1. **Compare Single vs Multi-Agent:** Try "How is security?" vs "Give me comprehensive analysis"
@@ -209,9 +225,12 @@ After analysis completes, explore the new **Consensus Journey** section:
 3. **Study Conversation Logs:** Read detailed agent-to-agent messages in the final reports
 4. **Analyze Documentation Gaps:** See how missing tests or security docs get caught through collaboration
 5. **Explore Consensus Journey:** Watch how agents negotiate complex trade-offs in the new visualization
-6. **Custom Repository Analysis:** Point it at your own projects and discover collaborative insights
-7. **Multi-Agent Synthesis:** Watch how comprehensive queries generate executive summaries
-8. **Collaboration Metrics:** Check the final summary for collaboration statistics
+6. **Export and Share:** Download analysis bundles to share findings + conversations with teammates  
+7. **Build Analysis Library:** Export multiple repository analyses to build a permanent research collection
+8. **Session Continuity:** Export chat, restart browser, import chat to continue where you left off
+9. **Custom Repository Analysis:** Point it at your own projects and discover collaborative insights
+10. **Multi-Agent Synthesis:** Watch how comprehensive queries generate executive summaries
+11. **Collaboration Metrics:** Check the final summary for collaboration statistics
 
 ## 📈 Expected Results
 

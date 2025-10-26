@@ -4,9 +4,13 @@ Test Agent Confidence Scoring functionality.
 Tests confidence calculation algorithms and UI integration.
 """
 
+import io
+import json
 import os
 import sys
 import tempfile
+import zipfile
+import shutil
 from pathlib import Path
 
 # Add the parent directory to the path to import modules
@@ -64,7 +68,7 @@ def test_confidence_calculation():
     print(f"Low confidence result: {low_confidence:.3f} ({int(low_confidence * 100)}%)")
     assert low_confidence <= 0.5, f"Expected low confidence (<=0.5), got {low_confidence}"
     
-    print("✅ Confidence calculation tests passed!\n")
+    print("Γ£à Confidence calculation tests passed!\n")
 
 
 def test_workflow_confidence_integration():
@@ -93,6 +97,69 @@ def main():
 if __name__ == "__main__":
     main()
 """)
+def test_report_bundle_download_includes_chat_history(tmp_path):
+    """Ensure the report bundle endpoint returns report and chat history."""
+    from multi_agent_system.reporting import build_report_payload, write_report_outputs
+    from web_interface import app
+
+    test_repo = tmp_path / "bundle_repo"
+    test_repo.mkdir()
+    (test_repo / "README.md").write_text("# Repo\n", encoding="utf-8")
+    (test_repo / "main.py").write_text("print('bundle test')\n", encoding="utf-8")
+
+    final_state = run_workflow(test_repo)
+    report = build_report_payload(final_state)
+
+    base_dir = Path(__file__).resolve().parent.parent
+    output_dir_name = f"bundle_test_{os.getpid()}"
+    output_dir = base_dir / output_dir_name
+    output_dir.mkdir(exist_ok=True)
+
+    try:
+        write_report_outputs(report, output_dir)
+
+        chat_history = [
+            {
+                "timestamp": "2025-01-01T00:00:00Z",
+                "author": "You",
+                "message": "How risky is this repo?"
+            },
+            {
+                "timestamp": "2025-01-01T00:00:02Z",
+                "author": "Security Agent",
+                "message": "It contains moderate risk.",
+                "agent": "security",
+                "confidence": 0.82,
+                "routing_reason": "Detected security-related keywords"
+            },
+        ]
+
+        with app.test_client() as client:
+            response = client.post(
+                "/download-report-bundle",
+                json={
+                    "output_dir": output_dir_name,
+                    "chat_history": chat_history,
+                },
+            )
+
+        assert response.status_code == 200, f"Unexpected status: {response.status_code}"
+        bundle = zipfile.ZipFile(io.BytesIO(response.data))
+        names = bundle.namelist()
+        assert "report.json" in names, "bundle missing report.json"
+        assert "chat_history.json" in names, "bundle missing chat_history.json"
+
+        chat_payload = json.loads(bundle.read("chat_history.json"))
+        assert "exported_at" in chat_payload
+        exported_conversation = chat_payload.get("conversation", [])
+        assert exported_conversation, "Chat history conversation should not be empty"
+        assert exported_conversation[0]["author"] == "You"
+    finally:
+        shutil.rmtree(output_dir, ignore_errors=True)
+
+
+
+
         
         (test_repo / "README.md").write_text("""
 # Test Project
@@ -152,7 +219,7 @@ This project has intentional vulnerabilities for testing purposes.
             assert 0.0 <= confidence <= 1.0, f"Invalid weighted confidence range for {agent}: {confidence}"
             print(f"  - {agent}: {confidence:.3f} ({int(confidence * 100)}%)")
         
-        print("✅ Workflow confidence integration tests passed!\n")
+        print("Γ£à Workflow confidence integration tests passed!\n")
 
 
 def test_report_confidence_inclusion():
@@ -205,11 +272,11 @@ def test_report_confidence_inclusion():
         assert "## Negotiation Timeline" in markdown_content, "Markdown report missing negotiation timeline section"
         
         # Check for either emoji indicators or text indicators
-        has_emoji = "🟢" in markdown_content or "🟡" in markdown_content or "🔴" in markdown_content
+        has_emoji = "≡ƒƒó" in markdown_content or "≡ƒƒí" in markdown_content or "≡ƒö┤" in markdown_content
         has_text = "HIGH" in markdown_content or "MEDIUM" in markdown_content or "LOW" in markdown_content
         assert has_emoji or has_text, "Missing confidence visual indicators (emoji or text)"
         
-        print("✅ Report confidence inclusion tests passed!\n")
+        print("Γ£à Report confidence inclusion tests passed!\n")
 
 
 def main():
@@ -220,13 +287,19 @@ def main():
         test_confidence_calculation()
         test_workflow_confidence_integration() 
         test_report_confidence_inclusion()
+        temp_dir = Path(tempfile.mkdtemp())
+        try:
+            test_report_bundle_download_includes_chat_history(tmp_path=temp_dir)
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
         
-        print("🎉 All Agent Confidence Scoring tests passed successfully!")
+        print("≡ƒÄë All Agent Confidence Scoring tests passed successfully!")
         print("Feature is ready for production use!")
         return 0
         
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f"Γ¥î Test failed: {e}")
         import traceback
         traceback.print_exc()
         return 1

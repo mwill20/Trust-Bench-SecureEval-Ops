@@ -9,7 +9,9 @@ import subprocess
 import tempfile
 import shutil
 import re
-from datetime import datetime
+import io
+import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Any, Dict, Optional
@@ -458,6 +460,25 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             padding: 24px;
             border: 1px solid #e1e4ff;
             display: none;
+        }
+        .chat-tools {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .chat-tools .chat-import-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+        .chat-tools .chat-import-label input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
         }
         .chat-history {
             border: 1px solid #d9def7;
@@ -1157,10 +1178,18 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 <h2>Analysis Results</h2>
                 <div id="resultsContent"></div>
                 <button type="button" class="outline-btn" id="downloadReportBtn" style="display: none; margin-top: 16px;">Download report</button>
+                <button type="button" class="outline-btn" id="downloadBundleBtn" style="display: none; margin-top: 12px;">Download full bundle</button>
             </div>
 
             <div class="chat-panel" id="chatPanel">
                 <h2>Ask the Agents</h2>
+                <div class="chat-tools">
+                    <button type="button" class="outline-btn" id="exportChatBtn" disabled>Export chat (.json)</button>
+                    <label class="outline-btn chat-import-label" for="importChatInput">
+                        Import chat
+                        <input type="file" id="importChatInput" accept="application/json" hidden>
+                    </label>
+                </div>
                 <div class="chat-history" id="chatHistory">
                     <div class="chat-message" id="chatPlaceholder" data-initial="true">
                         <strong>Status</strong>
@@ -1235,6 +1264,105 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     .replace(/`(.*?)`/g, '<code>$1</code>');
             }
 
+            function restoreChatPlaceholder() {
+                if (!chatHistory) {
+                    return;
+                }
+                const existing = chatHistory.querySelector('[data-initial-placeholder=\"true\"]');
+                if (existing) {
+                    return;
+                }
+                const placeholder = document.createElement('div');
+                placeholder.className = 'chat-message';
+                placeholder.setAttribute('data-initial-placeholder', 'true');
+                placeholder.innerHTML = '<strong>Status</strong><span>Run an analysis to generate a fresh report before asking a question.</span>';
+                chatHistory.appendChild(placeholder);
+            }
+
+            let chatSession = [];
+
+            function updateChatExportState() {
+                if (exportChatBtn) {
+                    exportChatBtn.disabled = chatSession.length === 0;
+                }
+            }
+
+            function normalizeChatEntry(author, message, agentData, timestamp) {
+                const resolvedAuthor = author || (agentData && agentData.agent ? getAgentName(agentData.agent) : '');
+                const entry = {
+                    timestamp: timestamp || new Date().toISOString(),
+                    author: resolvedAuthor,
+                    message: message || '',
+                };
+                if (agentData && agentData.agent) {
+                    entry.agent = agentData.agent;
+                    if (typeof agentData.confidence !== 'undefined') {
+                        entry.confidence = agentData.confidence;
+                    }
+                    if (agentData.routing_reason) {
+                        entry.routing_reason = agentData.routing_reason;
+                    }
+                }
+                return entry;
+            }
+
+            function renderChatTranscript(conversation) {
+                if (!chatHistory) {
+                    return;
+                }
+                chatHistory.innerHTML = '';
+                if (!Array.isArray(conversation) || conversation.length === 0) {
+                    restoreChatPlaceholder();
+                    return;
+                }
+                conversation.forEach((entry) => {
+                    const author = sanitizeInput(entry.author || '');
+                    const message = sanitizeInput(entry.message || '');
+                    const agent = entry.agent ? sanitizeInput(entry.agent) : null;
+                    const agentData = agent
+                        ? {
+                            agent,
+                            confidence: typeof entry.confidence === 'number' ? entry.confidence : undefined,
+                            routing_reason: entry.routing_reason ? sanitizeInput(entry.routing_reason) : undefined,
+                        }
+                        : null;
+                    appendChatMessage(author, message, agentData, {
+                        persist: false,
+                        timestamp: entry.timestamp,
+                    });
+                });
+            }
+
+            function downloadBlob(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const tempLink = document.createElement('a');
+                tempLink.href = url;
+                tempLink.download = filename;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                URL.revokeObjectURL(url);
+            }
+
+            function extractFilenameFromDisposition(disposition, fallback) {
+                if (!disposition) {
+                    return fallback;
+                }
+                const utfMatch = disposition.match(/filename\\*=UTF-8''([^;]+)/i);
+                if (utfMatch && utfMatch[1]) {
+                    try {
+                        return decodeURIComponent(utfMatch[1]);
+                    } catch (err) {
+                        console.warn('Failed to decode UTF-8 filename:', err);
+                    }
+                }
+                const plainMatch = disposition.match(/filename=\"?([^\";]+)\"?/i);
+                if (plainMatch && plainMatch[1]) {
+                    return plainMatch[1];
+                }
+                return fallback;
+            }
+
             const auditForm = document.getElementById('auditForm');
             const analyzeBtn = document.getElementById('analyzeBtn');
             const repoUrlInput = document.getElementById('repoUrl');
@@ -1259,10 +1387,15 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             const chatPlaceholder = document.getElementById('chatPlaceholder');
             const sendChatBtn = document.getElementById('sendChatBtn');
             const downloadReportBtn = document.getElementById('downloadReportBtn');
+            const downloadBundleBtn = document.getElementById('downloadBundleBtn');
+            const exportChatBtn = document.getElementById('exportChatBtn');
+            const importChatInput = document.getElementById('importChatInput');
             const progressWorkflow = document.getElementById('progressWorkflow');
             const loading = document.getElementById('loading');
             const results = document.getElementById('results');
             const resultsContent = document.getElementById('resultsContent');
+            
+            updateChatExportState();
             
             // Evaluation metrics elements
             const securityWeightSlider = document.getElementById('security-weight');
@@ -1433,13 +1566,18 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 }
             }
 
-            function appendChatMessage(author, text, agentData = null) {
+            function appendChatMessage(author, text, agentData = null, options = {}) {
                 if (!chatHistory) {
                     return;
                 }
                 if (chatPlaceholder && chatPlaceholder.parentElement) {
                     chatPlaceholder.parentElement.removeChild(chatPlaceholder);
                 }
+                const transientPlaceholder = chatHistory.querySelector('[data-initial-placeholder="true"]');
+                if (transientPlaceholder && transientPlaceholder.parentElement) {
+                    transientPlaceholder.parentElement.removeChild(transientPlaceholder);
+                }
+                const { persist = true, timestamp = null } = options;
                 
                 const wrapper = document.createElement('div');
                 
@@ -1554,6 +1692,10 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
                 chatHistory.appendChild(wrapper);
                 chatHistory.scrollTop = chatHistory.scrollHeight;
+                if (persist) {
+                    chatSession.push(normalizeChatEntry(author, text, agentData, timestamp));
+                    updateChatExportState();
+                }
             }
             
             function getAgentAvatar(agentType) {
@@ -1767,7 +1909,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 if (!pieces.length) {
                     return '';
                 }
-                return `<div class="collaboration-badge">${pieces.join(' • ')}</div>`;
+                return `<div class="collaboration-badge">${pieces.join(' &bull; ')}</div>`;
             }
 
             function renderConsensusProgress(rounds) {
@@ -1858,7 +2000,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                             <div class="mood-dot ${escapeHtml(mood)}"></div>
                             <div class="mood-copy">
                                 <strong>${escapeHtml(friendly)}</strong>
-                                <span>${escapeHtml(moodLabel)} • Confidence ${confidence}%</span>
+                                <span>${escapeHtml(moodLabel)} &bull; Confidence ${confidence}%</span>
                             </div>
                         </div>
                     `;
@@ -1924,7 +2066,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     const content = escapeHtml(entry.content || '');
                     const recipient = entry.recipient ? escapeHtml(entry.recipient) : '';
                     const moodClass = entry.mood ? `mood-${escapeHtml(entry.mood)}` : 'mood-neutral';
-                    const recipientLine = recipient ? `<div class="bubble-recipient">→ ${recipient}</div>` : '';
+                    const recipientLine = recipient ? `<div class="bubble-recipient">&rarr; ${recipient}</div>` : '';
                     return `
                         <div class="negotiation-bubble ${moodClass}">
                             <div class="bubble-agent">${agent}</div>
@@ -2254,6 +2396,127 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 });
             }
 
+            if (downloadBundleBtn) {
+                const defaultBundleLabel = downloadBundleBtn.textContent;
+                downloadBundleBtn.addEventListener('click', async () => {
+                    if (!latestReportPath) {
+                        updateChatStatus('Run an analysis before downloading a bundle.', true);
+                        return;
+                    }
+                    downloadBundleBtn.disabled = true;
+                    downloadBundleBtn.textContent = 'Preparing...';
+                    try {
+                        const response = await fetch('/download-report-bundle', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                output_dir: latestReportPath,
+                                chat_history: chatSession,
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            let errorMessage = `Bundle download failed (${response.status})`;
+                            try {
+                                const data = await response.json();
+                                if (data && data.error) {
+                                    errorMessage = data.error;
+                                }
+                            } catch (err) {
+                                console.warn('Failed to parse bundle error response', err);
+                            }
+                            updateChatStatus(errorMessage, true);
+                            return;
+                        }
+
+                        const blob = await response.blob();
+                        const disposition = response.headers.get('Content-Disposition');
+                        const filename = extractFilenameFromDisposition(
+                            disposition,
+                            `${latestReportPath}_bundle.zip`
+                        );
+                        downloadBlob(blob, filename);
+                        updateChatStatus('Bundle downloaded with latest report and chat history.');
+                    } catch (err) {
+                        console.error('Bundle download error:', err);
+                        updateChatStatus('Unexpected error preparing bundle download.', true);
+                    } finally {
+                        downloadBundleBtn.disabled = false;
+                        downloadBundleBtn.textContent = defaultBundleLabel;
+                    }
+                });
+            }
+
+            if (exportChatBtn) {
+                exportChatBtn.addEventListener('click', () => {
+                    if (!chatSession.length) {
+                        return;
+                    }
+                    const payload = {
+                        exported_at: new Date().toISOString(),
+                        conversation: chatSession,
+                    };
+                    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                    const filename = `trustbench_chat_${Date.now()}.json`;
+                    downloadBlob(blob, filename);
+                    updateChatStatus('Chat history exported.');
+                });
+            }
+
+            if (importChatInput) {
+                importChatInput.addEventListener('change', async (event) => {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) {
+                        return;
+                    }
+                    try {
+                        const text = await file.text();
+                        const rawData = JSON.parse(text);
+                        const conversationSource = Array.isArray(rawData?.conversation)
+                            ? rawData.conversation
+                            : Array.isArray(rawData)
+                                ? rawData
+                                : [];
+                        if (!Array.isArray(conversationSource)) {
+                            throw new Error('Invalid chat history structure.');
+                        }
+                        const cleaned = conversationSource
+                            .map((entry) => {
+                                if (!entry || typeof entry !== 'object') {
+                                    return null;
+                                }
+                                const author = entry.author ? sanitizeInput(String(entry.author)) : '';
+                                const message = entry.message ? sanitizeInput(String(entry.message)) : '';
+                                const agent = entry.agent ? sanitizeInput(String(entry.agent)) : null;
+                                const agentData = agent
+                                    ? {
+                                        agent,
+                                        confidence: typeof entry.confidence === 'number' ? entry.confidence : undefined,
+                                        routing_reason: entry.routing_reason ? sanitizeInput(String(entry.routing_reason)) : undefined,
+                                    }
+                                    : null;
+                                const entryTimestamp = entry.timestamp && typeof entry.timestamp === 'string'
+                                    ? entry.timestamp
+                                    : undefined;
+                                return normalizeChatEntry(author, message, agentData, entryTimestamp);
+                            })
+                            .filter(Boolean);
+                        chatSession = cleaned;
+                        renderChatTranscript(chatSession);
+                        updateChatExportState();
+                        if (chatPanel) {
+                            chatPanel.style.display = 'block';
+                        }
+                        updateChatStatus(`Imported chat history with ${chatSession.length} message(s).`);
+                    } catch (err) {
+                        console.error('Chat import error:', err);
+                        updateChatStatus('Failed to import chat history. Please select a valid file.', true);
+                    } finally {
+                        event.target.value = '';
+                    }
+                });
+            }
+
             if (auditForm) {
                 auditForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
@@ -2280,6 +2543,9 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     }
                     if (downloadReportBtn) {
                         downloadReportBtn.style.display = 'none';
+                    }
+                    if (downloadBundleBtn) {
+                        downloadBundleBtn.style.display = 'none';
                     }
                     latestReportPath = null;
 
@@ -2330,6 +2596,9 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                             latestReportPath = data.output_dir;
                             if (downloadReportBtn && latestReportPath) {
                                 downloadReportBtn.style.display = 'inline-block';
+                            }
+                            if (downloadBundleBtn && latestReportPath) {
+                                downloadBundleBtn.style.display = 'inline-block';
                             }
 
                             const repoInfo = data.report && data.report.repository_info;
@@ -2518,6 +2787,71 @@ def download_report():
 
     download_name = f"{candidate_dir.name}_report.json"
     return send_file(report_path, as_attachment=True, download_name=download_name)
+
+
+@app.route('/download-report-bundle', methods=['POST'])
+def download_report_bundle():
+    try:
+        payload = request.get_json(force=True) or {}
+    except Exception:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid JSON payload.'
+        }), 400
+
+    output_dir = payload.get('output_dir', '')
+    if not output_dir:
+        return jsonify({
+            'success': False,
+            'error': 'Missing output directory.'
+        }), 400
+
+    base_dir = Path(__file__).parent.resolve()
+    candidate_dir = (base_dir / output_dir).resolve()
+
+    if not str(candidate_dir).startswith(str(base_dir)):
+        return jsonify({
+            'success': False,
+            'error': 'Invalid output directory.'
+        }), 400
+
+    report_json = candidate_dir / 'report.json'
+    report_markdown = candidate_dir / 'report.md'
+
+    if not report_json.exists():
+        return jsonify({
+            'success': False,
+            'error': 'Report not found.'
+        }), 404
+
+    chat_history = payload.get('chat_history') or []
+    if not isinstance(chat_history, list):
+        return jsonify({
+            'success': False,
+            'error': 'chat_history must be a list.'
+        }), 400
+
+    bundle_bytes = io.BytesIO()
+    with zipfile.ZipFile(bundle_bytes, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.write(report_json, arcname='report.json')
+        if report_markdown.exists():
+            archive.write(report_markdown, arcname='report.md')
+        archive.writestr(
+            'chat_history.json',
+            json.dumps({
+                "exported_at": datetime.now(timezone.utc).isoformat(),
+                "conversation": chat_history,
+            }, indent=2).encode('utf-8')
+        )
+
+    bundle_bytes.seek(0)
+    download_name = f"{candidate_dir.name}_bundle.zip"
+    return send_file(
+        bundle_bytes,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=download_name,
+    )
 
 
 @app.route('/api/chat', methods=['POST'])
