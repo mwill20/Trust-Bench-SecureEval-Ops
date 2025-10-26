@@ -565,6 +565,79 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             background: #f3f4f6;
             border-radius: 4px;
         }
+        
+        /* Phase 3: Advanced Orchestration Styling */
+        .orchestration-banner {
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .orchestration-banner.phase3 {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+        }
+        
+        .orchestration-process {
+            margin: 8px 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        
+        .process-header {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .process-header:hover {
+            background: #e5e7eb;
+        }
+        
+        .process-details {
+            padding: 8px 12px;
+        }
+        
+        .process-step {
+            font-size: 11px;
+            color: #6b7280;
+            padding: 2px 0;
+            border-left: 2px solid #d1d5db;
+            padding-left: 8px;
+            margin: 4px 0;
+        }
+        
+        .consensus-status {
+            margin: 8px 0;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .consensus-status.achieved {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .consensus-status.partial {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        .chat-message.agent-advanced-orchestrator {
+            border-left: 4px solid #7c3aed;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -773,7 +846,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     return '';
                 }
                 let text = String(value);
-                text = text.replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/g, '');
+                text = text.replace(/[\\0-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]/g, '');
                 PROMPT_INJECTION_PATTERNS.forEach((pattern) => {
                     text = text.replace(pattern, '');
                 });
@@ -805,12 +878,33 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     .replace(/'/g, '&#39;');
             }
 
+            function formatResponse(text) {
+                if (!text) return '';
+                
+                // Basic text formatting for chat responses
+                return text
+                    .replace(/\\n/g, '<br>')
+                    .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
+                    .replace(/\\*(.*?)\\*/g, '<em>$1</em>')
+                    .replace(/`(.*?)`/g, '<code>$1</code>');
+            }
+
             const auditForm = document.getElementById('auditForm');
             const analyzeBtn = document.getElementById('analyzeBtn');
             const repoUrlInput = document.getElementById('repoUrl');
             const providerSelect = document.getElementById('providerSelect');
             const apiKeyInput = document.getElementById('apiKeyInput');
             const testKeyBtn = document.getElementById('testKeyBtn');
+            
+            // Debug: Check if elements are found
+            console.log('Element check:', {
+                auditForm: !!auditForm,
+                analyzeBtn: !!analyzeBtn,
+                testKeyBtn: !!testKeyBtn,
+                repoUrlInput: !!repoUrlInput,
+                providerSelect: !!providerSelect,
+                apiKeyInput: !!apiKeyInput
+            });
             const apiKeyStatus = document.getElementById('apiKeyStatus');
             const chatPanel = document.getElementById('chatPanel');
             const chatHistory = document.getElementById('chatHistory');
@@ -906,11 +1000,15 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
             function getApiKey(provider) {
                 if (!provider) {
+                    console.log('DEBUG: getApiKey called with empty provider');
                     return '';
                 }
                 try {
-                    return sessionStorage.getItem(`llm_api_key_${provider}`) || '';
+                    const key = sessionStorage.getItem(`llm_api_key_${provider}`) || '';
+                    console.log(`DEBUG: getApiKey(${provider}) = ${key ? '[KEY_EXISTS]' : '[NO_KEY]'}`);
+                    return key;
                 } catch (err) {
+                    console.log('DEBUG: getApiKey error:', err);
                     return '';
                 }
             }
@@ -995,9 +1093,57 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         wrapper.appendChild(routingInfo);
                     }
                     
+                    // Phase 3: Advanced orchestration indicators
+                    if (agentData.orchestration_level === 'phase3') {
+                        const orchestrationBanner = document.createElement('div');
+                        orchestrationBanner.className = 'orchestration-banner phase3';
+                        orchestrationBanner.innerHTML = '🚀 <strong>Phase 3 Advanced Orchestration</strong> - Consensus Building & Conflict Resolution';
+                        wrapper.appendChild(orchestrationBanner);
+                        
+                        // Show orchestration process if available
+                        if (agentData.orchestration_log && agentData.orchestration_log.length > 0) {
+                            const orchestrationProcess = document.createElement('div');
+                            orchestrationProcess.className = 'orchestration-process';
+                            
+                            const processHeader = document.createElement('div');
+                            processHeader.className = 'process-header';
+                            processHeader.innerHTML = '🔄 <strong>Orchestration Process</strong>';
+                            processHeader.style.cursor = 'pointer';
+                            processHeader.onclick = () => {
+                                const details = orchestrationProcess.querySelector('.process-details');
+                                details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                            };
+                            orchestrationProcess.appendChild(processHeader);
+                            
+                            const processDetails = document.createElement('div');
+                            processDetails.className = 'process-details';
+                            processDetails.style.display = 'none';
+                            
+                            agentData.orchestration_log.forEach(logEntry => {
+                                const logItem = document.createElement('div');
+                                logItem.className = 'process-step';
+                                logItem.textContent = logEntry;
+                                processDetails.appendChild(logItem);
+                            });
+                            
+                            orchestrationProcess.appendChild(processDetails);
+                            wrapper.appendChild(orchestrationProcess);
+                        }
+                        
+                        // Show consensus status
+                        if (agentData.consensus_achieved !== undefined) {
+                            const consensusStatus = document.createElement('div');
+                            consensusStatus.className = `consensus-status ${agentData.consensus_achieved ? 'achieved' : 'partial'}`;
+                            consensusStatus.innerHTML = agentData.consensus_achieved ? 
+                                '✅ <strong>Consensus Achieved</strong>' : 
+                                '⚖️ <strong>Partial Consensus</strong> - Some conflicts remain';
+                            wrapper.appendChild(consensusStatus);
+                        }
+                    }
+                    
                     const responseDiv = document.createElement('div');
                     responseDiv.className = 'agent-response';
-                    responseDiv.textContent = text;
+                    responseDiv.innerHTML = formatResponse(text);
                     wrapper.appendChild(responseDiv);
                     
                 } else {
@@ -1075,7 +1221,13 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     return;
                 }
                 const provider = providerSelect ? providerSelect.value : null;
-                const apiKey = provider ? getApiKey(provider) : '';
+                let apiKey = provider ? getApiKey(provider) : '';
+                
+                // Fallback: if no API key in sessionStorage, try to get it from input field
+                if (!apiKey && apiKeyInput && apiKeyInput.value) {
+                    apiKey = sanitizeInput(apiKeyInput.value, 200);
+                    console.log('DEBUG: Using API key from input field as fallback');
+                }
 
                 appendChatMessage('You', question);
                 chatQuestion.value = '';
@@ -1084,10 +1236,18 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
                 try {
                     const payload = { question, provider };
+                    console.log('DEBUG: Chat request - provider:', provider, 'apiKey exists:', !!apiKey);
                     if (apiKey) {
                         payload.api_key = apiKey;
+                        console.log('DEBUG: Added API key to payload');
+                    } else {
+                        console.log('DEBUG: No API key found - checking sessionStorage...');
+                        console.log('DEBUG: sessionStorage keys:', Object.keys(sessionStorage));
                     }
 
+                    console.log('DEBUG: About to send fetch request to /api/chat');
+                    console.log('DEBUG: Payload:', payload);
+                    
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1131,8 +1291,10 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         }
                     }
                 } catch (error) {
-                    appendChatMessage('System', 'Unable to reach the chat service.');
-                    updateChatStatus('Unable to reach the chat service.', true);
+                    console.error('DEBUG: Chat error details:', error);
+                    const errorMsg = `Chat error: ${error.message || error}`;
+                    appendChatMessage('System', errorMsg);
+                    updateChatStatus(errorMsg, true);
                 } finally {
                     sendChatBtn.disabled = false;
                 }
@@ -1705,6 +1867,9 @@ def api_chat():
     if isinstance(api_key_raw, str):
         trimmed = api_key_raw.strip()
         api_key = trimmed or None
+    
+    # Debug logging
+    print(f"DEBUG: Chat endpoint - provider: {provider}, api_key present: {api_key is not None}, payload keys: {list(payload.keys())}")
 
     if not question:
         return jsonify({
@@ -1823,7 +1988,7 @@ def api_test_llm_key():
     })
 
 if __name__ == '__main__':
-    print("≡ƒÜÇ Starting Trust Bench Multi-Agent Auditor Web Interface...")
-    print("≡ƒôì Open your browser to: http://localhost:5000")
-    print("≡ƒöì Ready to analyze repositories!")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print("🚀 Starting Trust Bench Multi-Agent Auditor Web Interface...")
+    print("🌐 Open your browser to: http://localhost:5001")
+    print("✨ Ready to analyze repositories!")
+    app.run(debug=True, host='0.0.0.0', port=5001)

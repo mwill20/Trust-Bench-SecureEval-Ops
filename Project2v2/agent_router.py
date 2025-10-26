@@ -40,37 +40,179 @@ class OrchestrationRouter:
         api_key_override: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Route question to appropriate agent and generate response.
+        Route question to appropriate agent(s) and generate response.
         
         Returns:
             dict with 'agent', 'response', 'routing_reason', 'confidence'
+            For multi-agent: 'agents' list and 'multi_agent_response' 
         """
-        # Step 1: Classify question to determine target agent
-        agent_type, confidence = self.classify_question(question)
+        # Check if this requires multiple agents
+        required_agents = self.requires_multiple_agents(question)
         
-        # Step 2: Build agent-specific prompt with context
-        prompt = self._build_agent_prompt(agent_type, question)
+        if len(required_agents) > 1:
+            # Multi-agent consultation
+            return self.consult_multiple_agents(
+                question, required_agents, provider_override, api_key_override
+            )
+        else:
+            # Single agent routing (existing logic)
+            agent_type, confidence = self.classify_question(question)
+            
+            prompt = self._build_agent_prompt(agent_type, question)
+            
+            try:
+                llm_response = chat_with_llm(
+                    question=prompt,
+                    provider_override=provider_override,
+                    api_key_override=api_key_override
+                )
+                response = llm_response.get('answer', 'Unable to generate response.')
+            except LLMError as e:
+                response = f"Sorry, I'm having trouble accessing the AI service: {str(e)}"
+                confidence = 0.0
+            except Exception as e:
+                response = f"An unexpected error occurred: {str(e)}"
+                confidence = 0.0
+
+            return {
+                'agent': agent_type,
+                'response': response,
+                'routing_reason': self._get_routing_reason(question, agent_type),
+                'confidence': confidence
+            }
+
+    def requires_multiple_agents(self, question: str) -> list[str]:
+        """
+        Determine if question requires consultation from multiple agents.
         
-        # Step 3: Generate response using LLM
+        Returns:
+            list of agent types that should collaborate on the response
+        """
+        question_lower = question.lower()
+        required_agents = []
+        
+        # Multi-agent trigger phrases
+        comprehensive_phrases = [
+            'comprehensive', 'complete', 'full', 'overall', 'entire', 
+            'thorough', 'detailed analysis', 'end-to-end', 'holistic'
+        ]
+        
+        multi_domain_phrases = [
+            'security and quality', 'quality and security', 'security and documentation',
+            'documentation and security', 'quality and documentation', 'documentation and quality',
+            'security, quality, and documentation', 'all aspects', 'every area'
+        ]
+        
+        # Check for explicit multi-domain requests
+        for phrase in multi_domain_phrases:
+            if phrase in question_lower:
+                if 'security' in phrase:
+                    required_agents.append('security')
+                if 'quality' in phrase:
+                    required_agents.append('quality')
+                if 'documentation' in phrase:
+                    required_agents.append('docs')
+                break
+        
+        # Check for comprehensive analysis requests
+        if any(phrase in question_lower for phrase in comprehensive_phrases):
+            # Look for context clues to determine which agents
+            if any(word in question_lower for word in ['vulnerability', 'security', 'risk']):
+                required_agents.append('security')
+            if any(word in question_lower for word in ['code', 'quality', 'architecture', 'testing']):
+                required_agents.append('quality')  
+            if any(word in question_lower for word in ['documentation', 'readme', 'guide']):
+                required_agents.append('docs')
+            
+            # If comprehensive but no specific domains, include all
+            if not required_agents:
+                required_agents = ['security', 'quality', 'docs']
+        
+        # Remove duplicates and ensure we have at least one agent
+        required_agents = list(set(required_agents))
+        if not required_agents:
+            # Fallback to single agent classification
+            agent_type, _ = self.classify_question(question)
+            required_agents = [agent_type]
+        
+        return required_agents
+
+    def consult_multiple_agents(
+        self,
+        question: str,
+        required_agents: list[str], 
+        provider_override: Optional[str] = None,
+        api_key_override: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Advanced multi-agent consultation with consensus building.
+        
+        Phase 3: Includes iterative refinement, conflict resolution, and consensus building.
+        
+        Returns:
+            dict with 'agents', 'multi_agent_response', 'individual_responses', 
+            'consensus_process', 'iterations', etc.
+        """
+        # Check if this requires advanced orchestration (Phase 3)
+        needs_consensus = self._requires_consensus_building(question)
+        
+        if needs_consensus and len(required_agents) > 1:
+            return self._advanced_orchestration_process(
+                question, required_agents, provider_override, api_key_override
+            )
+        else:
+            # Use Phase 2 multi-agent consultation
+            return self._basic_multi_agent_consultation(
+                question, required_agents, provider_override, api_key_override
+            )
+
+    def _basic_multi_agent_consultation(
+        self,
+        question: str,
+        required_agents: list[str], 
+        provider_override: Optional[str] = None,
+        api_key_override: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Phase 2 multi-agent consultation (existing functionality).
+        """
+        individual_responses = {}
+        
+        # Get response from each required agent
+        for agent_type in required_agents:
+            try:
+                prompt = self._build_agent_prompt(agent_type, question)
+                llm_response = chat_with_llm(
+                    question=prompt,
+                    provider_override=provider_override,
+                    api_key_override=api_key_override
+                )
+                individual_responses[agent_type] = llm_response.get('answer', f'No response from {agent_type} agent.')
+            except Exception as e:
+                individual_responses[agent_type] = f"Error from {agent_type} agent: {str(e)}"
+        
+        # Synthesize responses using orchestrator
+        synthesis_prompt = self._build_synthesis_prompt(question, individual_responses)
+        
         try:
-            llm_response = chat_with_llm(
-                question=prompt,
+            synthesis_response = chat_with_llm(
+                question=synthesis_prompt,
                 provider_override=provider_override,
                 api_key_override=api_key_override
             )
-            response = llm_response.get('answer', 'Unable to generate response.')
-        except LLMError as e:
-            response = f"Sorry, I'm having trouble accessing the AI service: {str(e)}"
-            confidence = 0.0
+            synthesized_answer = synthesis_response.get('answer', 'Unable to synthesize multi-agent response.')
         except Exception as e:
-            response = f"An unexpected error occurred: {str(e)}"
-            confidence = 0.0
-
+            synthesized_answer = f"Error synthesizing responses: {str(e)}"
+        
         return {
-            'agent': agent_type,
-            'response': response,
-            'routing_reason': self._get_routing_reason(question, agent_type),
-            'confidence': confidence
+            'agents': required_agents,
+            'agent': 'multi-agent',
+            'response': synthesized_answer,
+            'individual_responses': individual_responses,
+            'routing_reason': f"Multi-agent consultation required for comprehensive analysis involving: {', '.join(required_agents)}",
+            'confidence': 0.85,  # High confidence for multi-agent responses
+            'multi_agent': True,
+            'orchestration_level': 'phase2'
         }
 
     def classify_question(self, question: str) -> Tuple[str, float]:
@@ -470,3 +612,428 @@ Focus on high-level decision making and cross-functional coordination."""
                 formatted.append(f"{i}. {str(finding)}")
         
         return '\n'.join(formatted)
+
+    def _requires_consensus_building(self, question: str) -> bool:
+        """
+        Determine if question requires Phase 3 advanced orchestration with consensus building.
+        """
+        question_lower = question.lower()
+        
+        # Consensus-requiring phrases
+        consensus_phrases = [
+            'consensus', 'agreement', 'conflicts', 'disagreements', 'contradictions',
+            'priority', 'priorities', 'most important', 'critical issues',
+            'trade-offs', 'balance', 'negotiate', 'decide between',
+            'conflicting', 'different opinions', 'which should', 'what matters most',
+            'reconcile', 'resolve differences', 'unified approach'
+        ]
+        
+        # Advanced orchestration phrases  
+        advanced_phrases = [
+            'iterative', 'refine', 'improve', 'follow-up', 'deep dive',
+            'comprehensive review', 'thorough analysis', 'detailed examination',
+            'step-by-step', 'progressive', 'collaborative decision'
+        ]
+        
+        return any(phrase in question_lower for phrase in consensus_phrases + advanced_phrases)
+    
+    def _advanced_orchestration_process(
+        self,
+        question: str,
+        required_agents: list[str],
+        provider_override: Optional[str] = None,
+        api_key_override: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Phase 3: Advanced orchestration with consensus building and iterative refinement.
+        """
+        orchestration_log = []
+        iterations = []
+        
+        orchestration_log.append("🎯 Phase 3 Advanced Orchestration initiated")
+        orchestration_log.append(f"🤝 Consensus building required for: {', '.join(required_agents)}")
+        
+        # Step 1: Initial consultation
+        orchestration_log.append("📋 Step 1: Initial agent consultation")
+        initial_responses = self._get_initial_agent_responses(
+            question, required_agents, provider_override, api_key_override
+        )
+        iterations.append({"step": "initial", "responses": initial_responses})
+        
+        # Step 2: Conflict detection and analysis
+        orchestration_log.append("🔍 Step 2: Analyzing potential conflicts and overlaps")
+        conflicts = self._detect_conflicts_and_overlaps(initial_responses)
+        
+        # Step 3: Consensus building if conflicts found
+        final_responses = initial_responses
+        if conflicts['has_conflicts']:
+            orchestration_log.append("⚖️  Step 3: Resolving conflicts through consensus building")
+            consensus_result = self._build_consensus(
+                question, initial_responses, conflicts, 
+                provider_override, api_key_override
+            )
+            final_responses.update(consensus_result['refined_responses'])
+            iterations.append({"step": "consensus", "responses": consensus_result['refined_responses']})
+            orchestration_log.extend(consensus_result['log'])
+        else:
+            orchestration_log.append("✅ Step 3: No significant conflicts detected")
+        
+        # Step 4: Advanced synthesis with priority negotiation
+        orchestration_log.append("🎯 Step 4: Advanced synthesis with priority negotiation")
+        synthesis_result = self._advanced_synthesis(
+            question, final_responses, conflicts, 
+            provider_override, api_key_override
+        )
+        
+        orchestration_log.append("🏁 Phase 3 Advanced Orchestration completed")
+        
+        return {
+            'agents': required_agents,
+            'agent': 'advanced-orchestrator',
+            'response': synthesis_result['synthesis'],
+            'individual_responses': final_responses,
+            'conflicts': conflicts,
+            'iterations': iterations,
+            'orchestration_log': orchestration_log,
+            'routing_reason': f"Advanced orchestration with consensus building for: {', '.join(required_agents)}",
+            'confidence': synthesis_result['confidence'],
+            'multi_agent': True,
+            'orchestration_level': 'phase3',
+            'consensus_achieved': not conflicts['has_conflicts'] or len(iterations) > 1
+        }
+
+    def _build_synthesis_prompt(self, question: str, individual_responses: Dict[str, str]) -> str:
+        """
+        Build prompt for orchestrator to synthesize multi-agent responses.
+        """
+        prompt = f"""You are the Orchestrator Agent coordinating a multi-agent analysis.
+
+ORIGINAL QUESTION: {question}
+
+INDIVIDUAL AGENT RESPONSES:
+"""
+        
+        agent_names = {
+            'security': '🛡️ Security Agent', 
+            'quality': '⚡ Quality Agent',
+            'docs': '📚 Documentation Agent'
+        }
+        
+        for agent_type, response in individual_responses.items():
+            agent_name = agent_names.get(agent_type, f"{agent_type.title()} Agent")
+            prompt += f"\n{agent_name}:\n{response}\n\n---\n"
+        
+        prompt += f"""
+YOUR TASK as Orchestrator:
+1. Synthesize these expert perspectives into a cohesive, comprehensive response
+2. Identify overlapping concerns and complementary insights
+3. Prioritize recommendations based on risk and impact
+4. Present a unified action plan that addresses all aspects
+
+SYNTHESIS GUIDELINES:
+- Start with a brief executive summary
+- Organize findings by priority/severity
+- Show how different aspects (security/quality/docs) interconnect
+- Provide clear, actionable next steps
+- Maintain each agent's expertise while creating unity
+
+FORMAT your response with:
+## Executive Summary
+## Key Findings (prioritized)
+## Interconnected Issues  
+## Recommended Action Plan
+
+Repository Context: {self.report_data.get('repository', 'Unknown repository')}
+Overall Assessment: {self.summary.get('overall_score', 'Not available')}/100
+
+Provide a well-structured, professional synthesis that helps the user understand the complete picture and next steps.
+"""
+        
+        return prompt
+    
+    def _get_initial_agent_responses(
+        self, 
+        question: str, 
+        required_agents: list[str],
+        provider_override: Optional[str] = None,
+        api_key_override: Optional[str] = None
+    ) -> Dict[str, str]:
+        """
+        Get initial responses from all required agents.
+        """
+        responses = {}
+        
+        for agent_type in required_agents:
+            try:
+                print(f"DEBUG: Getting response from {agent_type} agent - provider: {provider_override}, api_key present: {api_key_override is not None}")
+                prompt = self._build_agent_prompt(agent_type, question)
+                llm_response = chat_with_llm(
+                    question=prompt,
+                    provider_override=provider_override,
+                    api_key_override=api_key_override
+                )
+                responses[agent_type] = llm_response.get('answer', f'No response from {agent_type} agent.')
+            except Exception as e:
+                print(f"DEBUG: Error from {agent_type} agent: {str(e)}")
+                responses[agent_type] = f"Error from {agent_type} agent: {str(e)}"
+        
+        return responses
+    
+    def _detect_conflicts_and_overlaps(self, responses: Dict[str, str]) -> Dict[str, Any]:
+        """
+        Analyze agent responses for conflicts, contradictions, and overlaps.
+        """
+        # Simple conflict detection based on keywords and sentiment
+        conflicts = {
+            'has_conflicts': False,
+            'conflict_areas': [],
+            'overlapping_concerns': [],
+            'priority_disagreements': []
+        }
+        
+        # Keywords that suggest conflicting priorities
+        conflict_keywords = {
+            'high_priority': ['critical', 'urgent', 'immediate', 'severe', 'high priority'],
+            'low_priority': ['minor', 'low priority', 'not critical', 'optional', 'nice to have'],
+            'positive_sentiment': ['good', 'excellent', 'well-done', 'appropriate', 'sufficient'],
+            'negative_sentiment': ['poor', 'inadequate', 'missing', 'problematic', 'concerning']
+        }
+        
+        # Detect overlapping concerns
+        agent_topics = {}
+        for agent, response in responses.items():
+            response_lower = response.lower()
+            topics = []
+            if 'security' in response_lower or 'vulnerability' in response_lower:
+                topics.append('security')
+            if 'quality' in response_lower or 'code' in response_lower:
+                topics.append('quality')
+            if 'documentation' in response_lower or 'readme' in response_lower:
+                topics.append('documentation')
+            agent_topics[agent] = topics
+        
+        # Find overlapping areas
+        all_topics = set()
+        for topics in agent_topics.values():
+            all_topics.update(topics)
+        
+        for topic in all_topics:
+            agents_covering = [agent for agent, topics in agent_topics.items() if topic in topics]
+            if len(agents_covering) > 1:
+                conflicts['overlapping_concerns'].append({
+                    'topic': topic,
+                    'agents': agents_covering
+                })
+        
+        # Detect priority conflicts (simplified)
+        high_priority_agents = []
+        low_priority_agents = []
+        
+        for agent, response in responses.items():
+            response_lower = response.lower()
+            if any(keyword in response_lower for keyword in conflict_keywords['high_priority']):
+                high_priority_agents.append(agent)
+            if any(keyword in response_lower for keyword in conflict_keywords['low_priority']):
+                low_priority_agents.append(agent)
+        
+        if high_priority_agents and low_priority_agents:
+            conflicts['has_conflicts'] = True
+            conflicts['priority_disagreements'].append({
+                'high_priority_agents': high_priority_agents,
+                'low_priority_agents': low_priority_agents
+            })
+        
+        return conflicts
+    
+    def _build_consensus(
+        self,
+        question: str,
+        initial_responses: Dict[str, str],
+        conflicts: Dict[str, Any],
+        provider_override: Optional[str] = None,
+        api_key_override: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Build consensus through iterative agent negotiation.
+        """
+        consensus_log = []
+        refined_responses = {}
+        
+        consensus_log.append("🤝 Initiating consensus building process")
+        
+        # Create consensus building prompt for each agent
+        for agent_type in initial_responses.keys():
+            consensus_prompt = self._build_consensus_prompt(
+                agent_type, question, initial_responses, conflicts
+            )
+            
+            try:
+                consensus_log.append(f"💭 Asking {agent_type} agent to consider other perspectives")
+                consensus_response = chat_with_llm(
+                    question=consensus_prompt,
+                    provider_override=provider_override,
+                    api_key_override=api_key_override
+                )
+                refined_responses[agent_type] = consensus_response.get('answer', initial_responses[agent_type])
+                consensus_log.append(f"✅ {agent_type} agent provided refined perspective")
+            except Exception as e:
+                refined_responses[agent_type] = initial_responses[agent_type]
+                consensus_log.append(f"⚠️ {agent_type} agent consensus failed: {str(e)}")
+        
+        return {
+            'refined_responses': refined_responses,
+            'log': consensus_log
+        }
+    
+    def _build_consensus_prompt(
+        self, 
+        agent_type: str, 
+        question: str, 
+        all_responses: Dict[str, str], 
+        conflicts: Dict[str, Any]
+    ) -> str:
+        """
+        Build prompt for agent to reconsider their position given other agent perspectives.
+        """
+        agent_names = {
+            'security': '🛡️ Security Agent', 
+            'quality': '⚡ Quality Agent',
+            'docs': '📚 Documentation Agent'
+        }
+        
+        current_agent_name = agent_names.get(agent_type, f"{agent_type.title()} Agent")
+        other_agents = {k: v for k, v in all_responses.items() if k != agent_type}
+        
+        prompt = f"""You are the {current_agent_name} participating in a consensus-building process.
+
+ORIGINAL QUESTION: {question}
+
+YOUR INITIAL RESPONSE:
+{all_responses[agent_type]}
+
+OTHER AGENT PERSPECTIVES:
+"""
+        
+        for other_agent, response in other_agents.items():
+            other_name = agent_names.get(other_agent, f"{other_agent.title()} Agent")
+            prompt += f"\n{other_name}:\n{response}\n\n"
+        
+        if conflicts['has_conflicts']:
+            prompt += f"""
+IDENTIFIED CONFLICTS:
+"""
+            if conflicts['priority_disagreements']:
+                prompt += "- Priority level disagreements detected\n"
+            if conflicts['overlapping_concerns']:
+                prompt += f"- Overlapping concerns: {', '.join([c['topic'] for c in conflicts['overlapping_concerns']])}\n"
+        
+        prompt += f"""
+CONSENSUS BUILDING TASK:
+1. Review other agents' perspectives carefully
+2. Identify where you agree or disagree and why  
+3. Consider if your initial assessment needs adjustment
+4. Provide a refined response that:
+   - Maintains your core expertise and concerns
+   - Acknowledges valid points from other agents
+   - Suggests how to address any conflicts or overlaps
+   - Proposes collaborative solutions where possible
+
+Please provide your refined perspective as the {current_agent_name}:
+"""
+        
+        return prompt
+    
+    def _advanced_synthesis(
+        self,
+        question: str,
+        final_responses: Dict[str, str],
+        conflicts: Dict[str, Any],
+        provider_override: Optional[str] = None,
+        api_key_override: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Advanced synthesis with priority negotiation and conflict resolution.
+        """
+        synthesis_prompt = self._build_advanced_synthesis_prompt(question, final_responses, conflicts)
+        
+        try:
+            # Add debug information
+            print(f"DEBUG: Advanced synthesis - provider: {provider_override}, api_key present: {api_key_override is not None}")
+            
+            synthesis_response = chat_with_llm(
+                question=synthesis_prompt,
+                provider_override=provider_override,
+                api_key_override=api_key_override
+            )
+            synthesized_answer = synthesis_response.get('answer', 'Unable to perform advanced synthesis.')
+            confidence = 0.92  # Higher confidence due to consensus process
+        except Exception as e:
+            print(f"DEBUG: Advanced synthesis error: {str(e)}")
+            synthesized_answer = f"Error in advanced synthesis: {str(e)}"
+            confidence = 0.70
+        
+        return {
+            'synthesis': synthesized_answer,
+            'confidence': confidence
+        }
+    
+    def _build_advanced_synthesis_prompt(
+        self, 
+        question: str, 
+        responses: Dict[str, str], 
+        conflicts: Dict[str, Any]
+    ) -> str:
+        """
+        Build advanced synthesis prompt with conflict resolution guidance.
+        """
+        prompt = f"""You are the Advanced Orchestrator conducting Phase 3 synthesis with consensus building.
+
+ORIGINAL QUESTION: {question}
+
+AGENT RESPONSES (after consensus building):
+"""
+        
+        agent_names = {
+            'security': '🛡️ Security Agent', 
+            'quality': '⚡ Quality Agent',
+            'docs': '📚 Documentation Agent'
+        }
+        
+        for agent_type, response in responses.items():
+            agent_name = agent_names.get(agent_type, f"{agent_type.title()} Agent")
+            prompt += f"\n{agent_name}:\n{response}\n\n---\n"
+        
+        if conflicts['has_conflicts']:
+            prompt += f"""
+CONFLICT ANALYSIS:
+- Overlapping concerns: {len(conflicts['overlapping_concerns'])} areas
+- Priority disagreements: {'Yes' if conflicts['priority_disagreements'] else 'No'}
+- Consensus building applied: Agents have refined their perspectives
+
+"""
+        
+        prompt += f"""
+ADVANCED SYNTHESIS TASK:
+You must create a sophisticated synthesis that:
+
+1. **Executive Summary**: Clear overview acknowledging complexity and nuance
+2. **Consensus Areas**: Highlight where agents agree and reinforce these points  
+3. **Resolved Conflicts**: Show how apparent conflicts were resolved through consensus
+4. **Prioritized Action Plan**: Create unified priorities balancing all perspectives
+5. **Implementation Strategy**: Practical steps that address all agent concerns
+6. **Success Metrics**: How to measure progress across all domains
+
+ADVANCED SYNTHESIS GUIDELINES:
+- Acknowledge the consensus-building process used
+- Show how different expertise areas complement each other
+- Present a unified strategy that optimizes across all concerns
+- Include specific, actionable recommendations with clear ownership
+- Address potential implementation challenges proactively
+- Demonstrate sophisticated understanding of trade-offs and dependencies
+
+FORMAT: Use clear headings and prioritized sections for maximum impact.
+
+Begin your advanced synthesis:
+"""
+        
+        return prompt

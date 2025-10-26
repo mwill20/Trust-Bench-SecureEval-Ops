@@ -7,7 +7,33 @@
 
 **Official Publication:** [Trust Bench: Multi-Agent Security Evaluation Framework](https://app.readytensor.ai/publications/trust-bench-multi-agent-security-evaluation-framework-F6PS953ZZuo5)
 
-Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects software repositories for security leakage, code quality gaps, and documentation health. The system emphasizes cross-agent collaboration, transparent reasoning, and reproducible outputs that graders can run entirely offline.
+Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects software repositories for security leakage, code quality gaps, and documentation health. The system features intelligent agent routing with specialized personas, cross-agent collaboration, transparent reasoning, and reproducible outputs that graders can run entirely offline.
+
+## 🚀 Latest Features
+
+### Phase 1: Intelligent Agent Routing ✅ Complete
+- **🛡️ Security Agent**: Specialized vulnerability assessment and risk analysis
+- **⚡ Quality Agent**: Code quality improvements and best practices guidance  
+- **📚 Documentation Agent**: Documentation generation and improvement suggestions
+- **🎯 Orchestrator Agent**: General queries, project overview, and multi-agent coordination
+- **Smart Routing**: LLM-powered question classification with confidence scoring
+- **Enhanced UI**: Agent personas, visual indicators, and contextual responses
+
+### Phase 2: Multi-Agent Consultation ✅ Complete
+- **🔄 Collaborative Analysis**: Complex queries automatically trigger multiple agents
+- **🎯 Multi-Agent Detection**: System identifies when specialist consultation is needed
+- **📋 Executive Synthesis**: Comprehensive responses combining insights from all relevant agents
+- **🤝 Cross-Domain Queries**: Handle requests spanning security, quality, and documentation
+- **Visual Collaboration**: UI indicators show when agents are working together
+- **Intelligent Orchestration**: Seamless coordination between specialist agents
+
+### Phase 3: Advanced Orchestration ✅ Complete
+- **🤝 Consensus Building**: Agents collaborate to reach agreements on complex assessments
+- **⚔️ Conflict Resolution**: Systematic resolution of conflicting agent recommendations
+- **🔄 Iterative Refinement**: Multiple rounds of analysis for nuanced scenarios
+- **⚖️ Priority Negotiation**: Balance competing concerns (e.g., security vs maintainability)
+- **🧠 Advanced Synthesis**: Unified recommendations from complex multi-agent negotiations
+- **📊 Comprehensive Analysis**: Deep, multi-perspective evaluations with consensus metrics
 
 ## Contents
 1. [Overview](#overview)
@@ -89,6 +115,8 @@ cd Project2v2
 python web_interface.py
 # browse to http://localhost:5000
 ```
+
+The web interface now features **intelligent agent routing** that automatically directs your questions to the most appropriate specialist agent. Ask security questions, request code quality improvements, or seek documentation help - the system will route to the right expert and provide contextual responses with visual agent indicators.
 
 ### Direct CLI
 
