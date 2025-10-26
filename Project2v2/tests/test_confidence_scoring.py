@@ -116,6 +116,14 @@ This project has intentional vulnerabilities for testing purposes.
         # Check that confidence scores were calculated
         confidence_scores = final_state.get("confidence_scores", {})
         print(f"Confidence scores calculated: {confidence_scores}")
+
+        # Validate process visualization payload exists
+        process_viz = final_state.get("process_visualization")
+        assert process_viz is not None, "process_visualization data should be present in final state"
+        rounds = process_viz.get("rounds")
+        assert isinstance(rounds, list), "Rounds should be a list"
+        assert rounds, "Expected at least one round step in visualization"
+        assert isinstance(process_viz.get("agent_moods"), dict), "Agent moods should be a dictionary"
         
         # Validate confidence scores exist for each agent
         expected_agents = ["SecurityAgent", "QualityAgent", "DocumentationAgent"]
@@ -132,6 +140,11 @@ This project has intentional vulnerabilities for testing purposes.
         # Check confidence scores are still calculated
         weighted_confidence = weighted_state.get("confidence_scores", {})
         print(f"Weighted confidence scores: {weighted_confidence}")
+
+        weighted_process_viz = weighted_state.get("process_visualization")
+        assert weighted_process_viz is not None, "Weighted run should include process_visualization data"
+        weighted_rounds = weighted_process_viz.get("rounds")
+        assert isinstance(weighted_rounds, list), "Rounds should be captured for weighted run"
         
         for agent in expected_agents:
             assert agent in weighted_confidence, f"Missing weighted confidence score for {agent}"
@@ -165,7 +178,12 @@ def test_report_confidence_inclusion():
         
         # Check confidence scores are in report
         assert "confidence_scores" in report, "Report missing confidence_scores field"
+        assert "process_visualization" in report, "Report missing process_visualization field"
         confidence_scores = report["confidence_scores"]
+        process_viz = report["process_visualization"]
+        assert isinstance(process_viz, dict), "process_visualization should be a dictionary in report payload"
+        if process_viz:
+            assert isinstance(process_viz.get("rounds"), list), "Rounds should be listed in report payload"
         
         print(f"Report confidence scores: {confidence_scores}")
         
@@ -184,6 +202,7 @@ def test_report_confidence_inclusion():
         
         # Look for confidence indicators in markdown
         assert "Confidence:" in markdown_content, "Markdown report missing confidence information"
+        assert "## Negotiation Timeline" in markdown_content, "Markdown report missing negotiation timeline section"
         
         # Check for either emoji indicators or text indicators
         has_emoji = "🟢" in markdown_content or "🟡" in markdown_content or "🔴" in markdown_content

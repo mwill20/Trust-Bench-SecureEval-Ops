@@ -96,6 +96,204 @@ def _collect_detail_tokens(payload: Any, *, tokens: set[str]) -> None:
         tokens.add(str(payload))
 
 
+def _score_to_priority(score: float) -> str:
+    """Convert a numeric score into a qualitative priority label."""
+    if score >= 80:
+        return "High Priority"
+    if score >= 60:
+        return "Medium Priority"
+    return "Low Priority"
+
+
+def _confidence_to_mood(confidence: float) -> str:
+    """Translate confidence score into a UI-friendly mood indicator."""
+    if confidence >= 0.75:
+        return "green"
+    if confidence >= 0.45:
+        return "yellow"
+    return "red"
+
+
+def _build_process_visualization(
+    *,
+    agent_results: Dict[str, AgentResult],
+    messages: list[Dict[str, Any]],
+    shared_memory: Dict[str, Any],
+    report: Dict[str, Any],
+    confidence_scores: Dict[str, float],
+    collaboration_note: str,
+) -> Dict[str, Any]:
+    """Derive visualization payload describing how consensus was reached."""
+    tasks = shared_memory.get("tasks", [])
+    security_findings = shared_memory.get("security_findings", [])
+    quality_metrics = shared_memory.get("quality_metrics", {})
+    documentation = shared_memory.get("documentation", {}) or {}
+    doc_adjustments = documentation.get("collaboration_adjustments", [])
+
+    # Progress rounds
+    def _task_summary(task: Dict[str, Any]) -> str:
+        agent = task.get("agent", "Agent")
+        objective = task.get("objective", "").rstrip(".")
+        return f"{agent}: {objective}"
+
+    round_one_insights = [_task_summary(task) for task in tasks][:3]
+    round_two_insights: list[str] = []
+    if security_findings:
+        round_two_insights.append(f"Security highlighted {len(security_findings)} potential issue(s).")
+    if quality_metrics:
+        total_files = quality_metrics.get("total_files")
+        if total_files:
+            round_two_insights.append(f"Quality agent mapped {total_files} files and testing ratios.")
+        test_ratio = quality_metrics.get("test_ratio")
+        if test_ratio:
+            round_two_insights.append(f"Detected test coverage ratio of {test_ratio:.0%}.")
+    round_three_insights = []
+    if doc_adjustments:
+        round_three_insights.extend(doc_adjustments[:3])
+    if not round_three_insights and quality_metrics:
+        round_three_insights.append("Documentation reflected quality findings for shared guidance.")
+
+    rounds = [
+        {
+            "id": "round1",
+            "label": "Round 1",
+            "title": "Initial agent positions",
+            "percentage": 25,
+            "status": "complete",
+            "summary": "Manager delegated focus areas to each specialist agent.",
+            "insights": round_one_insights,
+        },
+        {
+            "id": "round2",
+            "label": "Round 2",
+            "title": "Finding common ground",
+            "percentage": 50,
+            "status": "complete",
+            "summary": "Agents exchanged findings to shape a shared view of project risks.",
+            "insights": round_two_insights,
+        },
+        {
+            "id": "round3",
+            "label": "Round 3",
+            "title": "Resolving conflicts",
+            "percentage": 75,
+            "status": "complete",
+            "summary": "Agents adjusted recommendations to reconcile competing priorities.",
+            "insights": round_three_insights,
+        },
+        {
+            "id": "round4",
+            "label": "Round 4",
+            "title": "Consensus achieved",
+            "percentage": 100,
+            "status": "complete",
+            "summary": (
+                f"Manager finalized consensus at grade {report.get('grade', '').upper()} "
+                f"with overall score {report.get('overall_score', 0)}."
+            ),
+            "insights": [collaboration_note.strip()] if collaboration_note else [],
+        },
+    ]
+
+    # Dialogue snippets for live negotiation bubbles
+    dialogue = []
+    for entry in messages:
+        sender = entry.get("sender", "")
+        if not sender.endswith("Agent"):
+            continue
+        recipient = entry.get("recipient", "")
+        content = entry.get("content", "").strip()
+        mood = _confidence_to_mood(confidence_scores.get(sender, 0.5))
+        dialogue.append(
+            {
+                "agent": sender,
+                "recipient": recipient,
+                "content": content,
+                "mood": mood,
+            }
+        )
+    dialogue = dialogue[-12:]
+
+    # Conflict resolution summary
+    priority_scale = {"Low Priority": 0, "Medium Priority": 1, "High Priority": 2}
+    initial_positions: Dict[str, Dict[str, Any]] = {}
+    for key, label in (
+        ("SecurityAgent", "security"),
+        ("QualityAgent", "quality"),
+        ("DocumentationAgent", "documentation"),
+    ):
+        result = agent_results.get(key, {})
+        score = float(result.get("score", 0.0))
+        initial_positions[label] = {
+            "score": round(score, 2),
+            "priority": _score_to_priority(score),
+            "summary": result.get("summary", ""),
+        }
+
+    priority_values = [
+        priority_scale.get(payload.get("priority", ""), 0)
+        for payload in initial_positions.values()
+    ]
+    priority_gap = max(priority_values) - min(priority_values) if priority_values else 0
+    if priority_gap >= 2:
+        conflict_level = "high"
+        resolution_notes = "Significant priority gaps required a phased compromise."
+    elif priority_gap == 1:
+        conflict_level = "moderate"
+        resolution_notes = "Agents negotiated trade-offs to align on shared actions."
+    else:
+        conflict_level = "low"
+        resolution_notes = "Agents were largely aligned from the outset."
+
+    grade = report.get("grade", "")
+    if grade == "needs_attention":
+        consensus_priority = "High Priority remediation required"
+    elif grade == "fair":
+        consensus_priority = "Medium Priority with phased approach"
+    elif grade == "good":
+        consensus_priority = "Targeted improvements recommended"
+    else:
+        consensus_priority = "Maintain strengths and monitor"
+
+    conflict_resolution = {
+        "initial_positions": initial_positions,
+        "consensus": {
+            "overall_score": report.get("overall_score", 0.0),
+            "grade": grade,
+            "priority": consensus_priority,
+            "conflict_level": conflict_level,
+            "notes": resolution_notes,
+        },
+    }
+
+    # Agent mood indicators / confidence meters
+    agent_moods = {}
+    for agent_name, confidence in confidence_scores.items():
+        agent_moods[agent_name] = {
+            "mood": _confidence_to_mood(confidence),
+            "confidence": round(confidence, 3),
+            "confidence_percent": int(confidence * 100),
+        }
+
+    cross_communications = sum(
+        1
+        for msg in messages
+        if msg.get("sender") != "Manager" and msg.get("recipient") != "Manager"
+    )
+
+    return {
+        "rounds": rounds,
+        "dialogue": dialogue,
+        "conflict_resolution": conflict_resolution,
+        "agent_moods": agent_moods,
+        "confidence_scores": confidence_scores,
+        "collaboration": {
+            "cross_communications": cross_communications,
+            "notes": collaboration_note.strip(),
+        },
+    }
+
+
 def _calculate_agent_confidence(agent_result: AgentResult) -> float:
     """Calculate confidence score for an agent result based on multiple factors."""
     summary = agent_result.get("summary", "")
@@ -247,6 +445,15 @@ def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
         "collaborative_adjustments": collaboration_summary
     }
     updated_shared_memory["metrics"] = metrics
+    process_visualization = _build_process_visualization(
+        agent_results=agent_results,
+        messages=messages,
+        shared_memory=updated_shared_memory,
+        report=report,
+        confidence_scores=confidence_scores,
+        collaboration_note=collab_note,
+    )
+    updated_shared_memory["process_visualization"] = process_visualization
     
     return {
         "messages": messages,
@@ -254,6 +461,7 @@ def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
         "report": report,
         "metrics": metrics,
         "confidence_scores": confidence_scores,
+        "process_visualization": process_visualization,
     }
 
 

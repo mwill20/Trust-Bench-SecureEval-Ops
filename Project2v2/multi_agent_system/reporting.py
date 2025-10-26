@@ -29,7 +29,8 @@ def build_report_payload(state: MultiAgentState) -> Dict[str, Any]:
         "calculation_method": report_summary.get("calculation_method", "equal_weight"),
         "individual_scores": report_summary.get("individual_scores", {}),
         "weights_used": report_summary.get("weights_used", {}),
-        "confidence_scores": confidence_scores
+        "confidence_scores": confidence_scores,
+        "process_visualization": state.get("process_visualization", {}),
     }
 
 
@@ -93,6 +94,64 @@ def _format_metrics_section(metrics: Dict[str, Any]) -> str:
             lines.append(f"| &nbsp;&nbsp;{tool} (s) | {duration} |")
 
     return "\n".join(lines)
+
+
+def _format_process_visualization(process: Dict[str, Any]) -> str:
+    if not process:
+        return "Process timeline data not recorded."
+
+    rounds = process.get("rounds", [])
+    lines: list[str] = []
+    if rounds:
+        lines.append("| Stage | Progress | Summary |")
+        lines.append("| --- | --- | --- |")
+        for entry in rounds:
+            title = entry.get("title") or entry.get("label", "Round")
+            percentage = entry.get("percentage", 0)
+            summary = entry.get("summary", "")
+            lines.append(f"| {title} | {percentage}% | {summary} |")
+
+    conflict = process.get("conflict_resolution", {})
+    if conflict:
+        lines.append("")
+        lines.append("**Conflict Resolution Snapshot**")
+        initial = conflict.get("initial_positions", {})
+        for agent_key, payload in initial.items():
+            priority = payload.get("priority", "n/a")
+            score = payload.get("score", "n/a")
+            lines.append(f"- {agent_key.title()}: {priority} ({score})")
+        consensus = conflict.get("consensus", {})
+        if consensus:
+            lines.append(
+                f"- Final Alignment: {consensus.get('priority', 'n/a')} "
+                f"(Grade {consensus.get('grade', 'n/a').upper()}, "
+                f"Score {consensus.get('overall_score', 'n/a')})"
+            )
+            notes = consensus.get("notes")
+            if notes:
+                lines.append(f"- Notes: {notes}")
+
+    collaboration = process.get("collaboration", {})
+    if collaboration:
+        lines.append("")
+        cross = collaboration.get("cross_communications")
+        if cross is not None:
+            lines.append(f"- Cross-agent communications: {cross}")
+        notes = collaboration.get("notes")
+        if notes:
+            lines.append(f"- Collaboration notes: {notes}")
+
+    dialogue = process.get("dialogue", [])
+    if dialogue:
+        lines.append("")
+        lines.append("**Negotiation Highlights**")
+        for entry in dialogue[-5:]:
+            agent = entry.get("agent", "Agent")
+            content = entry.get("content", "").strip()
+            mood = entry.get("mood", "neutral")
+            lines.append(f"- {agent} ({mood}): {content}")
+
+    return "\n".join(lines) if lines else "Process timeline data not recorded."
 
 
 def _format_weight_section(report: Dict[str, Any]) -> str:
@@ -164,6 +223,9 @@ def write_report_outputs(report: Dict[str, Any], output_dir: Path) -> Dict[str, 
         "",
         "## Composite Summary",
         json.dumps(report.get("summary", {}), indent=2),
+        "",
+        "## Negotiation Timeline",
+        _format_process_visualization(report.get("process_visualization", {})),
         "",
         weight_section,
         "",

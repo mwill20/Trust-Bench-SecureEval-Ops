@@ -592,6 +592,318 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             border-radius: 4px;
         }
         
+        .process-visualization {
+            margin: 24px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border: 1px solid #dfe3ff;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.12);
+        }
+        .process-section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .process-section-heading h3 {
+            margin: 0;
+            font-size: 20px;
+            color: #2f3669;
+        }
+        .collaboration-badge {
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(102, 126, 234, 0.12);
+            color: #424a75;
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            box-shadow: 0 2px 6px rgba(118, 75, 162, 0.1);
+        }
+        .consensus-progress {
+            position: relative;
+            padding-bottom: 32px;
+            margin-bottom: 16px;
+        }
+        .progress-track {
+            height: 6px;
+            background: #dfe3ff;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 999px;
+        }
+        .progress-markers {
+            position: absolute;
+            top: -10px;
+            left: 0;
+            right: 0;
+        }
+        .progress-marker {
+            position: absolute;
+            transform: translateX(-50%);
+            text-align: center;
+            min-width: 96px;
+        }
+        .progress-marker .marker-dot {
+            width: 16px;
+            height: 16px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: #f8f9ff;
+            border: 3px solid #667eea;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+        }
+        .progress-marker .marker-label {
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #424a75;
+            line-height: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .progress-marker .marker-label span:last-child {
+            font-weight: 400;
+            color: #5f6692;
+        }
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 16px;
+        }
+        .process-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .round-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .round-card {
+            border: 1px solid #dfe3ff;
+            border-radius: 12px;
+            background: #ffffff;
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .round-card[open] {
+            border-color: #a5b4fc;
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.18);
+        }
+        .round-card summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .round-card summary::-webkit-details-marker {
+            display: none;
+        }
+        .round-card .round-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #667eea;
+            letter-spacing: 0.04em;
+        }
+        .round-card .round-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2f3669;
+        }
+        .round-card .round-summary-text {
+            font-size: 13px;
+            color: #4b5077;
+        }
+        .round-body {
+            padding: 0 18px 16px 18px;
+            border-top: 1px solid #eef1ff;
+            background: #fdfdff;
+        }
+        .round-body ul {
+            margin: 12px 0 0;
+            padding-left: 20px;
+        }
+        .round-body li {
+            font-size: 13px;
+            color: #4b5077;
+            margin-bottom: 6px;
+        }
+        .conflict-panel {
+            border: 1px solid #dfe3ff;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 16px;
+            box-shadow: 0 6px 18px rgba(67, 56, 202, 0.08);
+        }
+        .conflict-panel h4 {
+            margin: 0 0 10px;
+            color: #2f3669;
+            font-size: 16px;
+        }
+        .conflict-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .conflict-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #5f6692;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .conflict-item {
+            border: 1px solid #eef1ff;
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #f8f9ff;
+            font-size: 13px;
+            color: #424a75;
+        }
+        .conflict-item strong {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+        .conflict-item span {
+            display: block;
+            font-size: 12px;
+            color: #5f6692;
+        }
+        .conflict-result {
+            border: 1px solid #ccd2ff;
+            border-radius: 10px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.08));
+            font-size: 13px;
+            color: #2f3669;
+        }
+        .agent-mood-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .agent-mood-card {
+            border: 1px solid #dfe3ff;
+            border-radius: 10px;
+            background: #ffffff;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .agent-mood-card .mood-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+        .agent-mood-card .mood-dot.green {
+            background: #10b981;
+        }
+        .agent-mood-card .mood-dot.yellow {
+            background: #f59e0b;
+        }
+        .agent-mood-card .mood-dot.red {
+            background: #ef4444;
+        }
+        .agent-mood-card .mood-dot.neutral {
+            background: #6366f1;
+        }
+        .agent-mood-card .mood-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .agent-mood-card .mood-copy strong {
+            font-size: 14px;
+            color: #2f3669;
+        }
+        .agent-mood-card .mood-copy span {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .negotiation-stream {
+            border: 1px solid #dfe3ff;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 16px;
+            margin-top: 20px;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.08);
+        }
+        .negotiation-stream h4 {
+            margin: 0 0 12px;
+            color: #2f3669;
+        }
+        .negotiation-bubble {
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            background: #eef2ff;
+        }
+        .negotiation-bubble:last-child {
+            margin-bottom: 0;
+        }
+        .negotiation-bubble.mood-neutral {
+            border-left-color: #667eea;
+            background: #eef2ff;
+        }
+        .negotiation-bubble.mood-green {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .negotiation-bubble.mood-yellow {
+            border-left-color: #f59e0b;
+            background: #fff7ed;
+        }
+        .negotiation-bubble.mood-red {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .negotiation-bubble .bubble-agent {
+            font-weight: 600;
+            color: #1f2440;
+            margin-bottom: 4px;
+        }
+        .negotiation-bubble .bubble-content {
+            font-size: 13px;
+            color: #41476b;
+            line-height: 1.4;
+        }
+        .negotiation-bubble .bubble-recipient {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+        @media (max-width: 920px) {
+            .process-section-heading {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .progress-marker {
+                min-width: 72px;
+            }
+            .collaboration-badge {
+                align-self: flex-start;
+            }
+        }
         /* Phase 3: Advanced Orchestration Styling */
         .orchestration-banner {
             margin: 8px 0;
@@ -1427,6 +1739,245 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 }
             }
 
+            function friendlyAgentName(agentName) {
+                if (!agentName) {
+                    return 'Agent';
+                }
+                const spaced = agentName
+                    .replace(/_/g, ' ')
+                    .replace(/Agent$/, ' Agent')
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+                    .trim();
+                const cleaned = spaced || agentName;
+                return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+            }
+
+            function renderCollaborationBadge(collaboration) {
+                if (!collaboration) {
+                    return '';
+                }
+                const pieces = [];
+                if (typeof collaboration.cross_communications === 'number') {
+                    const count = collaboration.cross_communications;
+                    pieces.push(`${count} cross-agent exchange${count === 1 ? '' : 's'}`);
+                }
+                if (collaboration.notes) {
+                    pieces.push(escapeHtml(collaboration.notes));
+                }
+                if (!pieces.length) {
+                    return '';
+                }
+                return `<div class="collaboration-badge">${pieces.join(' • ')}</div>`;
+            }
+
+            function renderConsensusProgress(rounds) {
+                if (!Array.isArray(rounds) || rounds.length === 0) {
+                    return '';
+                }
+                const percentages = rounds.map((round, idx) => {
+                    const value = Number(round.percentage);
+                    if (!Number.isFinite(value)) {
+                        return Math.round(((idx + 1) / rounds.length) * 100);
+                    }
+                    return Math.min(100, Math.max(0, value));
+                });
+                const fillPercent = Math.min(100, Math.max(...percentages));
+                const markers = rounds.map((round, idx) => {
+                    const percent = percentages[idx];
+                    const label = escapeHtml(round.label || `Round ${idx + 1}`);
+                    const title = escapeHtml(round.title || '');
+                    return `
+                        <div class="progress-marker" style="left: ${percent}%;">
+                            <div class="marker-dot"></div>
+                            <div class="marker-label">${label}<span>${title}</span></div>
+                        </div>
+                    `;
+                }).join('');
+                return `
+                    <div class="consensus-progress">
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: ${fillPercent}%;"></div>
+                        </div>
+                        <div class="progress-markers">
+                            ${markers}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderRoundDetails(rounds) {
+                if (!Array.isArray(rounds) || rounds.length === 0) {
+                    return '';
+                }
+                const cards = rounds.map((round, idx) => {
+                    const label = escapeHtml(round.label || `Round ${idx + 1}`);
+                    const title = escapeHtml(round.title || '');
+                    const summary = escapeHtml(round.summary || '');
+                    const insights = Array.isArray(round.insights) && round.insights.length
+                        ? round.insights.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+                        : '<li>No additional details captured.</li>';
+                    const openAttr = idx === rounds.length - 1 ? ' open' : '';
+                    return `
+                        <details class="round-card"${openAttr}>
+                            <summary>
+                                <span class="round-label">${label}</span>
+                                <span class="round-title">${title}</span>
+                                <span class="round-summary-text">${summary}</span>
+                            </summary>
+                            <div class="round-body">
+                                <ul>${insights}</ul>
+                            </div>
+                        </details>
+                    `;
+                }).join('');
+                return `<div class="round-accordion">${cards}</div>`;
+            }
+
+            function renderAgentMoodGrid(agentMoods) {
+                if (!agentMoods || Object.keys(agentMoods).length === 0) {
+                    return '';
+                }
+                const cards = Object.entries(agentMoods).map(([agentName, payload]) => {
+                    const mood = (payload && payload.mood) || 'neutral';
+                    const confidence = payload && typeof payload.confidence_percent === 'number'
+                        ? payload.confidence_percent
+                        : payload && typeof payload.confidence === 'number'
+                            ? Math.round(payload.confidence * 100)
+                            : 0;
+                    const friendly = friendlyAgentName(agentName);
+                    let moodLabel = 'Neutral';
+                    if (mood === 'green') {
+                        moodLabel = 'Agreement';
+                    } else if (mood === 'yellow') {
+                        moodLabel = 'Negotiating';
+                    } else if (mood === 'red') {
+                        moodLabel = 'Conflict';
+                    }
+                    return `
+                        <div class="agent-mood-card">
+                            <div class="mood-dot ${escapeHtml(mood)}"></div>
+                            <div class="mood-copy">
+                                <strong>${escapeHtml(friendly)}</strong>
+                                <span>${escapeHtml(moodLabel)} • Confidence ${confidence}%</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                return `<div class="agent-mood-grid">${cards}</div>`;
+            }
+
+            function renderConflictPanel(conflict) {
+                if (!conflict || !conflict.initial_positions) {
+                    return '';
+                }
+                const initial = conflict.initial_positions;
+                const initialItems = Object.entries(initial).map(([agentKey, payload]) => {
+                    const friendly = friendlyAgentName(agentKey);
+                    const priority = payload && payload.priority ? escapeHtml(payload.priority) : 'N/A';
+                    const scoreValue = payload && typeof payload.score !== 'undefined'
+                        ? escapeHtml(payload.score)
+                        : 'N/A';
+                    return `
+                        <div class="conflict-item">
+                            <strong>${escapeHtml(friendly)}</strong>
+                            <span>${priority}</span>
+                            <span>Score: ${scoreValue}</span>
+                        </div>
+                    `;
+                }).join('');
+                const consensus = conflict.consensus || {};
+                const consensusPriority = consensus.priority ? escapeHtml(consensus.priority) : 'N/A';
+                const consensusGrade = consensus.grade ? escapeHtml(String(consensus.grade).toUpperCase()) : 'N/A';
+                const consensusScore = typeof consensus.overall_score !== 'undefined'
+                    ? escapeHtml(consensus.overall_score)
+                    : 'N/A';
+                const consensusNotes = consensus.notes ? `<p>${escapeHtml(consensus.notes)}</p>` : '';
+                return `
+                    <div class="conflict-panel">
+                        <h4>Conflict Resolution</h4>
+                        <div class="conflict-columns">
+                            <div>
+                                <span class="conflict-label">Initial Positions</span>
+                                ${initialItems || '<p>No disagreements captured.</p>'}
+                            </div>
+                            <div>
+                                <span class="conflict-label">Negotiated Result</span>
+                                <div class="conflict-result">
+                                    <strong>${consensusPriority}</strong>
+                                    <div>Grade: ${consensusGrade}</div>
+                                    <div>Composite Score: ${consensusScore}</div>
+                                    ${consensusNotes}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderNegotiationDialogue(dialogue) {
+                if (!Array.isArray(dialogue) || dialogue.length === 0) {
+                    return '';
+                }
+                const recent = dialogue.slice(-8);
+                const bubbles = recent.map((entry) => {
+                    const agent = friendlyAgentName(entry.agent);
+                    const content = escapeHtml(entry.content || '');
+                    const recipient = entry.recipient ? escapeHtml(entry.recipient) : '';
+                    const moodClass = entry.mood ? `mood-${escapeHtml(entry.mood)}` : 'mood-neutral';
+                    const recipientLine = recipient ? `<div class="bubble-recipient">→ ${recipient}</div>` : '';
+                    return `
+                        <div class="negotiation-bubble ${moodClass}">
+                            <div class="bubble-agent">${agent}</div>
+                            <div class="bubble-content">${content}</div>
+                            ${recipientLine}
+                        </div>
+                    `;
+                }).join('');
+                return `
+                    <div class="negotiation-stream">
+                        <h4>Live Negotiation Highlights</h4>
+                        ${bubbles}
+                    </div>
+                `;
+            }
+
+            function buildConsensusSection(processVisualization) {
+                if (!processVisualization) {
+                    return '';
+                }
+                const roundsData = Array.isArray(processVisualization.rounds) ? processVisualization.rounds : [];
+                const progress = roundsData.length ? renderConsensusProgress(roundsData) : '';
+                const rounds = roundsData.length ? renderRoundDetails(roundsData) : '';
+                const conflict = renderConflictPanel(processVisualization.conflict_resolution);
+                const moods = renderAgentMoodGrid(processVisualization.agent_moods);
+                const dialogue = renderNegotiationDialogue(processVisualization.dialogue);
+                const collaboration = renderCollaborationBadge(processVisualization.collaboration);
+                const hasContent = progress || rounds || conflict || moods || dialogue;
+                if (!hasContent) {
+                    return '';
+                }
+                const rightColumn = [conflict, moods].filter(Boolean).join('');
+                const gridSections = (rounds || rightColumn)
+                    ? `
+                        <div class="process-grid">
+                            ${rounds ? `<div class="process-col">${rounds}</div>` : ''}
+                            ${rightColumn ? `<div class="process-col">${rightColumn}</div>` : ''}
+                        </div>
+                    `
+                    : '';
+                return `
+                    <section class="process-visualization">
+                        <div class="process-section-heading">
+                            <h3>Consensus Journey</h3>
+                            ${collaboration}
+                        </div>
+                        ${progress}
+                        ${gridSections}
+                        ${dialogue}
+                    </section>
+                `;
+            }
+
             function displayResults(report) {
                 if (!resultsContent) {
                     return;
@@ -1439,6 +1990,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 const summary = report.summary || {};
                 const metrics = report.metrics || {};
                 const agents = report.agents || {};
+                const processVisualization = report.process_visualization || {};
 
                 // Capture individual scores for weight preview
                 const individualScores = summary.individual_scores;
@@ -1510,6 +2062,11 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                             ${perAgentRows ? `<div class="metric-section">${perAgentRows}</div>` : ''}
                         </div>
                     `;
+                }
+
+                const consensusSection = buildConsensusSection(processVisualization);
+                if (consensusSection) {
+                    html += consensusSection;
                 }
 
                 html += '<div class="agent-results">';

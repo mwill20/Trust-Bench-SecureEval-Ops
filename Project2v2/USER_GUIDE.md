@@ -6,7 +6,7 @@ Your multi-agent repository auditor is now set up and ready for exploration! Her
 
 ## 🌐 Option 1: Web Interface (Most User-Friendly)
 
-**Status:** ✅ Running at http://localhost:5000
+**Status:** ✅ Running at http://localhost:5001
 
 **How to use:**
 1. The web interface is already running in your browser
@@ -15,13 +15,14 @@ Your multi-agent repository auditor is now set up and ready for exploration! Her
    - `..` = Parent directory (Trust_Bench_Clean) 
    - `test_repo` = Small test repository
 3. Click "🔍 Analyze Repository"
-4. Watch the agents work together in real-time!
+4. Wait for the analysis to complete
 
 **Features:**
 - Beautiful, modern web UI with intelligent agent routing
-- Real-time agent progress and specialized agent personas
+- Specialized agent personas for different analysis types
 - Color-coded results (excellent/good/fair/needs_attention)
 - Interactive agent conversation logs
+- **Enhanced UI Indicators**: Consensus journey visualization with negotiation timeline and agent mood mapping
 - **Phase 1: Smart Chat Interface**
   - 🛡️ Ask security questions → Routes to Security Agent
   - ⚡ Ask quality questions → Routes to Quality Agent  
@@ -191,13 +192,23 @@ When Phase 3 advanced orchestration activates, you'll see:
 ```
 → Triggers orange "Phase 3 Advanced Orchestration" banner with consensus building
 
+## 🎮 Enhanced UI Features - Consensus Journey Visualization
+
+After analysis completes, explore the new **Consensus Journey** section:
+
+1. **Progress Timeline:** See the complete negotiation process with round-by-round progress markers
+2. **Agent Mood Mapping:** Color-coded badges showing when agents agreed, negotiated, or had conflicts
+3. **Live Negotiation Highlights:** Speech bubbles with actual agent conversations and mood indicators
+4. **Conflict Resolution Panels:** Before/after comparisons showing how disagreements were resolved
+5. **Interactive Rounds:** Click to expand each negotiation round for detailed collaboration insights
+
 ## 🎮 Fun Things to Try - See All Phases in Action
 
-1. **Watch Collaboration Live:** Use the web interface to see agents communicate in real-time progress cards
-2. **Compare Single vs Multi-Agent:** Try "How is security?" vs "Give me comprehensive analysis"
-3. **Test Cross-Agent Intelligence:** Create a file with fake credentials and watch how it impacts all three agents
-4. **Study Conversation Logs:** Read detailed agent-to-agent messages in the final reports
-5. **Analyze Documentation Gaps:** See how missing tests or security docs get caught through collaboration
+1. **Compare Single vs Multi-Agent:** Try "How is security?" vs "Give me comprehensive analysis"
+2. **Test Cross-Agent Intelligence:** Create a file with fake credentials and watch how it impacts all three agents
+3. **Study Conversation Logs:** Read detailed agent-to-agent messages in the final reports
+4. **Analyze Documentation Gaps:** See how missing tests or security docs get caught through collaboration
+5. **Explore Consensus Journey:** Watch how agents negotiate complex trade-offs in the new visualization
 6. **Custom Repository Analysis:** Point it at your own projects and discover collaborative insights
 7. **Multi-Agent Synthesis:** Watch how comprehensive queries generate executive summaries
 8. **Collaboration Metrics:** Check the final summary for collaboration statistics
@@ -211,7 +222,7 @@ When Phase 3 advanced orchestration activates, you'll see:
 
 ## 🔄 Currently Running
 
-- ✅ Web Interface: http://localhost:5000 (active)
+- ✅ Web Interface: http://localhost:5001 (active)
 - ✅ All batch scripts ready to use
 - ✅ Python environment configured
 - ✅ All dependencies installed

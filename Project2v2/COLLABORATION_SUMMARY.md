@@ -81,9 +81,8 @@ graph TD
 ### 1. Web Interface (Recommended)
 ```powershell
 python web_interface.py
-# Visit http://localhost:5000
-# Watch real-time agent progress cards
-# See collaboration descriptions in UI
+# Visit http://localhost:5001
+# View analysis results when complete
 ```
 
 ### 2. Command Line with Detailed Output
@@ -95,9 +94,9 @@ python main.py --repo . --output collaboration_test
 
 ### 3. Look for These Collaboration Indicators:
 
-**In Progress Cards (Web UI):**
+**In Final Results:**
 - "SecurityAgent collaborates by immediately alerting other agents of security findings"
-- "QualityAgent collaborates by adjusting scores based on SecurityAgent findings"
+- "QualityAgent collaborates by adjusting scores based on SecurityAgent findings"  
 - "DocumentationAgent collaborates by using QualityAgent metrics and SecurityAgent alerts"
 
 **In Conversation Logs:**

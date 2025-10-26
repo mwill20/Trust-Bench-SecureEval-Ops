@@ -6,7 +6,7 @@
 1. Open PowerShell in the Project2v2 directory
 2. Run: `python web_interface.py`
 3. Wait for "Ready to analyze repositories!" message
-4. Open http://localhost:5000 in your browser
+4. Open http://localhost:5001 in your browser
 
 ### 🔍 Analyze a Repository
 1. Click **"Analyze Repository"** button

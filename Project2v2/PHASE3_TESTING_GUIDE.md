@@ -14,12 +14,12 @@ python web_interface.py
 **Expected Output:**
 ```
 🎯 Starting Trust Bench Multi-Agent Auditor Web Interface...
-🌐 Open your browser to: http://localhost:5000
+🌐 Open your browser to: http://localhost:5001
 🚀 Ready to analyze repositories!
 ```
 
 ### Step 2: Open Web Interface
-1. Open your browser to: **http://localhost:5000**
+1. Open your browser to: **http://localhost:5001**
 2. You should see the Trust Bench Multi-Agent Auditor interface
 
 ### Step 3: Analyze a Repository
@@ -132,7 +132,7 @@ How is the code quality?
 ## 🎮 Interactive Testing Checklist
 
 ### Pre-Testing Setup
-- [ ] Web server running at localhost:5000
+- [ ] Web server running at localhost:5001
 - [ ] Repository analyzed (test_repo recommended)
 - [ ] Browser ready for testing
 

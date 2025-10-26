@@ -46,3 +46,4 @@ class MultiAgentState(TypedDict, total=False):
     metrics: Dict[str, Any]
     eval_weights: Dict[str, int]
     confidence_scores: Dict[str, float]
+    process_visualization: Dict[str, Any]
