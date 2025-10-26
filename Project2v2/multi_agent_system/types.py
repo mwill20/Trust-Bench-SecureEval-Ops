@@ -23,6 +23,7 @@ class AgentResult(TypedDict, total=False):
     score: float
     summary: str
     details: Dict[str, Any]
+    confidence: float
 
 
 class Message(TypedDict, total=False):
@@ -44,3 +45,4 @@ class MultiAgentState(TypedDict, total=False):
     report: Dict[str, Any]
     metrics: Dict[str, Any]
     eval_weights: Dict[str, int]
+    confidence_scores: Dict[str, float]

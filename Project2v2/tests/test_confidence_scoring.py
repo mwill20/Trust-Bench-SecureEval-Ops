@@ -1,0 +1,217 @@
+#!/usr/bin/env python3
+"""
+Test Agent Confidence Scoring functionality.
+Tests confidence calculation algorithms and UI integration.
+"""
+
+import os
+import sys
+import tempfile
+from pathlib import Path
+
+# Add the parent directory to the path to import modules
+parent_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(parent_dir))
+
+from main import run_workflow
+from multi_agent_system.orchestrator import _calculate_agent_confidence
+from multi_agent_system.types import AgentResult
+
+
+def test_confidence_calculation():
+    """Test the confidence calculation algorithm directly."""
+    print("=== Testing Confidence Calculation Algorithm ===")
+    
+    # Test case 1: High confidence result
+    high_conf_result = {
+        "score": 85.0,
+        "summary": "Comprehensive security analysis found 3 vulnerabilities including SQL injection, XSS, and improper authentication. Detailed recommendations provided for each issue with specific code examples and remediation steps.",
+        "details": {
+            "vulnerabilities": ["sql_injection", "xss", "auth_bypass"],
+            "files_analyzed": 25,
+            "lines_scanned": 1500,
+            "recommendations": ["input_validation", "output_encoding", "auth_framework"],
+            "severity_levels": {"high": 1, "medium": 2, "low": 0}
+        }
+    }
+    
+    high_confidence = _calculate_agent_confidence(high_conf_result)
+    print(f"High confidence result: {high_confidence:.3f} ({int(high_confidence * 100)}%)")
+    assert high_confidence >= 0.7, f"Expected high confidence (>=0.7), got {high_confidence}"
+    
+    # Test case 2: Medium confidence result
+    med_conf_result = {
+        "score": 60.0,
+        "summary": "Basic security scan completed with some findings.",
+        "details": {
+            "basic_scan": True,
+            "issues_found": 2
+        }
+    }
+    
+    med_confidence = _calculate_agent_confidence(med_conf_result)
+    print(f"Medium confidence result: {med_confidence:.3f} ({int(med_confidence * 100)}%)")
+    assert 0.3 <= med_confidence <= 0.8, f"Expected medium confidence (0.3-0.8), got {med_confidence}"
+    
+    # Test case 3: Low confidence result
+    low_conf_result = {
+        "score": 30.0,
+        "summary": "Scan done.",
+        "details": {}
+    }
+    
+    low_confidence = _calculate_agent_confidence(low_conf_result)
+    print(f"Low confidence result: {low_confidence:.3f} ({int(low_confidence * 100)}%)")
+    assert low_confidence <= 0.5, f"Expected low confidence (<=0.5), got {low_confidence}"
+    
+    print("✅ Confidence calculation tests passed!\n")
+
+
+def test_workflow_confidence_integration():
+    """Test that confidence scores are properly calculated and stored in workflow."""
+    print("=== Testing Workflow Confidence Integration ===")
+    
+    # Create a temporary test repository
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_repo = Path(temp_dir)
+        
+        # Create some test files
+        (test_repo / "main.py").write_text("""
+import os
+import sys
+
+def vulnerable_function(user_input):
+    # This is intentionally vulnerable
+    query = f"SELECT * FROM users WHERE name = '{user_input}'"
+    return query
+
+def main():
+    user_data = input("Enter your name: ")
+    result = vulnerable_function(user_data)
+    print(result)
+
+if __name__ == "__main__":
+    main()
+""")
+        
+        (test_repo / "README.md").write_text("""
+# Test Project
+This is a test project for confidence scoring validation.
+
+## Features
+- Basic user input handling
+- Database queries
+- Command line interface
+
+## Security Notes
+This project has intentional vulnerabilities for testing purposes.
+""")
+        
+        (test_repo / "requirements.txt").write_text("flask==2.0.1\nrequests==2.25.1")
+        
+        # Run workflow with default weights
+        print("Running workflow with equal weights...")
+        final_state = run_workflow(test_repo)
+        
+        # Check that confidence scores were calculated
+        confidence_scores = final_state.get("confidence_scores", {})
+        print(f"Confidence scores calculated: {confidence_scores}")
+        
+        # Validate confidence scores exist for each agent
+        expected_agents = ["SecurityAgent", "QualityAgent", "DocumentationAgent"]
+        for agent in expected_agents:
+            assert agent in confidence_scores, f"Missing confidence score for {agent}"
+            confidence = confidence_scores[agent]
+            assert 0.0 <= confidence <= 1.0, f"Invalid confidence range for {agent}: {confidence}"
+            print(f"  - {agent}: {confidence:.3f} ({int(confidence * 100)}%)")
+        
+        # Run workflow with weighted configuration
+        print("\nRunning workflow with security-focused weights...")
+        weighted_state = run_workflow(test_repo, {"security": 60, "quality": 25, "docs": 15})
+        
+        # Check confidence scores are still calculated
+        weighted_confidence = weighted_state.get("confidence_scores", {})
+        print(f"Weighted confidence scores: {weighted_confidence}")
+        
+        for agent in expected_agents:
+            assert agent in weighted_confidence, f"Missing weighted confidence score for {agent}"
+            confidence = weighted_confidence[agent]
+            assert 0.0 <= confidence <= 1.0, f"Invalid weighted confidence range for {agent}: {confidence}"
+            print(f"  - {agent}: {confidence:.3f} ({int(confidence * 100)}%)")
+        
+        print("✅ Workflow confidence integration tests passed!\n")
+
+
+def test_report_confidence_inclusion():
+    """Test that confidence scores are included in generated reports."""
+    print("=== Testing Report Confidence Inclusion ===")
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_repo = Path(temp_dir)
+        output_dir = Path(temp_dir) / "output"
+        
+        # Create minimal test repository
+        (test_repo / "test.py").write_text("print('Hello World')")
+        (test_repo / "README.md").write_text("# Test\nBasic test project.")
+        
+        # Run workflow
+        final_state = run_workflow(test_repo)
+        
+        # Import reporting functions
+        from multi_agent_system.reporting import build_report_payload, write_report_outputs
+        
+        # Build report
+        report = build_report_payload(final_state)
+        
+        # Check confidence scores are in report
+        assert "confidence_scores" in report, "Report missing confidence_scores field"
+        confidence_scores = report["confidence_scores"]
+        
+        print(f"Report confidence scores: {confidence_scores}")
+        
+        # Validate confidence scores format
+        assert isinstance(confidence_scores, dict), "Confidence scores should be a dictionary"
+        for agent_name, confidence in confidence_scores.items():
+            assert isinstance(confidence, float), f"Confidence for {agent_name} should be float"
+            assert 0.0 <= confidence <= 1.0, f"Confidence for {agent_name} out of range: {confidence}"
+        
+        # Write report outputs
+        output_files = write_report_outputs(report, output_dir)
+        
+        # Check that confidence scores appear in markdown output
+        markdown_path = output_files["markdown"]
+        markdown_content = markdown_path.read_text()
+        
+        # Look for confidence indicators in markdown
+        assert "Confidence:" in markdown_content, "Markdown report missing confidence information"
+        
+        # Check for either emoji indicators or text indicators
+        has_emoji = "🟢" in markdown_content or "🟡" in markdown_content or "🔴" in markdown_content
+        has_text = "HIGH" in markdown_content or "MEDIUM" in markdown_content or "LOW" in markdown_content
+        assert has_emoji or has_text, "Missing confidence visual indicators (emoji or text)"
+        
+        print("✅ Report confidence inclusion tests passed!\n")
+
+
+def main():
+    """Run all confidence scoring tests."""
+    print("Running Agent Confidence Scoring Tests...\n")
+    
+    try:
+        test_confidence_calculation()
+        test_workflow_confidence_integration() 
+        test_report_confidence_inclusion()
+        
+        print("🎉 All Agent Confidence Scoring tests passed successfully!")
+        print("Feature is ready for production use!")
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

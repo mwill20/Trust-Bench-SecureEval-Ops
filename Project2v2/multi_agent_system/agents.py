@@ -36,6 +36,7 @@ def _store_agent_result(
         "score": tool_result.score,
         "summary": tool_result.summary,
         "details": tool_result.details,
+        "confidence": 0.0,  # Will be calculated later in orchestrator
     }
     return {"agent_results": results}
 

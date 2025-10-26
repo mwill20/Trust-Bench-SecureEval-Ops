@@ -42,6 +42,14 @@ Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects
 - **📈 Live Score Preview**: Real-time preview of how weight changes affect final evaluation scores
 - **🔧 Flexible Integration**: Works seamlessly through web interface, CLI, and API with backward compatibility
 
+### Phase 5: Agent Confidence Scoring ✅ Complete
+
+- **📊 Confidence Calculations**: Advanced algorithms assess agent confidence based on response completeness, specificity, and score consistency
+- **🎯 Visual Confidence Meters**: Color-coded progress bars (green/yellow/red) display confidence levels for each agent analysis
+- **📋 Confidence Reporting**: Confidence scores included in JSON/Markdown reports with detailed breakdowns and visual indicators
+- **🔍 Smart Recommendations**: System provides insights based on confidence levels to guide users toward more reliable agent outputs
+- **⚡ Real-time Display**: Live confidence updates in web interface alongside analysis results with expandable details
+
 ## Contents
 1. [Overview](#overview)
 2. [Tool Integrations](#tool-integrations)
@@ -252,7 +260,6 @@ The following features are planned for future releases:
 
 ### Immediate Roadmap (High Priority)
 - **Enhanced UI Indicators**: Real-time visual feedback for consensus building process with progress bars and live agent negotiations
-- **Agent Confidence Scoring**: Individual agent confidence levels displayed with visual meters and smart recommendations
 - **Export/Import Results**: Save analysis results to PDF, Excel, JSON formats with import capabilities for team collaboration
 
 ### Future Considerations (Lower Priority)

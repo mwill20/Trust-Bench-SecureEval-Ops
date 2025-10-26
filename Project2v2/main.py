@@ -22,6 +22,7 @@ def _initial_state(repo_root: Path, eval_weights: Dict[str, int] | None = None) 
         "shared_memory": {},
         "messages": [],
         "agent_results": {},
+        "confidence_scores": {},
     }
     if eval_weights:
         state["eval_weights"] = eval_weights

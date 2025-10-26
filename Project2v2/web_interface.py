@@ -415,6 +415,32 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
             border-radius: 10px;
             padding: 14px;
         }
+        .confidence-meter {
+            margin: 12px 0;
+        }
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 6px;
+            color: #555d82;
+        }
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7fb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .confidence-high { background: #28a745; }
+        .confidence-medium { background: #ffc107; }
+        .confidence-low { background: #dc3545; }
         .score {
             font-size: 24px;
             font-weight: 700;
@@ -1487,12 +1513,39 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 }
 
                 html += '<div class="agent-results">';
+                const confidenceScores = report.confidence_scores || {};
+                
                 Object.entries(agents).forEach(([agentName, agentData]) => {
                     const score = typeof agentData.score !== 'undefined' ? agentData.score : 'N/A';
                     const summaryText = agentData.summary || 'No summary available.';
+                    const confidence = confidenceScores[agentName] || 0.0;
+                    const confidencePercent = Math.round(confidence * 100);
+                    
+                    // Determine confidence level and color
+                    let confidenceClass, confidenceIcon;
+                    if (confidence >= 0.8) {
+                        confidenceClass = 'confidence-high';
+                        confidenceIcon = '🟢';
+                    } else if (confidence >= 0.5) {
+                        confidenceClass = 'confidence-medium';
+                        confidenceIcon = '🟡';
+                    } else {
+                        confidenceClass = 'confidence-low';
+                        confidenceIcon = '🔴';
+                    }
+                    
                     html += `<div class="agent-card">
                                 <h3>${escapeHtml(agentName)}</h3>
                                 <p><strong>Score:</strong> ${escapeHtml(score)}</p>
+                                <div class="confidence-meter">
+                                    <div class="confidence-label">
+                                        <span>Confidence ${confidenceIcon}</span>
+                                        <span>${confidencePercent}%</span>
+                                    </div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill ${confidenceClass}" style="width: ${confidencePercent}%"></div>
+                                    </div>
+                                </div>
                                 <p><strong>Summary:</strong> ${escapeHtml(summaryText)}</p>
                              </div>`;
                 });

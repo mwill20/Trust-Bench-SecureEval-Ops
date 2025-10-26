@@ -16,6 +16,7 @@ def build_report_payload(state: MultiAgentState) -> Dict[str, Any]:
     agent_results = state.get("agent_results", {})
     eval_weights = state.get("eval_weights")
     report_summary = state.get("report", {})
+    confidence_scores = state.get("confidence_scores", {})
     
     return {
         "generated_at": timestamp,
@@ -27,7 +28,8 @@ def build_report_payload(state: MultiAgentState) -> Dict[str, Any]:
         "evaluation_weights": eval_weights,
         "calculation_method": report_summary.get("calculation_method", "equal_weight"),
         "individual_scores": report_summary.get("individual_scores", {}),
-        "weights_used": report_summary.get("weights_used", {})
+        "weights_used": report_summary.get("weights_used", {}),
+        "confidence_scores": confidence_scores
     }
 
 
@@ -41,12 +43,32 @@ def _format_conversation(messages: Iterable[Message]) -> str:
     return "\n".join(lines)
 
 
-def _format_agent_section(agent_results: Dict[str, Dict[str, Any]]) -> str:
+def _format_agent_section(agent_results: Dict[str, Dict[str, Any]], confidence_scores: Dict[str, float] = None) -> str:
+    if confidence_scores is None:
+        confidence_scores = {}
+    
     lines = []
     for agent, payload in agent_results.items():
         score = payload.get("score", 0)
+        confidence = confidence_scores.get(agent, 0.0)
         summary = payload.get("summary", "")
-        lines.append(f"### {agent}\n- Score: {score}\n- Summary: {summary}\n")
+        
+        # Format confidence with visual indicator
+        conf_percent = int(confidence * 100)
+        if confidence >= 0.8:
+            conf_indicator = "HIGH"
+            conf_emoji = "🟢"
+        elif confidence >= 0.5:
+            conf_indicator = "MEDIUM" 
+            conf_emoji = "🟡"
+        else:
+            conf_indicator = "LOW"
+            conf_emoji = "🔴"
+        
+        lines.append(f"### {agent}")
+        lines.append(f"- **Score:** {score}")
+        lines.append(f"- **Confidence:** {conf_emoji} {conf_indicator} - {conf_percent}% ({confidence:.3f})")
+        lines.append(f"- **Summary:** {summary}\n")
     return "\n".join(lines)
 
 
@@ -146,7 +168,7 @@ def write_report_outputs(report: Dict[str, Any], output_dir: Path) -> Dict[str, 
         weight_section,
         "",
         "## Agent Findings",
-        _format_agent_section(report.get("agents", {})),
+        _format_agent_section(report.get("agents", {}), report.get("confidence_scores", {})),
         "",
         "## Evaluation Metrics",
         _format_metrics_section(report.get("metrics", {})),

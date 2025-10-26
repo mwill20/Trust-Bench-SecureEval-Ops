@@ -96,6 +96,55 @@ def _collect_detail_tokens(payload: Any, *, tokens: set[str]) -> None:
         tokens.add(str(payload))
 
 
+def _calculate_agent_confidence(agent_result: AgentResult) -> float:
+    """Calculate confidence score for an agent result based on multiple factors."""
+    summary = agent_result.get("summary", "")
+    details = agent_result.get("details", {})
+    score = agent_result.get("score", 0.0)
+    
+    # Factor 1: Response completeness (0.0-0.5)
+    summary_length = len(summary.strip())
+    detail_count = len(str(details))
+    
+    completeness_score = 0.0
+    if summary_length > 100:  # Substantial summary
+        completeness_score += 0.3
+    elif summary_length > 50:  # Moderate summary
+        completeness_score += 0.2
+    elif summary_length > 20:  # Basic summary
+        completeness_score += 0.1
+    
+    if detail_count > 200:  # Rich details
+        completeness_score += 0.2
+    elif detail_count > 50:  # Some details
+        completeness_score += 0.1
+        
+    # Factor 2: Score consistency (0.0-0.3)
+    # Higher scores generally indicate more confident analysis
+    score_confidence = min(0.3, score / 100.0 * 0.3)
+    
+    # Factor 3: Specificity indicators (0.0-0.3)
+    specificity_score = 0.0
+    summary_lower = summary.lower()
+    
+    # Look for specific technical terms and concrete findings
+    specific_terms = ['vulnerability', 'error', 'warning', 'issue', 'recommendation', 
+                     'function', 'class', 'method', 'variable', 'file', 'line', 'test', 'code']
+    specific_count = sum(1 for term in specific_terms if term in summary_lower)
+    specificity_score = min(0.3, specific_count * 0.06)
+    
+    # Base confidence (ensures reasonable minimum)
+    base_confidence = 0.2
+    
+    # Combine all factors
+    confidence = base_confidence + completeness_score + score_confidence + specificity_score
+    
+    # Normalize to 0.0-1.0 range
+    confidence = min(1.0, max(0.15, confidence))  # Ensure minimum 15% confidence
+    
+    return round(confidence, 3)
+
+
 def _faithfulness_score(agent_result: AgentResult) -> float:
     summary = (agent_result.get("summary") or "").lower()
     details = agent_result.get("details") or {}
@@ -119,10 +168,16 @@ def _faithfulness_score(agent_result: AgentResult) -> float:
 def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
     # Get eval_weights from state if available
     eval_weights = state.get("eval_weights")
-    report = _evaluate_agent_outputs(state.get("agent_results", {}), eval_weights)
+    agent_results = state.get("agent_results", {})
+    
+    # Calculate confidence scores for each agent
+    confidence_scores = {}
+    for agent_name, result in agent_results.items():
+        confidence_scores[agent_name] = _calculate_agent_confidence(result)
+    
+    report = _evaluate_agent_outputs(agent_results, eval_weights)
     messages = list(state.get("messages", []))
     shared_memory = state.get("shared_memory", {})
-    agent_results = state.get("agent_results", {})
     
     # Count collaboration interactions
     collaboration_count = sum(1 for msg in messages if msg.get("sender") != "Manager" and msg.get("recipient") != "Manager")
@@ -198,6 +253,7 @@ def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
         "shared_memory": updated_shared_memory,
         "report": report,
         "metrics": metrics,
+        "confidence_scores": confidence_scores,
     }
 
 
