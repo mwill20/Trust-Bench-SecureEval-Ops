@@ -690,6 +690,14 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                     <input type="range" class="metric-slider" id="docs-weight" min="10" max="70" value="34">
                 </div>
                 
+                <div id="weight-preview" style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #007acc;">
+                    <div style="font-weight: 600; color: #2f2f44; margin-bottom: 8px;">Score Preview</div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 6px;">Based on last analysis results:</div>
+                    <div id="score-preview-content">
+                        <div style="color: #999; font-style: italic;">Run an analysis to see weighted score preview</div>
+                    </div>
+                </div>
+                
                 <span class="privacy-note">Agent weights are automatically balanced and affect overall scoring calculations.</span>
             </div>
             <div class="sidebar-section optional">
@@ -964,6 +972,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 });
                 
                 currentEvalWeights[changedAgent] = parseInt(newValue);
+                updateScorePreview();
             }
 
             function setEvalPreset(presetName) {
@@ -984,6 +993,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                         }
                     });
                     currentEvalWeights = { ...preset };
+                    updateScorePreview();
                 }
 
                 // Update active preset button
@@ -996,6 +1006,51 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
             function getEvalWeights() {
                 return { ...currentEvalWeights };
+            }
+
+            // Store last analysis results for preview
+            let lastAnalysisScores = null;
+
+            function updateScorePreview() {
+                const previewContent = document.getElementById('score-preview-content');
+                if (!previewContent || !lastAnalysisScores) return;
+
+                const weights = getEvalWeights();
+                
+                // Calculate weighted score
+                const weightedScore = (
+                    (lastAnalysisScores.security * weights.security) +
+                    (lastAnalysisScores.quality * weights.quality) +
+                    (lastAnalysisScores.docs * weights.docs)
+                ) / 100;
+                
+                // Calculate equal-weight score for comparison
+                const equalScore = (lastAnalysisScores.security + lastAnalysisScores.quality + lastAnalysisScores.docs) / 3;
+                
+                const difference = weightedScore - equalScore;
+                const diffText = difference > 0 ? 
+                    `+${difference.toFixed(1)}` : 
+                    difference.toFixed(1);
+                
+                previewContent.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Weighted Score:</span>
+                        <span style="font-weight: 600;">${weightedScore.toFixed(1)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Equal Weight:</span>
+                        <span>${equalScore.toFixed(1)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: ${difference >= 0 ? '#28a745' : '#dc3545'};">
+                        <span>Difference:</span>
+                        <span>${diffText}</span>
+                    </div>
+                `;
+            }
+
+            function setLastAnalysisScores(scores) {
+                lastAnalysisScores = scores;
+                updateScorePreview();
             }
 
             function getApiKey(provider) {
@@ -1358,6 +1413,16 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
                 const summary = report.summary || {};
                 const metrics = report.metrics || {};
                 const agents = report.agents || {};
+
+                // Capture individual scores for weight preview
+                const individualScores = summary.individual_scores;
+                if (individualScores) {
+                    setLastAnalysisScores({
+                        security: individualScores.security || 0,
+                        quality: individualScores.quality || 0,
+                        docs: individualScores.documentation || 0
+                    });
+                }
 
                 const safeUrl = escapeHtml(repoInfo.url || '#');
                 const safeOwner = escapeHtml(repoInfo.owner || '');

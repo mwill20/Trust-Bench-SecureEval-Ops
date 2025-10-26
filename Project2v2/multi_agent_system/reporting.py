@@ -14,13 +14,20 @@ def build_report_payload(state: MultiAgentState) -> Dict[str, Any]:
     """Normalize the final orchestrator state into a report dictionary."""
     timestamp = datetime.now(timezone.utc).isoformat()
     agent_results = state.get("agent_results", {})
+    eval_weights = state.get("eval_weights")
+    report_summary = state.get("report", {})
+    
     return {
         "generated_at": timestamp,
         "repo_root": str(state.get("repo_root", "")),
-        "summary": state.get("report", {}),
+        "summary": report_summary,
         "agents": agent_results,
         "metrics": state.get("metrics", {}),
         "conversation": list(state.get("messages", [])),
+        "evaluation_weights": eval_weights,
+        "calculation_method": report_summary.get("calculation_method", "equal_weight"),
+        "individual_scores": report_summary.get("individual_scores", {}),
+        "weights_used": report_summary.get("weights_used", {})
     }
 
 
@@ -66,6 +73,57 @@ def _format_metrics_section(metrics: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _format_weight_section(report: Dict[str, Any]) -> str:
+    """Format evaluation weights and scoring method information."""
+    calculation_method = report.get("calculation_method", "equal_weight")
+    individual_scores = report.get("individual_scores", {})
+    weights_used = report.get("weights_used", {})
+    
+    lines = ["## Evaluation Weight Configuration"]
+    
+    if calculation_method == "weighted":
+        lines.append(f"**Scoring Method:** Custom Weighted Average")
+        lines.append("")
+        lines.append("| Agent | Individual Score | Weight | Weighted Contribution |")
+        lines.append("| --- | --- | --- | --- |")
+        
+        for agent_key, score in individual_scores.items():
+            if agent_key == "security":
+                weight = weights_used.get("security", 33)
+                agent_name = "Security Agent"
+            elif agent_key == "quality":
+                weight = weights_used.get("quality", 33) 
+                agent_name = "Quality Agent"
+            elif agent_key == "documentation":
+                weight = weights_used.get("docs", 34)
+                agent_name = "Documentation Agent"
+            else:
+                continue
+                
+            contribution = round((score * weight) / 100, 2)
+            lines.append(f"| {agent_name} | {score} | {weight:.0f}% | {contribution} |")
+            
+    else:
+        lines.append(f"**Scoring Method:** Equal Weight Average (33.33% each agent)")
+        lines.append("")
+        lines.append("| Agent | Individual Score | Weight |")
+        lines.append("| --- | --- | --- |")
+        
+        for agent_key, score in individual_scores.items():
+            if agent_key == "security":
+                agent_name = "Security Agent"
+            elif agent_key == "quality":
+                agent_name = "Quality Agent"
+            elif agent_key == "documentation":
+                agent_name = "Documentation Agent"
+            else:
+                continue
+                
+            lines.append(f"| {agent_name} | {score} | 33.33% |")
+    
+    return "\n".join(lines)
+
+
 def write_report_outputs(report: Dict[str, Any], output_dir: Path) -> Dict[str, Path]:
     """Persist JSON and Markdown versions of the report."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -74,6 +132,9 @@ def write_report_outputs(report: Dict[str, Any], output_dir: Path) -> Dict[str, 
 
     json_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
+    # Format weight configuration section
+    weight_section = _format_weight_section(report)
+    
     markdown = [
         "# Trust Bench Multi-Agent Evaluation Report",
         f"- Generated at: {report.get('generated_at')}",
@@ -81,6 +142,8 @@ def write_report_outputs(report: Dict[str, Any], output_dir: Path) -> Dict[str, 
         "",
         "## Composite Summary",
         json.dumps(report.get("summary", {}), indent=2),
+        "",
+        weight_section,
         "",
         "## Agent Findings",
         _format_agent_section(report.get("agents", {})),

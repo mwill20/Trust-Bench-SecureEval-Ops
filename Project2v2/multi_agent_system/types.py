@@ -43,3 +43,4 @@ class MultiAgentState(TypedDict, total=False):
     agent_results: Dict[str, AgentResult]
     report: Dict[str, Any]
     metrics: Dict[str, Any]
+    eval_weights: Dict[str, int]

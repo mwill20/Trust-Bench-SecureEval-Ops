@@ -35,6 +35,13 @@ Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects
 - **🧠 Advanced Synthesis**: Unified recommendations from complex multi-agent negotiations
 - **📊 Comprehensive Analysis**: Deep, multi-perspective evaluations with consensus metrics
 
+### Phase 4: Custom Agent Weights ✅ Complete
+- **🎛️ Interactive Weight Adjustment**: Real-time sliders for Security, Quality, and Documentation agent importance
+- **⚖️ Weighted Scoring System**: Final evaluation scores calculated using custom agent weightings
+- **📋 Preset Configurations**: Quick-select buttons for Security Focus, Quality Focus, Documentation Focus, and Balanced approaches
+- **📈 Live Score Preview**: Real-time preview of how weight changes affect final evaluation scores
+- **🔧 Flexible Integration**: Works seamlessly through web interface, CLI, and API with backward compatibility
+
 ## Contents
 1. [Overview](#overview)
 2. [Tool Integrations](#tool-integrations)
@@ -236,6 +243,27 @@ Trust_Bench/
 - All detected secrets are synthetic and included solely for demonstration purposes. No real credentials are exposed.
 - `security_utils.py` and the web UI sanitize repository URLs, prompts, and API keys.
 - Optional extras (`ragas`, `semgrep`, `streamlit`) enable deeper analytics and dashboarding when desired.
+
+---
+
+## Future Work & Enhancements
+
+The following features are planned for future releases:
+
+### Immediate Roadmap (High Priority)
+- **Enhanced UI Indicators**: Real-time visual feedback for consensus building process with progress bars and live agent negotiations
+- **Agent Confidence Scoring**: Individual agent confidence levels displayed with visual meters and smart recommendations
+- **Export/Import Results**: Save analysis results to PDF, Excel, JSON formats with import capabilities for team collaboration
+
+### Future Considerations (Lower Priority)
+- **Batch Analysis**: Automated analysis of multiple repositories simultaneously with queue management and comparative dashboards
+  - *Note: This feature requires significant infrastructure (job queuing, background workers, database) and is planned for a later major release*
+
+### Long-term Vision
+- Additional specialized agents (Performance, Accessibility, Compliance)
+- Integration with CI/CD pipelines
+- Real-time repository monitoring
+- Advanced analytics and trending
 
 ---
 

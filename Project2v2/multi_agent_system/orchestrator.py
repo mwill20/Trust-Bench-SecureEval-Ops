@@ -13,17 +13,53 @@ from .policy_tests import run_refusal_tests
 from .types import AgentResult, MultiAgentState
 
 
-def _evaluate_agent_outputs(results: Dict[str, AgentResult]) -> Dict[str, Any]:
+def _evaluate_agent_outputs(results: Dict[str, AgentResult], eval_weights: Dict[str, int] | None = None) -> Dict[str, Any]:
     """Aggregate agent results into a concise evaluation summary."""
     if not results:
         return {
             "overall_score": 0.0,
             "grade": "N/A",
             "notes": "No agent outputs were recorded.",
+            "calculation_method": "none",
         }
 
-    scores = [result.get("score", 0.0) for result in results.values()]
-    overall_score = round(mean(scores), 2)
+    # Extract individual agent scores
+    security_score = results.get("SecurityAgent", {}).get("score", 0.0)
+    quality_score = results.get("QualityAgent", {}).get("score", 0.0) 
+    docs_score = results.get("DocumentationAgent", {}).get("score", 0.0)
+    
+    # Calculate scores with or without weights
+    if eval_weights:
+        # Weighted calculation
+        weights = {
+            "security": eval_weights.get("security", 33),
+            "quality": eval_weights.get("quality", 33), 
+            "docs": eval_weights.get("docs", 34)
+        }
+        
+        # Ensure weights sum to 100 (normalize if needed)
+        total_weight = sum(weights.values())
+        if total_weight != 100:
+            for key in weights:
+                weights[key] = (weights[key] / total_weight) * 100
+        
+        overall_score = round(
+            (security_score * weights["security"] + 
+             quality_score * weights["quality"] + 
+             docs_score * weights["docs"]) / 100, 2
+        )
+        
+        notes = f"Weighted composite: Security({weights['security']:.0f}%), Quality({weights['quality']:.0f}%), Docs({weights['docs']:.0f}%)"
+        calculation_method = "weighted"
+        
+    else:
+        # Standard equal-weight calculation
+        scores = [result.get("score", 0.0) for result in results.values()]
+        overall_score = round(mean(scores), 2)
+        notes = "Equal-weight composite from agent contributions."
+        calculation_method = "equal_weight"
+    
+    # Determine grade based on overall score
     if overall_score >= 85:
         grade = "excellent"
     elif overall_score >= 70:
@@ -36,7 +72,14 @@ def _evaluate_agent_outputs(results: Dict[str, AgentResult]) -> Dict[str, Any]:
     return {
         "overall_score": overall_score,
         "grade": grade,
-        "notes": "Composite built from agent contributions.",
+        "notes": notes,
+        "calculation_method": calculation_method,
+        "individual_scores": {
+            "security": security_score,
+            "quality": quality_score, 
+            "documentation": docs_score
+        },
+        "weights_used": eval_weights if eval_weights else {"security": 33.33, "quality": 33.33, "docs": 33.34}
     }
 
 
@@ -74,7 +117,9 @@ def _faithfulness_score(agent_result: AgentResult) -> float:
 
 
 def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
-    report = _evaluate_agent_outputs(state.get("agent_results", {}))
+    # Get eval_weights from state if available
+    eval_weights = state.get("eval_weights")
+    report = _evaluate_agent_outputs(state.get("agent_results", {}), eval_weights)
     messages = list(state.get("messages", []))
     shared_memory = state.get("shared_memory", {})
     agent_results = state.get("agent_results", {})

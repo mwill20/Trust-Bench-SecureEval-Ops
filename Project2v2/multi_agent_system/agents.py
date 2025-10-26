@@ -91,7 +91,11 @@ def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
             content=f"Task assigned: {task['objective']}",
             data={"tool": task["tool"]},
         )
-    return {"shared_memory": shared_memory, "messages": messages}
+    # Preserve eval_weights from the original state
+    result = {"shared_memory": shared_memory, "messages": messages}
+    if "eval_weights" in state:
+        result["eval_weights"] = state["eval_weights"]
+    return result
 
 
 def security_agent(state: MultiAgentState) -> Dict[str, Any]:
