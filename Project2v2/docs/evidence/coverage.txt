@@ -1,0 +1,38 @@
+﻿Trust Bench SecureEval + Ops - Test Coverage Report
+Generated: October 27, 2025
+Command: pytest --cov=Project2v2.app --cov-report=term-missing
+
+Note: Detailed XML coverage report available at: coverage.xml in repository root
+
+================================================== test session starts ===================================================
+platform win32 -- Python 3.13.5, pytest-8.2.0, pluggy-1.6.0
+collected 11 items                                                                                                        
+
+Project2v2\tests\test_secure_eval.py .....                                                                          [ 45%]
+Project2v2\tests\test_ops_layer.py ...                                                                              [ 72%]
+Project2v2\tests\test_parity.py ...                                                                                 [100%] 
+
+===================================================== tests coverage ===================================================== 
+____________________________________ coverage: platform win32, python 3.13.5-final-0 _____________________________________ 
+
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+Project2v2\app\__init__.py                  4      0   100%
+Project2v2\app\health.py                   10      0   100%
+Project2v2\app\logging.py                  26      2    92%   25, 27
+Project2v2\app\secure_eval.py              33     18    45%   16-25, 29-30, 38, 44-54
+Project2v2\app\security\__init__.py         0      0   100%
+Project2v2\app\security\guardrails.py      28      2    93%   29, 36
+Project2v2\app\security\sandbox.py         19      3    84%   29, 44-45
+Project2v2\app\util_resilience.py          51     11    78%   17, 29, 32-33, 43, 55-58, 66-68
+---------------------------------------------------------------------
+TOTAL                                     171     36    79%
+Coverage XML written to file coverage.xml
+=================================================== 11 passed in 2.55s ===================================================
+
+Summary:
+- All 11 tests passed (5 SecureEval + 3 Ops Layer + 3 Parity)
+- 79% coverage of Project2v2.app package (171 statements, 36 missing)
+- Perfect coverage: __init__.py (100%), health.py (100%), security/__init__.py (100%)
+- Strong coverage: logging.py (92%), guardrails.py (93%) 
+- Detailed coverage.xml available for CI/tooling integration

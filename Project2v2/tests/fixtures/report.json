@@ -1,0 +1,270 @@
+{
+  "generated_at": "2025-10-21T00:36:56.706261+00:00",
+  "repo_root": "C:\\Projects\\Trust_Bench_Clean\\Project2v2",
+  "summary": {
+    "overall_score": 58.88,
+    "grade": "fair",
+    "notes": "Composite built from agent contributions."
+  },
+  "agents": {
+    "SecurityAgent": {
+      "score": 60.0,
+      "summary": "Scanned 33 files and detected 2 potential secret hit(s).",
+      "details": {
+        "matches": [
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\manual_test_output\\report.json",
+            "pattern": "AWS Access Key",
+            "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - H"
+          },
+          {
+            "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+            "pattern": "Private RSA Key",
+            "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+          }
+        ],
+        "scanned": 33
+      }
+    },
+    "QualityAgent": {
+      "score": 21.64,
+      "summary": "Indexed 33 files across 5 language group(s); 1 appear to be tests. (Adjusted for 2 security findings)",
+      "details": {
+        "language_histogram": {
+          "other": 8,
+          "yaml": 1,
+          "markdown": 8,
+          "python": 13,
+          "json": 3
+        },
+        "total_files": 33,
+        "test_files": 1,
+        "test_ratio": 0.03
+      }
+    },
+    "DocumentationAgent": {
+      "score": 95.0,
+      "summary": "Found 2 README file(s) with roughly 891 words and 14 section heading(s). (Adjusted for security gaps)",
+      "details": {
+        "readme_paths": [
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md",
+          "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\READMEV2.md"
+        ],
+        "total_words": 891,
+        "sections": 14,
+        "has_quickstart": false,
+        "has_architecture": true,
+        "collaboration_adjustments": [
+          "Security issues found but not addressed in docs - reduced score by 5"
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "system_latency_seconds": 0.0469,
+    "faithfulness": 0.62,
+    "refusal_accuracy": 1.0,
+    "per_agent_latency": {
+      "SecurityAgent": {
+        "total_seconds": 0.0431,
+        "tool_breakdown": {
+          "run_secret_scan": 0.0431
+        }
+      },
+      "QualityAgent": {
+        "total_seconds": 0.0012,
+        "tool_breakdown": {
+          "analyze_repository_structure": 0.0012
+        }
+      },
+      "DocumentationAgent": {
+        "total_seconds": 0.001,
+        "tool_breakdown": {
+          "evaluate_documentation": 0.0009
+        }
+      }
+    }
+  },
+  "conversation": [
+    {
+      "sender": "Manager",
+      "recipient": "SecurityAgent",
+      "content": "Task assigned: Scan the repository for high-signal secrets or credentials.",
+      "data": {
+        "tool": "secret_scan"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "QualityAgent",
+      "content": "Task assigned: Summarize repository structure and gauge test coverage.",
+      "data": {
+        "tool": "repository_structure"
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "DocumentationAgent",
+      "content": "Task assigned: Review README files and verify documentation depth.",
+      "data": {
+        "tool": "documentation_review"
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "Manager",
+      "content": "Secret scan completed. Risk level: MEDIUM (2 findings).",
+      "data": {
+        "name": "secret_scan",
+        "score": 60.0,
+        "summary": "Scanned 33 files and detected 2 potential secret hit(s).",
+        "details": {
+          "matches": [
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\manual_test_output\\report.json",
+              "pattern": "AWS Access Key",
+              "snippet": "ins `bad_script.sh` with FAKE AWS key: `AKIAEXAMPLE123456789`\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n   - H"
+            },
+            {
+              "file": "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\multi_agent_system\\tools.py",
+              "pattern": "Private RSA Key",
+              "snippet": "a-z-]{10,60}\",\\n    \"Private RSA Key\": r\"-----BEGIN RSA PRIVATE KEY-----[\\s\\S]*?-----END RSA PRIVATE KEY-----\",\\n}\\n\\n\\nEXCLUDED_DIRS = {\\n    \".git\",\\n   "
+            }
+          ],
+          "scanned": 33
+        }
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "QualityAgent",
+      "content": "FYI: Found 2 security issues that may impact quality assessment.",
+      "data": {
+        "security_context": {
+          "findings_count": 2,
+          "risk_level": "medium"
+        }
+      }
+    },
+    {
+      "sender": "SecurityAgent",
+      "recipient": "DocumentationAgent",
+      "content": "Alert: 2 security findings detected - please check if docs address security practices.",
+      "data": {
+        "security_alert": {
+          "findings_count": 2,
+          "risk_level": "medium"
+        }
+      }
+    },
+    {
+      "sender": "QualityAgent",
+      "recipient": "SecurityAgent",
+      "content": "Incorporated your 2 security findings into quality assessment.",
+      "data": {
+        "security_penalty": 10
+      }
+    },
+    {
+      "sender": "QualityAgent",
+      "recipient": "Manager",
+      "content": "Repository structure summarized. Adjusted quality score down by 10 points due to 2 security finding(s) from SecurityAgent.",
+      "data": {
+        "name": "repository_structure",
+        "score": 21.64,
+        "summary": "Indexed 33 files across 5 language group(s); 1 appear to be tests. (Adjusted for 2 security findings)",
+        "details": {
+          "language_histogram": {
+            "other": 8,
+            "yaml": 1,
+            "markdown": 8,
+            "python": 13,
+            "json": 3
+          },
+          "total_files": 33,
+          "test_files": 1,
+          "test_ratio": 0.03
+        }
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "QualityAgent",
+      "content": "Used your metrics (files: 33, test ratio: 3.0%) to enhance documentation assessment.",
+      "data": {
+        "collaboration": "quality_metrics_integration"
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "SecurityAgent",
+      "content": "Noted your 2 findings - documentation lacks security guidance.",
+      "data": {
+        "security_doc_gap": true
+      }
+    },
+    {
+      "sender": "DocumentationAgent",
+      "recipient": "Manager",
+      "content": "Documentation review finished. Security issues found but not addressed in docs - reduced score by 5",
+      "data": {
+        "name": "documentation_review",
+        "score": 95.0,
+        "summary": "Found 2 README file(s) with roughly 891 words and 14 section heading(s). (Adjusted for security gaps)",
+        "details": {
+          "readme_paths": [
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\README.md",
+            "C:\\Projects\\Trust_Bench_Clean\\Project2v2\\READMEV2.md"
+          ],
+          "total_words": 891,
+          "sections": 14,
+          "has_quickstart": false,
+          "has_architecture": true
+        }
+      }
+    },
+    {
+      "sender": "Manager",
+      "recipient": "All Agents",
+      "content": "Evaluation complete. Grade: FAIR (58.88 pts). Agents collaborated on 5 cross-communications. Collaborative adjustments: Security findings influenced quality and documentation scores; Quality assessment incorporated security analysis; Documentation score adjusted based on quality metrics.",
+      "data": {
+        "overall_score": 58.88,
+        "grade": "fair",
+        "notes": "Composite built from agent contributions.",
+        "collaboration_metrics": {
+          "interactions": 5,
+          "adjustments": [
+            "Security findings influenced quality and documentation scores",
+            "Quality assessment incorporated security analysis",
+            "Documentation score adjusted based on quality metrics"
+          ]
+        },
+        "metrics": {
+          "system_latency_seconds": 0.0469,
+          "faithfulness": 0.62,
+          "refusal_accuracy": 1.0,
+          "per_agent_latency": {
+            "SecurityAgent": {
+              "total_seconds": 0.0431,
+              "tool_breakdown": {
+                "run_secret_scan": 0.0431
+              }
+            },
+            "QualityAgent": {
+              "total_seconds": 0.0012,
+              "tool_breakdown": {
+                "analyze_repository_structure": 0.0012
+              }
+            },
+            "DocumentationAgent": {
+              "total_seconds": 0.001,
+              "tool_breakdown": {
+                "evaluate_documentation": 0.0009
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

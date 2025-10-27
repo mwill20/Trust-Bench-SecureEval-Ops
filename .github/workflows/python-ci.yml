@@ -1,0 +1,42 @@
+﻿name: python-ci
+
+on:
+  push:
+    branches: [ main, module3-secure-eval ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest pytest-cov pip-audit
+
+      - name: Security audit (non-blocking)
+        run: pip-audit || true
+
+      - name: Run tests with coverage
+        run: pytest Project2v2/tests/test_secure_eval.py Project2v2/tests/test_ops_layer.py Project2v2/tests/test_parity.py --maxfail=1 --disable-warnings --cov=Project2v2.app --cov-report=xml
+
+      - name: Run repository validator
+        run: python Project2v2/ops/validate_repo.py
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml

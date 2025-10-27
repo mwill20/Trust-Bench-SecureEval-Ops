@@ -13,6 +13,7 @@ from multi_agent_system import (
     build_report_payload,
     write_report_outputs,
 )
+from app.secure_eval import run_workflow_secure
 from multi_agent_system.types import MultiAgentState
 
 
@@ -72,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[error] Invalid JSON for eval-weights: {e}")
             return 1
 
-    final_state = run_workflow(repo_root, eval_weights)
+    final_state = run_workflow_secure(repo_root, eval_weights)
     report = build_report_payload(final_state)
     outputs = write_report_outputs(report, args.output.resolve())
 

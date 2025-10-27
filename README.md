@@ -1,7 +1,7 @@
-<!-- LKG SHA (preclean): 143d89d4496f8500c38024ec794dae7b20cf522a -->
+﻿<!-- LKG SHA (preclean): 143d89d4496f8500c38024ec794dae7b20cf522a -->
 <p align="center">
   <img src="Project2v2/assets/images/TrustBench.png" alt="Trust Bench logo" width="200" />
-</p>
+[![CI](https://github.com/mwill20/Trust-Bench-SecureEval-Ops/actions/workflows/python-ci.yml/badge.svg)](https://github.com/mwill20/Trust-Bench-SecureEval-Ops/actions/workflows/python-ci.yml) [![Coverage](https://img.shields.io/badge/coverage-79%25-brightgreen.svg)](docs/evidence/coverage.txt)
 
 # Trust Bench - Multi-Agent Security Evaluation Framework [![Version](https://img.shields.io/badge/version-Project2v2-blue)](#) [![Watch the demo](https://img.shields.io/badge/watch%20the%20demo-%F0%9F%8E%A5-ff5722)](https://1drv.ms/v/c/2c8c41c39e8a63cb/EQil7I1iewdEuzPdQGBqVOYBHaRg9tBcyogZvmKUXKFLyw?e=8Dl8P5)
 
@@ -12,19 +12,34 @@ Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects
 ## 🚀 Latest Features
 
 ### Phase 1: Intelligent Agent Routing ✅ Complete
+### Phase 2: Ops Layer ✅ Complete
+- **🧾 Structured Logging**: JSON-formatted logs with run IDs via `Project2v2/app/logging.py`
+- **🩺 Health Probes**: `/healthz` and `/readyz` FastAPI routes in `Project2v2/app/health.py`
+- **🔍 Observability Tests**: `pytest Project2v2/tests/test_ops_layer.py` for log formatting & health endpoints
+- **📊 Documentation Updates**: OPERATIONS.md logging/health guidance, SECURITY.md redaction policy
+- **📈 CI Evidence**: Coverage + validator hooks ready for pipeline integration
+### Phase 0: Parity Lock-In ✅ Complete
+- **🧪 Golden Fixtures**: Canonical `report.json`, `report.md`, and `bundle.zip` locked in `tests/fixtures/`
+- **🛡️ Parity Tests**: `pytest Project2v2/tests/test_parity.py` verifies JSON structure, markdown digest, and bundle contents
+- **📦 Artifact Freeze**: `Project2v2/output/` mirrors fixtures to guarantee identical observable behavior for future phases
+- **📓 Documentation Hooks**: `OPERATIONS.md` and `SECURITY.md` populated with Phase 0 baselines to evolve alongside new features
 - **🛡️ Security Agent**: Specialized vulnerability assessment and risk analysis
 - **⚡ Quality Agent**: Code quality improvements and best practices guidance  
 - **📚 Documentation Agent**: Documentation generation and improvement suggestions
 - **🎯 Orchestrator Agent**: General queries, project overview, and multi-agent coordination
 - **Smart Routing**: LLM-powered question classification with confidence scoring
-- **Enhanced UI**: Agent personas, visual indicators, and contextual responses
 
+### Phase 1: SecureEval Layer ✅ Complete
+- **🛡️ Input Guardrails**: Pydantic validation via `Project2v2/app/security/guardrails.py`
+- **🔒 Sandbox Execution**: Allowlisted subprocess wrapper (`safe_run`) preventing arbitrary shell usage
+- **♻️ Resilience Decorators**: Retry with exponential backoff + cross-platform timeout wrappers
+- **🧪 Safety Tests**: `pytest Project2v2/tests/test_secure_eval.py` covering validation, sandboxing, and resilience paths
+- **📘 Documentation**: SECURITY.md / OPERATIONS.md updated with Phase 1 safeguards and resilience defaults
 ### Phase 2: Multi-Agent Consultation ✅ Complete
 - **🔄 Collaborative Analysis**: Complex queries automatically trigger multiple agents
 - **🎯 Multi-Agent Detection**: System identifies when specialist consultation is needed
 - **📋 Executive Synthesis**: Comprehensive responses combining insights from all relevant agents
 - **🤝 Cross-Domain Queries**: Handle requests spanning security, quality, and documentation
-- **Visual Collaboration**: UI indicators show when agents are working together
 - **Intelligent Orchestration**: Seamless coordination between specialist agents
 
 ### Phase 3: Advanced Orchestration ✅ Complete
@@ -43,12 +58,27 @@ Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects
 - **🔧 Flexible Integration**: Works seamlessly through web interface, CLI, and API with backward compatibility
 
 ### Phase 5: Agent Confidence Scoring ✅ Complete
-
 - **📊 Confidence Calculations**: Advanced algorithms assess agent confidence based on response completeness, specificity, and score consistency
 - **🎯 Visual Confidence Meters**: Color-coded progress bars (green/yellow/red) display confidence levels for each agent analysis
 - **📋 Confidence Reporting**: Confidence scores included in JSON/Markdown reports with detailed breakdowns and visual indicators
 - **🔍 Smart Recommendations**: System provides insights based on confidence levels to guide users toward more reliable agent outputs
 - **⚡ Real-time Display**: Live confidence updates in web interface alongside analysis results with expandable details
+
+### Phase 6: Enhanced UI Indicators ✅ Complete
+- **🎯 Consensus Journey Visualization**: Complete timeline of agent negotiations with progress markers and round-by-round analysis
+- **💬 Live Negotiation Highlights**: Speech bubbles showing actual agent conversations with mood indicators (green/yellow/red)
+- **⚔️ Visual Conflict Resolution**: Before/after comparison panels displaying initial disagreements vs final negotiated results
+- **🔄 Interactive Process Steps**: Expandable accordion cards for each negotiation round with detailed collaboration insights
+- **📊 Agent Mood Mapping**: Real-time mood badges showing agreement, negotiation, and conflict states during consensus building
+- **🎭 Authentic Agent Data**: All visualizations use genuine agent conversations and collaboration data, not simulated content
+
+### Phase 7: Enhanced Export Features ✅ Complete
+- **📦 Complete Analysis Bundles**: ZIP downloads containing JSON reports, Markdown summaries, and chat transcripts in one package
+- **💬 Chat Export/Import**: Save and restore conversation histories with agent routing decisions and confidence scores
+- **🔄 Session Continuity**: Import previous conversations to continue analysis or share findings with team members
+- **📊 Multiple Download Options**: Individual JSON/Markdown reports (legacy) plus new enhanced bundles with chat data
+- **🕐 Timestamped Archives**: UTC timestamps and metadata preservation for audit trails and team collaboration
+- **🛡️ Secure File Handling**: Safe path validation and proper encoding for cross-platform compatibility
 
 ## Contents
 1. [Overview](#overview)
@@ -62,7 +92,8 @@ Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects
 9. [MCP Server (Scope Decision)](#mcp-server-scope-decision)
 10. [File Structure (trimmed)](#file-structure-trimmed)
 11. [Security & Hardening Notes](#security--hardening-notes)
-12. [Credits & References](#credits--references)
+12. [Documentation Roadmap & Evidence](#documentation-roadmap--evidence)
+13. [Credits & References](#credits--references)
 
 ---
 
@@ -128,7 +159,7 @@ Environment variables (for web UI / LLM chat):
 ```powershell
 cd Project2v2
 python web_interface.py
-# browse to http://localhost:5000
+# browse to http://localhost:5001
 ```
 
 The web interface now features **intelligent agent routing** that automatically directs your questions to the most appropriate specialist agent. Ask security questions, request code quality improvements, or seek documentation help - the system will route to the right expert and provide contextual responses with visual agent indicators.
@@ -258,10 +289,6 @@ Trust_Bench/
 
 The following features are planned for future releases:
 
-### Immediate Roadmap (High Priority)
-- **Enhanced UI Indicators**: Real-time visual feedback for consensus building process with progress bars and live agent negotiations
-- **Export/Import Results**: Save analysis results to PDF, Excel, JSON formats with import capabilities for team collaboration
-
 ### Future Considerations (Lower Priority)
 - **Batch Analysis**: Automated analysis of multiple repositories simultaneously with queue management and comparative dashboards
   - *Note: This feature requires significant infrastructure (job queuing, background workers, database) and is planned for a later major release*
@@ -274,6 +301,32 @@ The following features are planned for future releases:
 
 ---
 
+## Documentation Roadmap & Evidence
+
+To satisfy Project 3 publication requirements, the repository ships with dedicated documentation artifacts. Keep these synchronized with feature development:
+
+| Document | Purpose | Status / Next Action |
+| --- | --- | --- |
+| [`README.md`](README.md) | Executive summary, architecture overview, quickstart, CI/coverage references | ✅ Actively maintained |
+| [`OPERATIONS.md`](Project2v2/OPERATIONS.md) | Operational excellence rubric (start/stop/health, logging, resilience, monitoring) | 📝 Skeleton ready – fill details as services evolve |
+| [`SECURITY.md`](Project2v2/SECURITY.md) | Security & safety rubric (input validation, guardrails, sandbox, SOC 2-lite map) | 📝 Skeleton ready – update per guardrail implementation |
+| [`USER_GUIDE.md`](Project2v2/USER_GUIDE.md) | End-user walkthrough + context | ✅ Append “Production Enhancements” notes when Phase 0 work lands |
+| `docs/evidence/` (optional) | Test/coverage screenshots, CI logs for publication attachments | 🔄 Create as artifacts are generated |
+
+**Working agreement:**  
+- Phase 0 (“Parity Lock-In”) adds test coverage notes under README → Testing & CI Summary, and populates the open TODOs in `OPERATIONS.md` / `SECURITY.md`.  
+- Each subsequent phase should update the relevant section(s) before closing the task to avoid drift.
+
+---
+
+## Production Enhancements (Module 3)
+
+Phase 3 and 4 harden the system for publication while preserving identical UX:
+
+- CI gate (`python-ci` workflow) runs tests, coverage, security audit, and rubric validator on every PR.
+- Structured JSON logs, health probes, and resilience settings documented in [OPERATIONS.md](Project2v2/OPERATIONS.md).
+- Security controls (input validation, sandbox, redaction, SOC 2-lite mapping) captured in [SECURITY.md](Project2v2/SECURITY.md).
+- Evidence bundle placeholders live under [Project2v2/docs/evidence/](Project2v2/docs/evidence/) for publishing artifacts (CI proof, screenshots, coverage report).
 ## Credits & References
 
 - Ready Tensor AI Agent Course - Module 2 (Multi-Agent Evaluation)  

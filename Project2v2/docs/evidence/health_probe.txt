@@ -1,0 +1,8 @@
+﻿# Health Endpoint Probe Results
+
+Generated on: October 27, 2025
+
+GET /healthz -> {'status': 'ok'}
+GET /readyz -> {'ready': True}
+
+Both health endpoints are responding correctly with expected JSON payloads.

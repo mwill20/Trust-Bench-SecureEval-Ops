@@ -1,0 +1,19 @@
+﻿# UI Screenshot Evidence
+
+**Web Interface**: Trust-Bench SecureEval-Ops Web UI
+**Access URL**: http://localhost:5001 (when server running)
+**Main Features**: 
+- Security audit form with provider selection
+- Real-time analysis results display
+- Multi-agent orchestration interface
+- Health check endpoints (/healthz, /readyz)
+
+**Screenshot Note**: 
+Screenshot of web interface available upon server startup.
+To capture: Start server with `python web_interface.py` and navigate to localhost:5001
+
+**UI Components Tested**:
+- Form submission handling
+- Provider dropdown (OpenAI, Anthropic, Local)
+- Response display areas
+- Error handling interface
