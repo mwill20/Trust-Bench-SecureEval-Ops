@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## v3.0-module3 (October 27, 2025) - Commit: 57012a3
+## v3.0-module3 (October 27, 2025) - Tag: v3.0-module3 - Commit: aefad58
 
 **SecureEval + Ops integration (validation, sandboxing, resilience, structured logging, health probes, CI pipeline).**
 
@@ -14,6 +14,7 @@
 ### Technical Achievements
 - **Repository Validator**: 100% scores across docs, tests, automation categories
 - **Test Coverage**: 79% ops package coverage (11/11 tests passing, focused scope on Project2v2.app)
+- **CI/CD Pipeline**: GitHub Actions with green check validation - Run 18850725946
 - **Documentation**: Complete OPERATIONS.md and SECURITY.md with real implementation details
 - **Evidence Bundle**: Populated with actual artifacts (coverage reports, health probes, JSON logs, CI workflow)
 - **Parity Maintained**: No user-facing UX changes, identical observable behavior preserved
