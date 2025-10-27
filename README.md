@@ -11,8 +11,8 @@
   <a href="docs/evidence/coverage.txt">
     <img src="https://img.shields.io/badge/coverage-79%25-brightgreen.svg" alt="Test Coverage" />
   </a>
-  <a href="https://app.readytensor.ai/publications/trust-bench-multi-agent-security-evaluation-framework-F6PS953ZZuo5">
-    <img src="https://img.shields.io/badge/📖_Publication-ReadyTensor-blue" alt="Official Publication" />
+  <a href="https://app.readytensor.ai/publications/trust-bench-secureeval-ops-v30-production-grade-multi-agent-security-evaluation-framework-Gj5sQtaeBnZH">
+    <img src="https://img.shields.io/badge/📖_Publication-ReadyTensor_v3.0-blue" alt="Official Publication v3.0" />
   </a>
 </p>
 
