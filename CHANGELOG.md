@@ -1,6 +1,7 @@
 ﻿# Changelog
 
-## v3.0-module3 (October 27, 2025)
+## v3.0-module3 (October 27, 2025) - Commit: 57012a3
+
 **SecureEval + Ops integration (validation, sandboxing, resilience, structured logging, health probes, CI pipeline).**
 
 ### New Features
