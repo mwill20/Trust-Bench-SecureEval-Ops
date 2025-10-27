@@ -1,11 +1,30 @@
-﻿<!-- LKG SHA (preclean): 143d89d4496f8500c38024ec794dae7b20cf522a -->
+﻿<!-- LKG SHA (production): 079c633 -->
+
+<div align="center">
+  <img src="Project2v2/assets/images/TrustBench-SecureEval-Ops-Logo.png" alt="Trust Bench - SecureEval + Ops" width="400" />
+  <br/>
+  <h1>🔒 Multi-Agent Security Evaluation Framework</h1>
+</div>
+
 <p align="center">
-  <img src="Project2v2/assets/images/TrustBench.png" alt="Trust Bench logo" width="200" />
-[![CI](https://github.com/mwill20/Trust-Bench-SecureEval-Ops/actions/workflows/python-ci.yml/badge.svg)](https://github.com/mwill20/Trust-Bench-SecureEval-Ops/actions/workflows/python-ci.yml) [![Coverage](https://img.shields.io/badge/coverage-79%25-brightgreen.svg)](docs/evidence/coverage.txt)
+  <a href="https://github.com/mwill20/Trust-Bench-SecureEval-Ops/actions/workflows/python-ci.yml">
+    <img src="https://github.com/mwill20/Trust-Bench-SecureEval-Ops/actions/workflows/python-ci.yml/badge.svg" alt="CI Pipeline" />
+  </a>
+  <a href="docs/evidence/coverage.txt">
+    <img src="https://img.shields.io/badge/coverage-79%25-brightgreen.svg" alt="Test Coverage" />
+  </a>
+  <a href="https://app.readytensor.ai/publications/trust-bench-multi-agent-security-evaluation-framework-F6PS953ZZuo5">
+    <img src="https://img.shields.io/badge/📖_Publication-ReadyTensor-blue" alt="Official Publication" />
+  </a>
+</p>
 
-# Trust Bench - Multi-Agent Security Evaluation Framework [![Version](https://img.shields.io/badge/version-Project2v2-blue)](#) [![Watch the demo](https://img.shields.io/badge/watch%20the%20demo-%F0%9F%8E%A5-ff5722)](https://1drv.ms/v/c/2c8c41c39e8a63cb/EQil7I1iewdEuzPdQGBqVOYBHaRg9tBcyogZvmKUXKFLyw?e=8Dl8P5)
-
-**Official Publication:** [Trust Bench: Multi-Agent Security Evaluation Framework](https://app.readytensor.ai/publications/trust-bench-multi-agent-security-evaluation-framework-F6PS953ZZuo5)
+<p align="center">
+  <a href="https://1drv.ms/v/c/2c8c41c39e8a63cb/EQil7I1iewdEuzPdQGBqVOYBHaRg9tBcyogZvmKUXKFLyw?e=8Dl8P5">
+    <img src="https://img.shields.io/badge/🎥_Watch_Demo-OneDrive-red" alt="Demo Video" />
+  </a>
+  <img src="https://img.shields.io/badge/version-v3.0--final-blue" alt="Version" />
+  <img src="https://img.shields.io/badge/status-Production_Ready-green" alt="Status" />
+</p>
 
 Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects software repositories for security leakage, code quality gaps, and documentation health. The system features intelligent agent routing with specialized personas, cross-agent collaboration, transparent reasoning, and reproducible outputs that graders can run entirely offline.
 
