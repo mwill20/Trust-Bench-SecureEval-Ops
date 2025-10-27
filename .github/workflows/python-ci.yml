@@ -22,17 +22,21 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r Project2v2/requirements-phase1.txt
           pip install pytest pytest-cov pip-audit
 
       - name: Security audit (non-blocking)
         run: pip-audit || true
 
       - name: Run tests with coverage
-        run: pytest Project2v2/tests/test_secure_eval.py Project2v2/tests/test_ops_layer.py Project2v2/tests/test_parity.py --maxfail=1 --disable-warnings --cov=Project2v2.app --cov-report=xml
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:."
+          pytest Project2v2/tests/test_secure_eval.py Project2v2/tests/test_ops_layer.py Project2v2/tests/test_parity.py --maxfail=1 --disable-warnings --cov=Project2v2.app --cov-report=xml
 
       - name: Run repository validator
-        run: python Project2v2/ops/validate_repo.py
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:."
+          python Project2v2/ops/validate_repo.py
 
       - name: Upload coverage artifact
         if: always()
