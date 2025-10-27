@@ -1,0 +1,25 @@
+Trust Bench v3.0 Demo Video
+==========================
+
+Demo Link: https://1drv.ms/v/c/2c8c41c39e8a63cb/ESYtX-fABvxAiHpMaXF7EpoBE9IqpsSJRF9m9_Sisyapkg?e=u4sjhv
+
+Duration: 1 minute 45 seconds
+Platform: OneDrive (MP4)
+Created: October 27, 2025
+
+Content Overview:
+- Trust Bench SecureEval + Ops v3.0 demonstration
+- Multi-agent security evaluation in action
+- Production-ready UI with enhanced features
+- Security guardrails and resilience patterns
+- Structured logging and health probes
+- Complete Phase 3 & 4 implementation showcase
+
+Usage Notes:
+- Link opens OneDrive and plays MP4 directly in browser
+- Compatible with GitHub, Ready Tensor, and email
+- Opens in new tab for seamless viewing experience
+- No download required, streams directly
+
+Caption for Publications:
+"A short walkthrough showing Trust Bench SecureEval + Ops v3.0 in action — identical UI, enhanced with security guardrails, resilience, structured logs, and health probes."

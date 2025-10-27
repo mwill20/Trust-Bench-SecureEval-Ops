@@ -19,12 +19,15 @@
 # Trust Bench - Multi-Agent Security Evaluation Framework
 
 <p align="center">
-  <a href="https://1drv.ms/v/c/2c8c41c39e8a63cb/EQil7I1iewdEuzPdQGBqVOYBHaRg9tBcyogZvmKUXKFLyw?e=8Dl8P5">
-    <img src="https://img.shields.io/badge/🎥_Watch_Demo-OneDrive-red" alt="Demo Video" />
-  </a>
   <img src="https://img.shields.io/badge/version-v3.0--final-blue" alt="Version" />
   <img src="https://img.shields.io/badge/status-Production_Ready-green" alt="Status" />
 </p>
+
+### 🎥 Demo Video
+Watch the full Trust Bench SecureEval + Ops demo here:  
+👉 [Trust Bench v3.0 Demo (1 min 45 s)](https://1drv.ms/v/c/2c8c41c39e8a63cb/ESYtX-fABvxAiHpMaXF7EpoBE9IqpsSJRF9m9_Sisyapkg?e=u4sjhv)
+
+*A short walkthrough showing Trust Bench SecureEval + Ops v3.0 in action — identical UI, enhanced with security guardrails, resilience, structured logs, and health probes.*
 
 Trust Bench (Project2v2) is a LangGraph-based multi-agent workflow that inspects software repositories for security leakage, code quality gaps, and documentation health. The system features intelligent agent routing with specialized personas, cross-agent collaboration, transparent reasoning, and reproducible outputs that graders can run entirely offline.
 
