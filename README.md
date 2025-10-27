@@ -1,9 +1,7 @@
 ﻿<!-- LKG SHA (production): 079c633 -->
 
 <div align="center">
-  <img src="Project2v2/assets/images/TrustBench-SecureEval-Ops-Logo.png" alt="Trust Bench - SecureEval + Ops" width="400" />
-  <br/>
-  <h1>🔒 Multi-Agent Security Evaluation Framework</h1>
+  <img src="Project2v2/assets/images/TrustBench.png" alt="Trust Bench" width="300" />
 </div>
 
 <p align="center">
@@ -17,6 +15,8 @@
     <img src="https://img.shields.io/badge/📖_Publication-ReadyTensor-blue" alt="Official Publication" />
   </a>
 </p>
+
+# Trust Bench - Multi-Agent Security Evaluation Framework
 
 <p align="center">
   <a href="https://1drv.ms/v/c/2c8c41c39e8a63cb/EQil7I1iewdEuzPdQGBqVOYBHaRg9tBcyogZvmKUXKFLyw?e=8Dl8P5">
