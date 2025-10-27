@@ -23,6 +23,14 @@
   <img src="https://img.shields.io/badge/status-Production_Ready-green" alt="Status" />
 </p>
 
+## 🏗️ Architecture Overview
+
+<div align="center">
+  <img src="Project2v2/docs/evidence/architecture_v3.png" alt="Trust Bench SecureEval + Ops v3.0 Architecture" width="600" />
+  <br/>
+  <em>Trust Bench v3.0 Architecture: SecureEval envelope with Ops & Observability layer</em>
+</div>
+
 ### 🎥 Demo Video
 Watch the full Trust Bench SecureEval + Ops demo here:  
 👉 [Trust Bench v3.0 Demo (1 min 45 s)](https://1drv.ms/v/c/2c8c41c39e8a63cb/ESYtX-fABvxAiHpMaXF7EpoBE9IqpsSJRF9m9_Sisyapkg?e=u4sjhv)
