@@ -1,4 +1,4 @@
-﻿<!-- LKG SHA (production): 079c633 -->
+﻿<!-- LKG SHA (production): 7a6251b -->
 
 <div align="center">
   <img src="Project2v2/assets/images/TrustBench.png" alt="Trust Bench" width="300" />
