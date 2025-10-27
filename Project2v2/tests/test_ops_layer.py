@@ -9,8 +9,8 @@ from typing import Iterable
 import pytest
 from fastapi.testclient import TestClient
 
-from Project2v2.app.health import router
-from Project2v2.app.logging import configure_logging
+from app.health import router
+from app.logging import configure_logging
 
 
 @pytest.fixture

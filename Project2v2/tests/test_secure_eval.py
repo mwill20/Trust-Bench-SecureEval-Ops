@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from Project2v2.app.security.guardrails import SAFE_OUTPUT_MAXLEN, clamp_output, validate_repo_input
-from Project2v2.app.security.sandbox import safe_run
-from Project2v2.app.util_resilience import retry, with_timeout
+from app.security.guardrails import SAFE_OUTPUT_MAXLEN, clamp_output, validate_repo_input
+from app.security.sandbox import safe_run
+from app.util_resilience import retry, with_timeout
 
 
 def test_validate_repo_input_accepts_url_and_path():

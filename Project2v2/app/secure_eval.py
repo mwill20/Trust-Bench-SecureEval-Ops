@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from Project2v2.app.security.guardrails import clamp_output, validate_repo_input
-from Project2v2.app.security.sandbox import safe_run
-from Project2v2.app.util_resilience import retry, with_timeout
-from Project2v2.multi_agent_system import build_orchestrator
-from Project2v2.multi_agent_system.types import MultiAgentState
+from app.security.guardrails import clamp_output, validate_repo_input
+from app.security.sandbox import safe_run
+from app.util_resilience import retry, with_timeout
+from multi_agent_system import build_orchestrator
+from multi_agent_system.types import MultiAgentState
 
 
 def _initial_state(repo_root: Path, eval_weights: Dict[str, int] | None = None) -> MultiAgentState:
