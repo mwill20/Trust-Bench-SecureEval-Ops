@@ -49,7 +49,12 @@ def test_run_id_generated_when_missing():
 
 
 def test_health_endpoints():
-    client = TestClient(router)
+    from fastapi import FastAPI
+    
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+    
     resp = client.get("/healthz")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
