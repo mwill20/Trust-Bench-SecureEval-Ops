@@ -20,22 +20,37 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
 
-      - name: Install dependencies
+      - name: Install base dependencies
         run: |
-          pip install -r Project2v2/requirements-phase1.txt
-          pip install pytest pytest-cov pip-audit
+          pip install fastapi uvicorn pydantic pytest pytest-cov pip-audit
+          
+      - name: Install project requirements
+        run: |
+          if [ -f Project2v2/requirements-phase1.txt ]; then
+            pip install -r Project2v2/requirements-phase1.txt
+          fi
+
+      - name: Verify Python environment
+        run: |
+          python --version
+          pip list
+          ls -la Project2v2/
 
       - name: Security audit (non-blocking)
-        run: pip-audit || true
+        run: pip-audit || echo "Security audit completed with warnings"
 
       - name: Run tests with coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          export PYTHONPATH="${PYTHONPATH}:."
-          pytest Project2v2/tests/test_secure_eval.py Project2v2/tests/test_ops_layer.py Project2v2/tests/test_parity.py --maxfail=1 --disable-warnings --cov=Project2v2.app --cov-report=xml
+          cd ${{ github.workspace }}
+          python -m pytest Project2v2/tests/test_secure_eval.py Project2v2/tests/test_ops_layer.py Project2v2/tests/test_parity.py -v --maxfail=1 --disable-warnings --cov=Project2v2.app --cov-report=xml --cov-report=term-missing
 
       - name: Run repository validator
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          export PYTHONPATH="${PYTHONPATH}:."
+          cd ${{ github.workspace }}
           python Project2v2/ops/validate_repo.py
 
       - name: Upload coverage artifact
