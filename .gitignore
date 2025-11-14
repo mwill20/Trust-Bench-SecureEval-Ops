@@ -8,6 +8,17 @@ __pycache__/
 coverage.xml
 github_analysis_*/
 
+# Ignore environment files with secrets
+.env
+.env.local
+
+# Ignore test output directories
+manual_test_output/
+test_no_env/
+verification_test/
+log_test/
+test_output/
+
 # Ignore large media files (use OneDrive links instead)
 *.mp4
 *.avi

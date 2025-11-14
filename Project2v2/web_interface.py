@@ -4,6 +4,7 @@ Run this to get a web UI for submitting repositories for analysis.
 """
 
 import json
+import logging
 import os
 import subprocess
 import tempfile
@@ -18,7 +19,10 @@ from typing import Any, Dict, Optional
 
 from flask import Flask, render_template_string, request, jsonify, send_file
 
+logger = logging.getLogger(__name__)
+
 try:
+    from .core.settings import settings
     from .llm_utils import LLMError, chat_with_llm, test_provider_credentials
     from .security_utils import (
         ValidationError,
@@ -27,6 +31,7 @@ try:
         validate_repo_url,
     )
 except ImportError:
+    from core.settings import settings
     from llm_utils import LLMError, chat_with_llm, test_provider_credentials
     from security_utils import (
         ValidationError,
@@ -2662,7 +2667,7 @@ HTML_TEMPLATE = """﻿<!DOCTYPE html>
 
 @app.route('/')
 def index():
-    default_provider = os.getenv('LLM_PROVIDER', 'openai').lower()
+    default_provider = settings.llm_provider.lower()
     return render_template_string(HTML_TEMPLATE, default_provider=default_provider)
 
 @app.route('/analyze', methods=['POST'])
@@ -2878,7 +2883,7 @@ def api_chat():
         api_key = trimmed or None
     
     # Debug logging
-    print(f"DEBUG: Chat endpoint - provider: {provider}, api_key present: {api_key is not None}, payload keys: {list(payload.keys())}")
+    logger.debug(f"Chat endpoint - provider: {provider}, api_key present: {api_key is not None}, payload keys: {list(payload.keys())}")
 
     if not question:
         return jsonify({
@@ -2921,7 +2926,7 @@ def api_chat():
             pass
         except Exception as exc:
             # Log error but continue with fallback
-            print(f"Router error: {exc}")
+            logger.error(f"Router error: {exc}", exc_info=True)
     
     # Fallback to generic LLM response
     try:
@@ -2997,7 +3002,7 @@ def api_test_llm_key():
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting Trust Bench Multi-Agent Auditor Web Interface...")
-    print("🌐 Open your browser to: http://localhost:5001")
-    print("✨ Ready to analyze repositories!")
+    logger.info("Starting Trust Bench Multi-Agent Auditor Web Interface...")
+    logger.info("Open your browser to: http://localhost:5001")
+    logger.info("Ready to analyze repositories!")
     app.run(debug=True, host='0.0.0.0', port=5001)

@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 import requests
+
+try:
+    from .core.settings import settings
+except ImportError:
+    from core.settings import settings
 
 
 class LLMError(RuntimeError):
@@ -43,7 +47,7 @@ _PROVIDERS: Dict[str, ProviderConfig] = {
 def _ensure_api_key(provider: ProviderConfig, api_key_override: Optional[str] = None) -> str:
     if api_key_override:
         return api_key_override
-    api_key = os.getenv(provider.api_key_var)
+    api_key = settings.get_api_key_for_provider(provider.name)
     if not api_key:
         raise LLMError(
             f"{provider.name.title()} API key missing. "
@@ -88,7 +92,7 @@ def _build_prompt(question: str, context: Optional[Dict[str, Any]] = None) -> st
 def _call_openai(prompt: str, api_key_override: Optional[str] = None) -> str:
     provider = _PROVIDERS["openai"]
     api_key = _ensure_api_key(provider, api_key_override)
-    model = os.getenv("OPENAI_MODEL", provider.default_model)
+    model = provider.default_model  # Using default model from provider config
 
     response = requests.post(
         "https://api.openai.com/v1/chat/completions",
@@ -129,7 +133,7 @@ def _call_openai(prompt: str, api_key_override: Optional[str] = None) -> str:
 def _call_groq(prompt: str, api_key_override: Optional[str] = None) -> str:
     provider = _PROVIDERS["groq"]
     api_key = _ensure_api_key(provider, api_key_override)
-    model = os.getenv("GROQ_MODEL", provider.default_model)
+    model = provider.default_model  # Using default model from provider config
 
     response = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
@@ -170,7 +174,7 @@ def _call_groq(prompt: str, api_key_override: Optional[str] = None) -> str:
 def _call_gemini(prompt: str, api_key_override: Optional[str] = None) -> str:
     provider = _PROVIDERS["gemini"]
     api_key = _ensure_api_key(provider, api_key_override)
-    model = os.getenv("GEMINI_MODEL", provider.default_model)
+    model = provider.default_model  # Using default model from provider config
 
     response = requests.post(
         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
@@ -219,7 +223,7 @@ def chat_with_llm(
     if not question.strip():
         raise LLMError("Question is empty.")
 
-    provider_key = (provider_override or os.getenv("LLM_PROVIDER", "openai")).lower()
+    provider_key = (provider_override or settings.llm_provider).lower()
     if provider_key not in _CALLERS:
         raise LLMError(
             f"Unsupported provider '{provider_key}'. "

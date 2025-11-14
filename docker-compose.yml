@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  trustbench:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trustbench-secureeval-ops
+    restart: unless-stopped
+    
+    ports:
+      - "5001:5001"
+    
+    environment:
+      # LLM Provider Configuration (set at least one)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      
+      # Security & Safety
+      - ENABLE_SECURITY_FILTERS=${ENABLE_SECURITY_FILTERS:-true}
+      
+      # Repository Analysis Limits
+      - TB_MAX_FILES=${TB_MAX_FILES:-2000}
+      - TB_MAX_FILE_SIZE_MB=${TB_MAX_FILE_SIZE_MB:-2}
+      - TB_CLONE_TIMEOUT=${TB_CLONE_TIMEOUT:-120}
+      
+      # Runtime Configuration
+      - TB_RUN_MODE=${TB_RUN_MODE:-strict}
+      - WEB_PORT=5001
+      - FLASK_DEBUG=${FLASK_DEBUG:-false}
+      
+      # Resilience & Reliability
+      - MAX_RETRY_ATTEMPTS=${MAX_RETRY_ATTEMPTS:-3}
+      - RETRY_BACKOFF_SECONDS=${RETRY_BACKOFF_SECONDS:-0.5}
+      - AGENT_TIMEOUT_SECONDS=${AGENT_TIMEOUT_SECONDS:-120}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+    
+    volumes:
+      # Persistent data storage
+      - trustbench-data:/data
+      
+      # Log files
+      - trustbench-logs:/logs
+      
+      # Optional: Mount local .env file (alternative to environment variables)
+      # - ./.env:/app/Project2v2/.env:ro
+      
+      # Optional: Mount custom config
+      # - ./config:/app/config:ro
+    
+    networks:
+      - trustbench-network
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (except mounted volumes)
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/Project2v2/__pycache__:uid=1000,gid=1000
+      - /app/trustbench_core/__pycache__:uid=1000,gid=1000
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/healthz').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  trustbench-data:
+    driver: local
+  trustbench-logs:
+    driver: local
+
+networks:
+  trustbench-network:
+    driver: bridge

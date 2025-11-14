@@ -10,16 +10,19 @@ incrementally as new hardening requirements emerge.
 from __future__ import annotations
 
 import html
-import os
 import re
 from typing import Optional
 from urllib.parse import urlparse
 
+try:
+    from .core.settings import settings
+except ImportError:
+    from core.settings import settings
+
 
 def security_filters_enabled() -> bool:
     """Return True when security helpers should actively enforce checks."""
-    flag = os.getenv("ENABLE_SECURITY_FILTERS", "true").strip().lower()
-    return flag not in {"0", "false", "no", "off"}
+    return settings.enable_security_filters
 
 
 def normalize_text(value: Optional[str]) -> str:

@@ -1,7 +1,18 @@
-"""Agent node definitions used by the LangGraph orchestrator."""
+"""
+Agent node definitions used by the LangGraph orchestrator.
+
+This module implements the specialized agents that perform repository evaluation:
+- SecurityAgent: Scans for secrets and security vulnerabilities
+- QualityAgent: Analyzes code structure and testing practices  
+- DocumentationAgent: Evaluates documentation completeness and quality
+
+Agents collaborate by sharing findings through the shared_memory context and
+explicit inter-agent messages.
+"""
 
 from __future__ import annotations
 
+import logging
 import time
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -14,6 +25,9 @@ from .tools import (
     serialize_tool_result,
 )
 from .types import AgentResult, Message, MultiAgentState, ToolResult
+from core.exceptions import AgentExecutionError
+
+logger = logging.getLogger(__name__)
 
 
 def _append_message(messages: list[Message], **payload: Any) -> list[Message]:
@@ -60,6 +74,19 @@ def _record_timing(
 
 
 def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
+    """
+    Initialize the multi-agent workflow by assigning tasks to specialized agents.
+    
+    This is the first node in the orchestration graph. It sets up the evaluation
+    session, assigns objectives to each agent, and preserves configuration like
+    custom evaluation weights.
+    
+    Args:
+        state: Initial multi-agent workflow state containing repo_root and optional eval_weights.
+    
+    Returns:
+        dict: Updated state with task assignments, session metadata, and initial messages.
+    """
     tasks = [
         {
             "agent": "SecurityAgent",
@@ -100,11 +127,29 @@ def manager_plan(state: MultiAgentState) -> Dict[str, Any]:
 
 
 def security_agent(state: MultiAgentState) -> Dict[str, Any]:
-    repo_root = state["repo_root"]
-    agent_start = time.perf_counter()
-    tool_start = time.perf_counter()
-    tool_result = run_secret_scan(repo_root)
-    tool_elapsed = time.perf_counter() - tool_start
+    """
+    Execute security evaluation by scanning for secrets and vulnerabilities.
+    
+    Args:
+        state: Current multi-agent workflow state.
+    
+    Returns:
+        dict: Updated state with security findings and agent results.
+    
+    Raises:
+        AgentExecutionError: If security scanning fails.
+    """
+    try:
+        repo_root = state["repo_root"]
+        logger.info(f"SecurityAgent: Starting security scan for {repo_root}")
+        agent_start = time.perf_counter()
+        tool_start = time.perf_counter()
+        tool_result = run_secret_scan(repo_root)
+        tool_elapsed = time.perf_counter() - tool_start
+        logger.debug(f"SecurityAgent: Secret scan completed in {tool_elapsed:.2f}s")
+    except Exception as e:
+        logger.error(f"SecurityAgent: Failed to execute secret scan: {e}", exc_info=True)
+        raise AgentExecutionError(f"SecurityAgent failed during secret scan: {e}") from e
     
     # Prepare findings for other agents to use
     security_findings = tool_result.details.get("matches", [])
@@ -164,13 +209,31 @@ def security_agent(state: MultiAgentState) -> Dict[str, Any]:
 
 
 def quality_agent(state: MultiAgentState) -> Dict[str, Any]:
-    repo_root = state["repo_root"]
-    shared_memory = state.get("shared_memory", {})
-    agent_start = time.perf_counter()
+    """
+    Execute quality evaluation by analyzing repository structure and testing.
     
-    tool_start = time.perf_counter()
-    tool_result = analyze_repository_structure(repo_root)
-    tool_elapsed = time.perf_counter() - tool_start
+    Args:
+        state: Current multi-agent workflow state.
+    
+    Returns:
+        dict: Updated state with quality metrics and agent results.
+    
+    Raises:
+        AgentExecutionError: If quality analysis fails.
+    """
+    try:
+        repo_root = state["repo_root"]
+        shared_memory = state.get("shared_memory", {})
+        logger.info(f"QualityAgent: Starting quality analysis for {repo_root}")
+        agent_start = time.perf_counter()
+        
+        tool_start = time.perf_counter()
+        tool_result = analyze_repository_structure(repo_root)
+        tool_elapsed = time.perf_counter() - tool_start
+        logger.debug(f"QualityAgent: Structure analysis completed in {tool_elapsed:.2f}s")
+    except Exception as e:
+        logger.error(f"QualityAgent: Failed to analyze repository structure: {e}", exc_info=True)
+        raise AgentExecutionError(f"QualityAgent failed during structure analysis: {e}") from e
     
     # Collaborate with Security Agent findings
     security_findings = shared_memory.get("security_findings", [])
@@ -234,13 +297,31 @@ def quality_agent(state: MultiAgentState) -> Dict[str, Any]:
 
 
 def documentation_agent(state: MultiAgentState) -> Dict[str, Any]:
-    repo_root = state["repo_root"]
-    shared_memory = state.get("shared_memory", {})
-    agent_start = time.perf_counter()
+    """
+    Execute documentation evaluation by reviewing README and docs quality.
     
-    tool_start = time.perf_counter()
-    tool_result = evaluate_documentation(repo_root)
-    tool_elapsed = time.perf_counter() - tool_start
+    Args:
+        state: Current multi-agent workflow state.
+    
+    Returns:
+        dict: Updated state with documentation assessment and agent results.
+    
+    Raises:
+        AgentExecutionError: If documentation evaluation fails.
+    """
+    try:
+        repo_root = state["repo_root"]
+        shared_memory = state.get("shared_memory", {})
+        logger.info(f"DocumentationAgent: Starting documentation evaluation for {repo_root}")
+        agent_start = time.perf_counter()
+        
+        tool_start = time.perf_counter()
+        tool_result = evaluate_documentation(repo_root)
+        tool_elapsed = time.perf_counter() - tool_start
+        logger.debug(f"DocumentationAgent: Documentation evaluation completed in {tool_elapsed:.2f}s")
+    except Exception as e:
+        logger.error(f"DocumentationAgent: Failed to evaluate documentation: {e}", exc_info=True)
+        raise AgentExecutionError(f"DocumentationAgent failed during documentation evaluation: {e}") from e
     
     # Collaborate with Quality Agent findings
     quality_metrics = shared_memory.get("quality_metrics", {})

@@ -364,6 +364,22 @@ def _faithfulness_score(agent_result: AgentResult) -> float:
 
 
 def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
+    """
+    Finalize workflow by aggregating agent results into comprehensive report.
+    
+    Collects results from SecurityAgent, QualityAgent, and DocumentationAgent,
+    calculates overall scores with optional custom weighting, computes confidence
+    metrics, builds process visualization, and generates final audit report with
+    collaboration insights.
+    
+    Args:
+        state: Current multi-agent workflow state containing agent results, 
+               messages, shared memory, and optional eval_weights.
+    
+    Returns:
+        dict: Updated state with final report, metrics, visualization, and 
+              collaboration summary.
+    """
     # Get eval_weights from state if available
     eval_weights = state.get("eval_weights")
     agent_results = state.get("agent_results", {})
@@ -466,6 +482,16 @@ def manager_finalize(state: MultiAgentState) -> Dict[str, Any]:
 
 
 def build_orchestrator() -> Any:
+    """
+    Construct LangGraph workflow connecting all agents in linear pipeline.
+    
+    Creates StateGraph with 5 nodes: Manager (planning), SecurityAgent,
+    QualityAgent, DocumentationAgent, and Manager (finalization). Establishes
+    sequential execution flow: plan → security → quality → docs → finalize.
+    
+    Returns:
+        CompiledGraph: Executable LangGraph workflow for repository evaluation.
+    """
     workflow: StateGraph[MultiAgentState] = StateGraph(MultiAgentState)
     workflow.add_node("manager_plan", manager_plan)
     workflow.add_node("security_agent", security_agent)
